@@ -14,6 +14,7 @@
 |---|---|---|
 | 本地 CPU 全套 | Windows/Python 3.13.18，70 passed，无失败或跳过，1284.93 秒 | `results/local-tests-industry.xml` |
 | 远端 CPU 全套 | `milu-01-512G`、Python 3.10.12，70 passed、0 failures、0 errors、0 skipped，369.057 秒 | `docs/reports/remote-cpu-tests.xml` |
+| 通用 Linux 入口 | 远端完成示例数据准备、4 步 from-scratch 训练和 `--auto-resume` | `docs/reports/remote-generic-run.md` |
 | 分层扫描对照 | 上述全套包含 8 种架构的前向、完整外循环梯度和流式状态对照 | `tests/test_layer_scan.py` |
 | 融合 JIT 对照 | 8 passed，322.23 秒；完整外循环梯度与流式解码均启用 JIT | `results/layer-scan-final.xml` |
 | 训练入口与精确续训 | 四层 MoE 启用分层扫描；NPZ 与双逻辑设备 mesh/Orbax 均完成四步，从第二步恢复后参数、优化器及数据状态逐项相同 | `results/train-resume-current.json` |

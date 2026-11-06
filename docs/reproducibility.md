@@ -11,7 +11,7 @@ git checkout main
 git rev-parse HEAD
 TTT_INSTALL_CUDA=1 bash scripts/bootstrap_linux.sh
 bash scripts/record_environment.sh --output environment.json
-bash scripts/check_environment.py --require-gpu --min-gpus 1 --output outputs/environment-check.json
+python3 scripts/check_environment.py --require-gpu --min-gpus 1 --output outputs/environment-check.json
 ```
 
 默认使用 Python 3.12.16、JAX 0.4.38 和 CUDA extra。机器需要安装 NVIDIA 驱动；CUDA 运行时由锁定的 JAX CUDA 依赖提供。CPU 调试使用 `TTT_INSTALL_CUDA=0`。

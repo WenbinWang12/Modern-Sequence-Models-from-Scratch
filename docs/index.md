@@ -26,4 +26,4 @@ flowchart LR
 
 前沿问题单独放在 [Frontier Lab](frontier/index.md)：TTT 与线性注意力的关系、TTT-E2E 长上下文和 Looped Transformer 会按论文版本和复现实验更新。它们是研究雷达，不会覆盖主线教材已经验证的结论。
 
-开始阅读：[环境与第一次训练](book/01_environment.md)。
+开始阅读：[为什么训练基模](book/00_why_pretrain.md)。

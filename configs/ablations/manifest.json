@@ -1,0 +1,243 @@
+{
+  "artifact": "v0.16",
+  "experiments": [
+    {
+      "size": "125m",
+      "arm": "A",
+      "path": "configs\\ablations\\125m\\A.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "D",
+      "path": "configs\\ablations\\125m\\D.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "E",
+      "path": "configs\\ablations\\125m\\E.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "E_plus",
+      "path": "configs\\ablations\\125m\\E_plus.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "S2",
+      "path": "configs\\ablations\\125m\\S2.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "C2",
+      "path": "configs\\ablations\\125m\\C2.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "F2",
+      "path": "configs\\ablations\\125m\\F2.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "S4",
+      "path": "configs\\ablations\\125m\\S4.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "C4",
+      "path": "configs\\ablations\\125m\\C4.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "F4",
+      "path": "configs\\ablations\\125m\\F4.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "route_mlp",
+      "path": "configs\\ablations\\125m\\route_mlp.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "route_e2e",
+      "path": "configs\\ablations\\125m\\route_e2e.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "route_delta",
+      "path": "configs\\ablations\\125m\\route_delta.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "loop_none",
+      "path": "configs\\ablations\\125m\\loop_none.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "loop_early_ffn",
+      "path": "configs\\ablations\\125m\\loop_early_ffn.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "loop_middle_block",
+      "path": "configs\\ablations\\125m\\loop_middle_block.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "125m",
+      "arm": "loop_middle_attention",
+      "path": "configs\\ablations\\125m\\loop_middle_attention.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "A",
+      "path": "configs\\ablations\\760m\\A.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "D",
+      "path": "configs\\ablations\\760m\\D.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "E",
+      "path": "configs\\ablations\\760m\\E.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "E_plus",
+      "path": "configs\\ablations\\760m\\E_plus.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "S2",
+      "path": "configs\\ablations\\760m\\S2.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "C2",
+      "path": "configs\\ablations\\760m\\C2.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "F2",
+      "path": "configs\\ablations\\760m\\F2.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "S4",
+      "path": "configs\\ablations\\760m\\S4.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "C4",
+      "path": "configs\\ablations\\760m\\C4.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "F4",
+      "path": "configs\\ablations\\760m\\F4.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "route_mlp",
+      "path": "configs\\ablations\\760m\\route_mlp.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "route_e2e",
+      "path": "configs\\ablations\\760m\\route_e2e.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "route_delta",
+      "path": "configs\\ablations\\760m\\route_delta.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "loop_none",
+      "path": "configs\\ablations\\760m\\loop_none.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "loop_early_ffn",
+      "path": "configs\\ablations\\760m\\loop_early_ffn.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "loop_middle_block",
+      "path": "configs\\ablations\\760m\\loop_middle_block.json",
+      "scheduled_tokens": 15000010752
+    },
+    {
+      "size": "760m",
+      "arm": "loop_middle_attention",
+      "path": "configs\\ablations\\760m\\loop_middle_attention.json",
+      "scheduled_tokens": 15000010752
+    }
+  ],
+  "pending": [
+    {
+      "size": "125m",
+      "arm": "C2_isoflop",
+      "required_measurements": [
+        "125m/C2",
+        "125m/F2"
+      ]
+    },
+    {
+      "size": "125m",
+      "arm": "C4_isoflop",
+      "required_measurements": [
+        "125m/C4",
+        "125m/F4"
+      ]
+    },
+    {
+      "size": "760m",
+      "arm": "C2_isoflop",
+      "required_measurements": [
+        "760m/C2",
+        "760m/F2"
+      ]
+    },
+    {
+      "size": "760m",
+      "arm": "C4_isoflop",
+      "required_measurements": [
+        "760m/C4",
+        "760m/F4"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#PBS -N ttt_mesh_validation
+#PBS -q v100q
+#PBS -P 20260204
+#PBS -l select=1:ncpus=8:ngpus=2:mem=64gb
+#PBS -l walltime=00:40:00
+#PBS -j oe
+
+set -euo pipefail
+ROOT="${TTT_ROOT:-$PBS_O_WORKDIR}"
+cd "$ROOT"
+export PYTHONUNBUFFERED=1
+export JAX_PLATFORMS=cuda
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export JAX_DEFAULT_MATMUL_PRECISION=highest
+mkdir -p results
+"$ROOT/.venv/bin/python" -m ttt.validate_mesh --require-gpu --output results/mesh-validation.json \
+  --checkpoint-dir "results/mesh-$PBS_JOBID"
+"$ROOT/.venv/bin/python" scripts/launch_process_test.py
+if [[ "${TTT_VALIDATE_1B:-0}" == "1" ]]; then
+  "$ROOT/.venv/bin/python" -m ttt.validate_mesh --require-gpu --scale 1b --output results/1b-validation.json
+fi

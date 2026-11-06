@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#PBS -N ttt_multihost_test
+#PBS -q v100q
+#PBS -P 20260204
+#PBS -l select=2:ncpus=2:ngpus=1:mem=16gb
+#PBS -l place=scatter
+#PBS -l walltime=00:20:00
+#PBS -j oe
+
+set -euo pipefail
+ROOT="${TTT_ROOT:-$PBS_O_WORKDIR}"
+cd "$ROOT"
+export PYTHONUNBUFFERED=1
+FLAGS=(--require-gpu)
+if [[ "${TTT_MULTIHOST_CPU:-0}" == "1" ]]; then
+  export JAX_PLATFORMS=cpu
+  export JAX_CPU_COLLECTIVES_IMPLEMENTATION=gloo
+  FLAGS=()
+else
+  export JAX_PLATFORMS=cuda
+fi
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export JAX_DEFAULT_MATMUL_PRECISION=highest
+mkdir -p results
+exec >"results/multihost-$PBS_JOBID.log" 2>&1
+hostname
+"$ROOT/.venv/bin/python" scripts/launch_pbs_multihost.py --module ttt.validate_mesh -- \
+  --output results/multihost-validation.json --checkpoint-dir "results/multihost-$PBS_JOBID" "${FLAGS[@]}"

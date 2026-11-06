@@ -1,0 +1,2 @@
+{"id": "id-1", "prompt": "Tool log: the secret ID is 314159.\nReturn only the secret ID:", "answer": "314159"}
+{"id": "path-1", "prompt": "The configuration file is at /repo/config/model.json.\nReturn only the configuration file path:", "answer": "/repo/config/model.json"}

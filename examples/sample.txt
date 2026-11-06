@@ -1,0 +1,6 @@
+The project name is TTT. The configuration defines the model dimensions.
+Each session starts from the same initial fast weights.
+Read a block, predict the next tokens, and then update the fast MLP.
+Keep the original feed-forward network and add a separate fast MLP.
+The secret identifier is 314159. Return the identifier when requested.
+在每个会话中，模型先预测，再更新快权重。不同会话的状态互相独立。

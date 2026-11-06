@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#PBS -N ttt_gpu_validation
+#PBS -q v100q
+#PBS -P 20260204
+#PBS -l select=1:ncpus=4:ngpus=1:mem=32gb
+#PBS -l walltime=01:00:00
+#PBS -j oe
+
+set -euo pipefail
+ROOT="${TTT_ROOT:-$PBS_O_WORKDIR}"
+cd "$ROOT"
+export PYTHONUNBUFFERED=1
+export JAX_PLATFORMS=cuda
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export JAX_DEFAULT_MATMUL_PRECISION=highest
+mkdir -p results
+nvidia-smi > results/nvidia-smi.txt
+"$ROOT/.venv/bin/python" -m pytest -q --junitxml=results/gpu-tests.xml
+"$ROOT/.venv/bin/python" -m ttt.validate --output results/gpu-validation.json --require-gpu

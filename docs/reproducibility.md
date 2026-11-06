@@ -5,8 +5,8 @@
 ## 获取代码和环境
 
 ```bash
-git clone https://github.com/WenbinWang12/TTT-Model-trian-from-scratch.git
-cd TTT-Model-trian-from-scratch
+git clone https://github.com/WenbinWang12/TTT-Model-train-from-scratch.git
+cd TTT-Model-train-from-scratch
 git checkout main
 git rev-parse HEAD
 TTT_INSTALL_CUDA=1 bash scripts/bootstrap_linux.sh

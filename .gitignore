@@ -2,6 +2,7 @@
 .venv-win/
 .tools/
 .environment-ready
+environment.json
 __pycache__/
 *.py[cod]
 .pytest_cache/

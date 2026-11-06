@@ -1,7 +1,9 @@
 """记录代码版本和运行环境。"""
 
+import argparse
 import hashlib
 import importlib.metadata
+import json
 import os
 import platform
 import socket
@@ -54,3 +56,18 @@ def environment_report():
         "pbs_job_id": os.environ.get("PBS_JOBID"),
         "source_sha256": source_digest(),
     }
+
+
+def main():
+    """把当前运行环境写入 JSON 文件。"""
+    parser = argparse.ArgumentParser(description="记录 TTT 运行环境")
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+    output = Path(args.output).expanduser().resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(environment_report(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"output": str(output), "source_sha256": source_digest()}))
+
+
+if __name__ == "__main__":
+    main()

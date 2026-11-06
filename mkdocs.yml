@@ -50,6 +50,11 @@ markdown_extensions:
 
 nav:
   - 首页: index.md
+  - Frontier Lab — 前沿专题:
+      - 专题总览: frontier/index.md
+      - TTT 与线性注意力: frontier/ttt_linear_attention.md
+      - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
+      - Looped Transformer: frontier/loop_transformer.md
   - Part I — 先把系统跑起来:
       - 环境与第一次训练: book/01_environment.md
       - 仓库与实验记录: book/02_reproducible_runs.md

@@ -1,0 +1,70 @@
+site_name: TTT Model — Train from Scratch
+site_description: 从随机初始化开始构建、训练和验证 TTT-E2E 模型的实验书
+site_url: https://wenbinwang12.github.io/TTT-Model-train-from-scratch/
+repo_url: https://github.com/WenbinWang12/TTT-Model-train-from-scratch
+repo_name: WenbinWang12/TTT-Model-train-from-scratch
+copyright: Copyright 2026 Wenbin Wang
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-night
+        name: 切换到浅色模式
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - 首页: index.md
+  - Part I — 先把系统跑起来:
+      - 环境与第一次训练: book/01_environment.md
+      - 仓库与实验记录: book/02_reproducible_runs.md
+  - Part II — 读懂 TTT-E2E:
+      - 配置、词表与维度: book/03_configuration.md
+      - 前向顺序与快权重: book/04_forward_and_ttt.md
+      - 内循环与外循环: book/05_inner_outer_loop.md
+  - Part III — 扩展模型:
+      - 注意力、缓存与流式推理: book/06_attention_cache.md
+      - MoE、路由与专家并行: book/07_moe.md
+  - Part IV — 做实验:
+      - 消融与 scaling: book/08_experiments.md
+      - GPU、多卡与检查点验证: book/09_gpu_validation.md
+  - 附录:
+      - 复现命令: reproducibility.md
+      - 验证记录: validation.md
+      - 工程对齐: industry_alignment.md
+      - 生产要求: production_requirements.md

@@ -12,6 +12,8 @@ TTT-E2E from-scratch model training implementation.
 
 新 GPU 机器的完整环境、训练、恢复和多卡复现命令见 [可复现实验流程](docs/reproducibility.md)。通用 Linux 入口在 `scripts/bootstrap_linux.sh`、`scripts/run_gpu_train.sh` 和 `scripts/validate_gpu.sh`；SUTD 专用 PBS 入口保留在 `scripts/sutd_*.pbs`。
 
+实验书网页配置位于 `mkdocs.yml`，章节内容位于 `docs/book/`。启用 GitHub Pages 的 Actions 后，网站会从 `main` 自动构建。
+
 后段计算顺序为 Attention → MLP′ → 原 FFN。普通 FFN 不缩窄；内循环只更新快权重，外循环通过内循环继续求导。C/F 对照使用同一架构，仅改变更新开关。
 
 ## 安装

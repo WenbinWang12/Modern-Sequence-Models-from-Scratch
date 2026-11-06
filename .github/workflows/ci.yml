@@ -12,9 +12,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v7
         with:
-          version: "latest"
+          version: "0.13.6"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Install dependencies
-        run: uv sync --frozen --extra dev --extra checkpoint --extra serve
+        run: uv sync --frozen --python 3.12 --extra dev --extra checkpoint --extra serve
       - name: Lint
         run: uv run ruff check ttt tests scripts
       - name: Format check

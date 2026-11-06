@@ -93,4 +93,6 @@ bash scripts/validate_mesh.sh outputs/mesh-validation.json outputs/mesh-checkpoi
 
 每次正式实验至少保存：Git commit、`environment.json`、`source_sha256`、完整实验配置、tokenizer 版本、数据清单及 SHA256、GPU 型号和驱动、训练日志、检查点路径、恢复点、验证报告、命令行和环境变量。
 
+实验书网站使用 `gh-pages` 分支发布。修改 `docs/` 或 `mkdocs.yml` 后，Documentation workflow 会构建静态页面并更新该分支；GitHub 仓库设置应选择 `Settings → Pages → Deploy from a branch → gh-pages / root`。
+
 官方权重、完整 RULER、32K/128K 长上下文和 RL/Agent 实验仍需要额外数据、权重、环境和评测定义。

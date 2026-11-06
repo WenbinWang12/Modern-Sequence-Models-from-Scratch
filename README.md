@@ -8,6 +8,8 @@ TTT-E2E from-scratch model training implementation.
 
 模型包的工程接口和 teleai 的对照见 [工程对齐说明](docs/industry_alignment.md)。推荐通过 `AutoConfig` 和 `AutoModelForCausalLM` 构建模型；直接导入原有类的方式继续兼容。
 
+从随机初始化开始训练的步骤见 [from-scratch 训练指南](docs/training_from_scratch.md)，贡献代码请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
 后段计算顺序为 Attention → MLP′ → 原 FFN。普通 FFN 不缩窄；内循环只更新快权重，外循环通过内循环继续求导。C/F 对照使用同一架构，仅改变更新开关。
 
 ## 安装

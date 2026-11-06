@@ -4,6 +4,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 PYTHON="${TTT_PYTHON:-$ROOT/.venv/bin/python}"
+if [[ ! -x "$PYTHON" ]]; then
+  PYTHON="${TTT_PYTHON_FALLBACK:-python3}"
+fi
 OUTPUT="${1:-$ROOT/outputs/gpu-validation.json}"
 mkdir -p "$(dirname "$OUTPUT")"
 export JAX_PLATFORMS=cuda

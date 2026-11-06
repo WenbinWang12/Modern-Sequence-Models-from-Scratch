@@ -17,6 +17,7 @@ theme:
     - search.highlight
     - content.code.copy
     - content.code.annotate
+    - content.footnote.tooltips
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -50,22 +51,31 @@ markdown_extensions:
 
 nav:
   - 首页: index.md
+  - 序章 — 为什么训练基模:
+      - 训练系统全景: book/00_why_pretrain.md
   - Frontier Lab — 前沿专题:
       - 专题总览: frontier/index.md
       - TTT 与线性注意力: frontier/ttt_linear_attention.md
       - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
       - Looped Transformer: frontier/loop_transformer.md
-  - Part I — 先把系统跑起来:
+  - Part I — 工具链:
       - 环境与第一次训练: book/01_environment.md
       - 仓库与实验记录: book/02_reproducible_runs.md
-  - Part II — 读懂 TTT-E2E:
+  - Part II — 数据:
+      - 数据契约: book/10_data_contract.md
+      - 数据清洗: book/11_data_cleaning.md
+      - Tokenizer 与词表: book/12_tokenizer.md
+      - Dataset 与 manifest: book/13_dataset_and_manifest.md
+  - Part III — 标准基线:
+      - Causal LM 基线: book/14_baseline_model.md
       - 配置、词表与维度: book/03_configuration.md
+  - Part IV — 读懂 TTT-E2E:
       - 前向顺序与快权重: book/04_forward_and_ttt.md
       - 内循环与外循环: book/05_inner_outer_loop.md
-  - Part III — 扩展模型:
+  - Part V — 扩展模型:
       - 注意力、缓存与流式推理: book/06_attention_cache.md
       - MoE、路由与专家并行: book/07_moe.md
-  - Part IV — 做实验:
+  - Part VI — 做实验:
       - 消融与 scaling: book/08_experiments.md
       - GPU、多卡与检查点验证: book/09_gpu_validation.md
   - 附录:

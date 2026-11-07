@@ -62,7 +62,7 @@ nav:
       - 环境与第一次训练: book/01_environment.md
       - 仓库与实验记录: book/02_reproducible_runs.md
   - Part II — 数据:
-      - 数据契约: book/10_data_contract.md
+      - 训练数据：来源、格式与版本: book/10_data_contract.md
       - 数据获取、许可与溯源: book/11_data_acquisition.md
       - 数据清洗与质量过滤: book/12_data_cleaning.md
       - 精确与近似去重: book/13_deduplication.md
@@ -92,7 +92,7 @@ nav:
   - English Edition:
       - Overview: book/en/index.md
       - Why train a base model: book/en/00_why_pretrain.md
-      - Data contract: book/en/10_data_contract.md
+      - Training data: sources, schema, and versions: book/en/10_data_contract.md
       - Acquisition and provenance: book/en/11_data_acquisition.md
       - Cleaning and quality: book/en/12_data_cleaning.md
       - Deduplication: book/en/13_deduplication.md

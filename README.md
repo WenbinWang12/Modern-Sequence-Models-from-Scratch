@@ -1,4 +1,4 @@
-# TTT-Model-train-from-scratch
+# Modern-Sequence-Models-from-Scratch
 
 TTT-E2E from-scratch model training implementation.
 

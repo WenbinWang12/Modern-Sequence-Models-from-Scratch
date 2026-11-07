@@ -1,8 +1,8 @@
-site_name: TTT Model — Train from Scratch
+site_name: Modern Sequence Models — From Scratch
 site_description: 从随机初始化开始构建、训练和验证 TTT-E2E 模型的实验书
-site_url: https://wenbinwang12.github.io/TTT-Model-train-from-scratch/
-repo_url: https://github.com/WenbinWang12/TTT-Model-train-from-scratch
-repo_name: WenbinWang12/TTT-Model-train-from-scratch
+site_url: https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/
+repo_url: https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch
+repo_name: WenbinWang12/Modern-Sequence-Models-from-Scratch
 copyright: Copyright 2026 Wenbin Wang
 
 theme:

@@ -19,8 +19,8 @@
 ## 实验
 
 ```bash
-git clone https://github.com/WenbinWang12/TTT-Model-train-from-scratch.git
-cd TTT-Model-train-from-scratch
+git clone https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch.git
+cd Modern-Sequence-Models-from-Scratch
 git checkout main
 
 TTT_INSTALL_CUDA=1 bash scripts/bootstrap_linux.sh

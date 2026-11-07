@@ -1,4 +1,4 @@
-# 13. Dataset、切分与 manifest
+# 17. Dataset、分片与 manifest
 
 ## 问题
 

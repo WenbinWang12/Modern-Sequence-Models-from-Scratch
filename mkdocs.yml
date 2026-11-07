@@ -63,11 +63,17 @@ nav:
       - 仓库与实验记录: book/02_reproducible_runs.md
   - Part II — 数据:
       - 数据契约: book/10_data_contract.md
-      - 数据清洗: book/11_data_cleaning.md
-      - Tokenizer 与词表: book/12_tokenizer.md
-      - Dataset 与 manifest: book/13_dataset_and_manifest.md
+      - 数据获取、许可与溯源: book/11_data_acquisition.md
+      - 数据清洗与质量过滤: book/12_data_cleaning.md
+      - 精确与近似去重: book/13_deduplication.md
+      - 数据切分与污染: book/14_split_and_contamination.md
+      - Tokenizer 与词表: book/15_tokenizer.md
+      - Token Packing 与 Mask: book/16_packing_and_masks.md
+      - Dataset、分片与 manifest: book/17_dataset_and_manifest.md
+      - 数据混合与确定性采样: book/18_data_mixture.md
+      - 训练前数据验证: book/19_data_preflight.md
   - Part III — 标准基线:
-      - Causal LM 基线: book/14_baseline_model.md
+      - Causal LM 基线: book/20_baseline_model.md
       - 配置、词表与维度: book/03_configuration.md
   - Part IV — 读懂 TTT-E2E:
       - 前向顺序与快权重: book/04_forward_and_ttt.md
@@ -83,3 +89,17 @@ nav:
       - 验证记录: validation.md
       - 工程对齐: industry_alignment.md
       - 生产要求: production_requirements.md
+  - English Edition:
+      - Overview: book/en/index.md
+      - Why train a base model: book/en/00_why_pretrain.md
+      - Data contract: book/en/10_data_contract.md
+      - Acquisition and provenance: book/en/11_data_acquisition.md
+      - Cleaning and quality: book/en/12_data_cleaning.md
+      - Deduplication: book/en/13_deduplication.md
+      - Splits and contamination: book/en/14_split_and_contamination.md
+      - Tokenizer and vocabulary: book/en/15_tokenizer.md
+      - Packing and masks: book/en/16_packing_and_masks.md
+      - Dataset and manifests: book/en/17_dataset_and_manifest.md
+      - Mixtures and sampling: book/en/18_data_mixture.md
+      - Data preflight: book/en/19_data_preflight.md
+      - Dense baseline: book/en/20_baseline_model.md

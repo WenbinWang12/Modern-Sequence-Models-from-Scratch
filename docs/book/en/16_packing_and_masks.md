@@ -1,7 +1,19 @@
-# 16. Token Packing and Masks
+# 16. Packing, labels, and masks
 
-Documents must become fixed-length training examples. Decide whether documents are packed across boundaries, where EOS is inserted, how padding is masked, and whether position IDs or attention masks reset at boundaries.
+## From documents to batches
 
-Pretraining usually supervises every valid next token. SFT may supervise only the response and EOS. Whether prompt tokens participate in the TTT inner loop must be part of the recipe.
+Training needs fixed shapes while documents do not have fixed lengths. Packing decides truncation, concatenation, padding, EOS boundaries, labels, and valid loss positions.
 
-Check that labels are shifted correctly, padding contributes no loss, and masks have the expected shape.
+~~~text
+input_ids: [x0, x1, ..., xL-1]
+labels:    [x1, x2, ..., xL]
+loss_mask: [ 1,  1, ...,  1]
+~~~
+
+Independent-document packing can mask cross-document supervision. Continuous-stream packing improves utilization but must define EOS, source boundaries, and evaluation separation. Sequence length, truncation, padding, EOS, and mask rules belong in the manifest.
+
+## Checks
+
+Every batch has matching input and label shapes, in-range token IDs, a valid mask, nonzero effective tokens, and an explicit next-token convention. Print a sample with text, tokens, labels, masks, and boundaries before a long run.
+
+The next chapter makes shard indexing and sampler state reproducible.

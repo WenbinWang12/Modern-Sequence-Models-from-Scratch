@@ -1,17 +1,11 @@
-# 18. Mixtures and Deterministic Sampling
+# 18. Data mixtures and deterministic sampling
 
-Multi-source corpora should be sampled by an explicit recipe rather than concatenated implicitly.
+## Mixtures shape the model
 
-```json
-{
-  "sources": [
-    {"name":"web", "manifest":"data/web/manifest.json", "weight":0.5},
-    {"name":"books", "manifest":"data/books/manifest.json", "weight":0.3},
-    {"name":"code", "manifest":"data/code/manifest.json", "weight":0.2}
-  ],
-  "temperature": 1.0,
-  "seed": 1234
-}
-```
+File size should not decide the training distribution. A large web source can drown code, books, science, or minority languages. Define source weights in effective token budget and record temperature, seed, exhaustion policy, and target tokens.
 
-Specify how source weights, temperature, global steps, and resume interact. A fixed seed must reproduce the same source sequence after recovery.
+Record target and observed proportions. Filtering and source exhaustion can make them differ. A changed mixture creates a new data version even when the tokenizer and model are unchanged.
+
+Before training, sample indices without updating the model and check source proportions and repeats. During training, log cumulative source counts; after restore, continue from the same sampler state.
+
+The final data chapter performs a preflight before a long job starts.

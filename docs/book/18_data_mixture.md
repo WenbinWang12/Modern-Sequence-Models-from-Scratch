@@ -1,31 +1,41 @@
 # 18. 数据混合与确定性采样
 
-## 问题
+## 混合决定模型看见什么
 
-多来源语料不能只依赖文件拼接顺序。不同来源的采样比例会改变模型看到的分布，也会影响最终结论。
+当语料来自多个来源时，文件大小不应自动决定训练比例。一个大型网页集合可能淹没代码、数学或少数语言；简单地按文档数采样又会让短文档来源占比过高。
 
-## 混合配置
+因此混合配方应在 token 预算上定义：每个来源的目标权重、温度或重采样规则、最小保留量和验证集来源都要显式记录。
 
-```json
+## 一个可审计的配方
+
+~~~json
 {
   "sources": [
-    {"name": "web", "manifest": "data/web/manifest.json", "weight": 0.5},
-    {"name": "books", "manifest": "data/books/manifest.json", "weight": 0.3},
-    {"name": "code", "manifest": "data/code/manifest.json", "weight": 0.2}
+    {"name": "web", "weight": 0.70},
+    {"name": "code", "weight": 0.20},
+    {"name": "books", "weight": 0.10}
   ],
-  "temperature": 1.0,
-  "seed": 1234
+  "sampling": "temperature",
+  "temperature": 0.7,
+  "seed": 17,
+  "target_tokens": 1000000000
 }
-```
+~~~
 
-需要明确：
+这里的 weight 是采样目标，不是最终保证。短来源可能提前耗尽，去重和过滤也会改变可用 token 数，所以报告要同时记录目标比例和实际比例。
 
-- source 权重如何归一化；
-- 是否使用 temperature sampling；
-- 每个 global step 如何选择来源；
-- resume 后采样序列是否保持一致；
-- source 权重是否随训练阶段变化。
+## 配方的三个层次
 
-## 练习
+第一层是内容分布：来源、语言、领域和时间。第二层是采样过程：权重、温度、seed、epoch 和耗尽策略。第三层是训练消费：实际 token 数、每个来源的有效 token、验证集和丢弃 token。
 
-用两个可区分的 toy source 运行固定 seed 的采样器，确认连续执行和从 checkpoint 恢复后的 source 序列一致。
+改变混合配方后，应生成新的 data version，即使 tokenizer、模型和训练命令都不变。否则结果表会把数据变化隐藏在同一个实验名称里。
+
+## 验证混合是否按预期工作
+
+训练前先在不更新模型的情况下生成一段采样索引，统计来源比例和相邻 batch 的重复情况。训练中按 step 或 token 记录累计来源计数；恢复后应从同一采样状态继续，而不是重新抽样。
+
+当前仓库将混合配置保存在 manifest 和运行配置中，训练状态由 checkpoint 保存。后续扩展大规模数据时，应把采样器本身作为可独立测试的纯函数。
+
+## 下一章
+
+数据版本、tokenizer、packing 和混合都准备好后，还不能直接提交长作业。最后要做一次 preflight，把所有输入、统计和边界条件在训练前检查完。

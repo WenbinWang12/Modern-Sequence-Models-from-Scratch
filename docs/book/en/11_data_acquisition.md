@@ -1,7 +1,15 @@
-# 11. Acquisition, Licensing, and Provenance
+# 11. Data acquisition, licensing, and provenance
 
-For every source, record its URL, version, license, download time, raw SHA256, and processing notes. Also record whether the data may be redistributed, whether it contains personal information, and whether it may overlap with evaluation sets.
+## Before data enters the repository
 
-The training corpus is not committed to Git. The repository stores schemas, processing configurations, manifests, and reports. A reproducible run must be able to identify which source versions were used even when the raw files are stored elsewhere.
+Data acquisition is a source-management problem before it is a download command. We need to know who published the data, which version was obtained, whether research and redistribution are allowed, and whether the same snapshot can be retrieved later.
 
-Exercise: create a `source.json` record for one public corpus and attach its download command and raw checksum.
+A source record should include the URL, release or snapshot version, download time, license, raw-file SHA256, and notes about restrictions. The repository stores schemas, source records, processing configuration, manifests, and reports; large raw files live in controlled storage.
+
+## Review boundaries
+
+Check the raw license, tokenizer training data, embedded third-party content, personal information, benchmark contamination, and the planned model-release terms separately. Publicly downloadable does not mean freely redistributable.
+
+## Artifacts and transition
+
+Each processing stage records input digest, configuration, code commit, output digest, document and token counts, and filtering counts. The next chapter turns this provenance into explicit cleaning rules.

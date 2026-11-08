@@ -1,12 +1,20 @@
-# 15. Tokenizer and Vocabulary
+# 15. Tokenizer and vocabulary
 
-The tokenizer maps text to token IDs. `vocab_size` fixes the vocabulary dimension of the input embedding and the language-model head:
+## The tokenizer is a model interface
 
-```text
-embed_tokens: [vocab_size, hidden_size]
-lm_head:      [hidden_size, vocab_size]
-```
+A tokenizer maps variable-length text into a finite vocabulary of IDs. It controls sequence length, character coverage, unknown handling, special-token semantics, and the dimensions of embedding and lm_head.
 
-Fix the tokenizer files and version, special-token IDs, document-boundary policy, Unicode policy, training corpus, and random seed. Changing the tokenizer changes the embedding and output-head shapes, so old checkpoints cannot be reused without an explicit conversion.
+Vocabulary size is a cost and coverage trade-off. A larger vocabulary can shorten common text but increases embedding and output parameters; a smaller vocabulary saves parameters but may lengthen sequences.
 
-Exercise: compare token-length distributions for the byte tokenizer and the target tokenizer on the same cleaned corpus.
+## Versioned choices
+
+A tokenizer version records training data and manifest, algorithm, vocabulary size, normalization, special IDs, byte fallback or unknown policy, code commit, and output digest. Special IDs cannot be silently reordered after they enter checkpoints or token shards.
+
+~~~text
+token id ∈ [0, vocab_size)
+embedding: [vocab_size, hidden_size]
+hidden:    [batch, length, hidden_size]
+logits:    [batch, length, vocab_size]
+~~~
+
+Track tokens per byte by source, length quantiles, special-token frequency, fallback rate, and truncation. The next chapter builds fixed-shape sequences, labels, and loss masks.

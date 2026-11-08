@@ -1,29 +1,43 @@
 # 9. GPU、多卡与检查点验证
 
-## 问题
+## 三个问题必须分开
 
-GPU 验证需要回答三个不同问题：代码是否能运行，分片和恢复是否正确，大模型是否能在目标显存中完成训练。一个结果不能替代另外两个。
+GPU 验证至少回答三个问题：代码能否在目标后端运行；分片、通信和 checkpoint 恢复是否正确；目标规模是否能在给定显存和时间预算内完成。一个 tiny 模型跑通只能回答第一个问题，不能替代后两个。
 
-## 代码
+本书采用三级门槛：
 
-- `scripts/validate_gpu.sh`：单机 GPU 架构和流式一致性；
-- `scripts/validate_mesh.sh`：mesh、专家 shard、Orbax 恢复；
-- `ttt/validate.py`、`ttt/validate_mesh.py`：生成 JSON 报告；
-- `scripts/sutd_*.pbs`：SUTD 专用调度入口。
+1. **功能级**：单 GPU 前向、反向、有限 loss、因果性和流式一致性。
+2. **系统级**：多卡 mesh、expert shard、all-to-all、保存与恢复。
+3. **规模级**：正式配置的初始化、编译、稳态吞吐、峰值显存和长时间稳定性。
 
-## 实验
+每一级都应有独立报告；失败时保留日志和环境，而不是只写“GPU 不可用”。
 
-```bash
+## 代码入口
+
+- scripts/validate_gpu.sh 执行单 GPU 架构与流式一致性检查。
+- scripts/validate_mesh.sh 检查 mesh、专家 shard 和恢复。
+- ttt/validate.py、ttt/validate_mesh.py 输出机器可读 JSON 报告。
+- scripts/sutd_*.pbs 是调度器入口，负责申请资源；模型验证逻辑仍在 Python 中。
+
+调度脚本应该传入共享目录、进程数、rank 和 coordinator 地址，不能把这些信息硬编码到模型模块。这样换成其他 GPU 集群时，只需重写资源申请层。
+
+## 验证命令
+
+~~~bash
 bash scripts/validate_gpu.sh outputs/gpu-validation.json
-bash scripts/validate_mesh.sh outputs/mesh-validation.json outputs/mesh-checkpoint
-```
+bash scripts/validate_mesh.sh \
+  outputs/mesh-validation.json \
+  outputs/mesh-checkpoint
+~~~
 
-多机必须由调度系统提供共享目录、coordinator 地址、进程数和 rank。不要在作业分配之外直接运行 GPU 验证。
+正式规模实验还要记录首步编译时间、编译后稳态 tokens/s、峰值显存、通信时间、loss、梯度范数和 checkpoint 大小。首步慢并不等于稳态慢；恢复成功也不等于恢复后的采样状态正确。
 
-## 证据
+## 失败边界
 
-报告保存设备、驱动、依赖、代码摘要、编译时间、稳态步时间、损失、梯度、内存和检查点恢复结果。
+常见失败应按阶段分类：设备发现失败、依赖/驱动不匹配、XLA 编译失败、shape 或 sharding 错误、通信超时、OOM、checkpoint 不兼容。每类失败都应保留命令、commit、配置和环境摘要，方便在另一台机器上重放。
 
-## 下一步
+## 进入正式规模
 
-只有在这些证据稳定后，才进入正式规模、长上下文、RULER 或后训练实验。
+只有三级门槛都通过，才进入 125M、760M、长上下文、RULER 或官方 checkpoint 的实验。前沿章节可以先提出假设，但最终结论仍要回到同一套数据、成本和恢复证据。
+
+下一部分回到数据：模型容量越大，数据来源、清洗、去重、切分、tokenizer、packing 和 manifest 的错误代价越高。数据章节会把这些输入逐一固定下来。

@@ -1,7 +1,13 @@
-# 14. Splits and Contamination
+# 14. Splits and contamination
 
-Random splits are not always safe. The same document, author, time period, or benchmark can cross train, validation, and test boundaries.
+## What a validation set means
 
-Choose document-level, source-level, temporal, or domain-level splits. Deduplicate before splitting, then run overlap checks between all partitions.
+A validation set should represent data that did not participate in optimization. Randomly taking lines from a corpus is insufficient when versions, authors, web mirrors, or similar documents are related.
 
-The contamination report should record matching rules, thresholds, matched examples, and removed samples. Evaluation contamination requires a separate audit; validation loss cannot discover it by itself.
+Choose a unit that matches the corpus: document, document cluster, time window, or token shard. Document or cluster splitting usually happens before tokenization and packing so one source cannot cross boundaries through chunking.
+
+## The report
+
+Record document and token counts, source and language distributions, exact and near matches between splits, matches to public benchmarks, split seed and rule, input manifest, and code commit. Use pass, review, and blocked states; a review result is not a pass.
+
+Freeze the benchmark version and date. If evaluation data was used for tokenizer training or tuning, declare it. The next chapter fixes how text becomes token IDs.

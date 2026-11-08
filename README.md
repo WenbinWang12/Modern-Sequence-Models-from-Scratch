@@ -1,8 +1,8 @@
 # Modern-Sequence-Models-from-Scratch
 
-TTT-E2E from-scratch model training implementation.
+From-scratch implementations and experiments for modern sequence models.
 
-按 Claude artifact v0.16 实现的 JAX 模型与训练、推理工具。代码注释使用中文。
+按可复现实验书的方式组织的 JAX 模型、训练和推理工具。代码注释使用中文，书籍页面提供中英文两版。
 
 当前验证结果、对应代码摘要和 PBS 作业号见 [验证记录](docs/validation.md)。官方 3B 权重与 128K 复现本轮暂缓。
 

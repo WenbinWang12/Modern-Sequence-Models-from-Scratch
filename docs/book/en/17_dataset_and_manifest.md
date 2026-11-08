@@ -1,7 +1,15 @@
-# 17. Dataset, Shards, and Manifests
+# 17. Datasets, shards, and manifests
 
-The loader needs shard paths, counts, dtype, vocabulary range, hashes, and a reproducible sampling state.
+## The manifest is the data entry point
 
-`ttt/dataset.py` provides mmap-backed shards, SHA256 checks, and supervised masks. `ttt/data.py` provides tokenization and batch sampling. `ttt/checkpoint.py` stores data fingerprints and sampling state for recovery.
+A directory full of shard files is not a data version. A manifest records shard paths, token counts, vocabulary, sequence length, packing rules, and hashes. Paths should be relative to a data root.
 
-Exercise: modify one shard byte and confirm that the loader rejects the manifest before training begins.
+## Reading and recovery
+
+The dataset maps logical indices to physical shards, handles short or corrupt files, and restores sampler seed, epoch, position, and shuffle algorithm. In distributed training, global batch, local batch, host count, and shard axes are part of the run identity.
+
+A checkpoint that restores parameters but changes data order is not a strict resume. Verify hashes before training and stop on a mismatch.
+
+## Transition
+
+The next chapter combines several sources into a deterministic mixture instead of letting file size define the model distribution.

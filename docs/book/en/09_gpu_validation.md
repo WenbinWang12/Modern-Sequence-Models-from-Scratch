@@ -1,4 +1,4 @@
-# 20. GPU, multi-device, and checkpoint validation
+# 21. GPU, multi-device, and checkpoint validation
 
 ## Three questions, three gates
 

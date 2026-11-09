@@ -1,10 +1,30 @@
-# 3. Pretraining Data: Distribution, Quality, and Reproducibility
+# 4. Pretraining Data: Distribution, Quality, and Reproducibility
 
 This chapter follows the [notation and conventions](../notation.md) used throughout the book. Mathematical positions start at 1; code array indices start at 0.
 
-## Define the two central objects
+## Why data is the first design decision
 
-This chapter first defines two phrases that are often used without explanation: **training data distribution** and **prediction loss**. Cleaning, tokenization, packing, and manifests only fit together once these objects are explicit. We denote the tokenized sequence by $x$ and the model parameters by $\theta$ throughout the rest of the chapter.
+Pretraining is not a matter of putting a pile of text on a GPU and waiting for the model to absorb “the internet.” The model only sees the training windows produced by the data pipeline. Source selection, filtering, deduplication, tokenization, packing, and masking together define what the optimizer is asked to learn. Data is therefore part of the model specification, rather than a directory chosen after the architecture.
+
+Data changes the result in at least three ways:
+
+- **Capability coverage.** Web pages, code, books, papers, and conversations contain different vocabularies, structures, and tasks. Their mixture changes coverage of knowledge, long context, programming syntax, and languages.
+- **Training cost.** Different tokenizers produce different token counts for the same text. Longer sequences also increase activation, attention, and KV-cache costs. Cleaning and deduplication determine how much distinct content fits within a fixed token budget.
+- **Evaluation validity.** If validation contains near duplicates of training, a low validation loss may measure memorization. If filtering removes a class of text, the evaluation no longer represents the intended users. Splitting is part of the evaluation protocol.
+
+This small example shows why file counts do not describe the training distribution:
+
+| Source | Documents | Mean tokens | Share after direct token concatenation | Possible bias |
+|---|---:|---:|---:|---|
+| Web | 900,000 | 1,000 | about 82% | broad coverage, with templates and noise |
+| Code | 50,000 | 2,000 | about 9% | concentrated syntax and tool-use examples |
+| Books | 10,000 | 10,000 | about 9% | richer long-form structure, fewer documents |
+
+Direct concatenation makes web tokens dominate; source-uniform sampling gives a different distribution. Both are implementable, but they optimize different objectives. If 30% of web text is duplicated templates, cleaning lowers its effective token count and automatically increases the relative weight of code and books unless the mixture is recomputed. Later sections turn this example into an explicit, reproducible sampling protocol.
+
+## Turn the motivation into a measurable distribution
+
+We now define two objects that are often left implicit: the **training data distribution** and the **prediction loss**. Cleaning, tokenization, packing, and manifests only fit together once these objects are explicit. Following the book-wide notation, a tokenized document stream is \(s\), an input token is \(x\), a next-token target is \(y\), and model parameters are \(\theta\).
 
 Let one raw record be
 
@@ -12,13 +32,15 @@ $$
 r_i=(u_i,m_i),
 $$
 
-where $u_i$ is text and $m_i$ contains metadata such as source, license, language, time, and document group. Let $P_{\mathrm{raw}}$ denote the distribution of raw records. For a fixed collection of raw files, it can be the empirical distribution
+where $u_i$ is text and $m_i$ contains metadata such as source, license, language, time, and document group. Let $P_{\mathrm{raw}}$ denote the distribution of raw records. For a fixed collection of raw files, the simplest uniform-sampling case is:
+
+If we sample uniformly from \(N\) raw records, then
 
 $$
-P_{\mathrm{raw}}=\frac{1}{N}\sum_{i=1}^{N}\delta_{r_i},
+P_{\mathrm{raw}}(r_i)=\frac{1}{N}.
 $$
 
-where $\delta$ is a point mass at one record. A collection of raw files is not yet the final training distribution. After source selection, cleaning, deduplication, and splitting, we obtain a training collection
+For two records \(r_1\) and \(r_2\), each has probability \(1/2\). A collection of raw files is not yet the final training distribution. After source selection, cleaning, deduplication, and splitting, we obtain a training collection
 
 $$
 C_{\mathrm{train}}=\{r_1,\ldots,r_n\}.
@@ -44,8 +66,8 @@ Document distribution and training-position distribution are also different obje
 A tokenizer $\tau$ maps document text to a token sequence and pushes the document distribution into a token-sequence distribution:
 
 $$
-\tau(u_i)=z^{(i)}=(z^{(i)}_0,\ldots,z^{(i)}_{L_i}),
-\qquad z^{(i)}_t\in\{0,\ldots,V-1\},
+\tau(u_i)=s^{(i)}=(s^{(i)}_1,\ldots,s^{(i)}_{L_i}),
+\qquad s^{(i)}_t\in\{0,\ldots,V-1\},
 $$
 
 where $V$ is the vocabulary size. A window sampler then applies sequence length, packing, EOS, and document-boundary rules. Let this operation be $\Pi$. It induces:
@@ -79,18 +101,18 @@ For a concatenated logical stream, $\Pi$ acts on the packed stream rather than o
 
 ## What exactly is prediction loss?
 
-Let a window contain consecutive tokens
+Let a training window contain the consecutive token stream
 
 $$
-z=(z_0,z_1,\ldots,z_L).
+s=(s_1,s_2,\ldots,s_{L+1}).
 $$
 
-A causal language model uses earlier tokens as input and the next token as target:
+A causal language model uses the token at each position as input and the following token as target:
 
 $$
-X=(z_0,\ldots,z_{L-1}),
+x_t=s_t,\qquad y_t=s_{t+1},
 \qquad
-Y=(z_1,\ldots,z_L).
+X=(x_1,\ldots,x_L),\quad Y=(y_1,\ldots,y_L).
 $$
 
 For model parameters $\theta$, the loss at position $t$ is the negative log probability assigned to the observed target token:
@@ -99,12 +121,12 @@ $$
 \ell_t(\theta)=-\log p_\theta(y_t\mid x_{1:t}).
 $$
 
-If the model emits logits $a_\theta(x_{1:t})$ at position $t$, then
+If the model emits logits $\mathbf{z}_\theta(x_{1:t})$ at position $t$, then
 
 $$
 p_\theta(v\mid x_{1:t})
 =
-\operatorname{softmax}(a_\theta(x_{1:t}))_v.
+\operatorname{softmax}(\mathbf{z}_\theta(x_{1:t}))_v.
 $$
 
 If $M=(m_1,\ldots,m_L)$ is a loss mask, with $m_t=1$ for supervised positions and $m_t=0$ for ignored positions, the average window loss is
@@ -160,10 +182,10 @@ For an illustrative token sequence:
 
 | Object | Value |
 |---|---|
-| Continuous tokens | `[10, 11, 12, 2]` |
-| `input_ids` | `[10, 11, 12]` |
-| `labels` | `[11, 12, 2]` |
-| `loss_mask` | `[1, 1, 1]` |
+| Token stream \(s\) | \((10,11,12,2)\) |
+| Code field `input_ids` (mathematical \(X\)) | \((10,11,12)\) |
+| Code field `labels` (mathematical \(Y\)) | \((11,12,2)\) |
+| Code field `loss_mask` (mathematical \(M\)) | \((1,1,1)\) |
 
 The window loss is
 

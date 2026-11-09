@@ -1,4 +1,4 @@
-# 13. Configuration, vocabulary, and dimensions
+# 14. Configuration, vocabulary, and dimensions
 
 ## Configuration is an architecture contract
 
@@ -15,7 +15,7 @@ Configuration should therefore express structural constraints, not hide choices 
 | Fast weights | inner.enabled, update layers, steps, learning rate | TTT state and gradients |
 | Training | batch, sequence length, optimizer, dtype | cost and recovery |
 
-C_k and F_k use the same architecture. C_k disables test-time updates; F_k enables them. Changing width or vocabulary would create a different model, not a clean control.
+\(C_k\) and \(F_k\) use the same architecture. \(C_k\) disables test-time updates; \(F_k\) enables them. Changing width or vocabulary would create a different model, not a clean control.
 
 ## Shape relationship
 

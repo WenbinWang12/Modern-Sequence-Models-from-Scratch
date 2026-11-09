@@ -1,4 +1,4 @@
-# 18　MoE：路由把模型变成一条动态计算图
+# 19　MoE：路由把模型变成一条动态计算图
 
 ## 为什么“复制 FFN”不是 MoE
 
@@ -20,7 +20,7 @@ h
 
 ## Router 的数学对象
 
-设有 E 个专家，router 为位置 t 产生 `r_t∈R^E`。经过 softmax 或 top-k 选择后，得到专家集合 `S_t` 和权重 `g_{t,e}`。稀疏专家输出可以写成：
+设有 \(E\) 个专家，router 为位置 \(t\) 产生 \(r_t\in\mathbb{R}^{E}\)。经过 softmax 或 top-k 选择后，得到专家集合 \(S_t\) 和权重 \(g_{t,e}\)。稀疏专家输出可以写成：
 
 $$
 y_t=\sum_{e\in S_t}g_{t,e} f_e(h_t).

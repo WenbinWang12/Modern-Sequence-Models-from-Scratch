@@ -1,8 +1,8 @@
-# 14. Dense causal-language-model baseline
+# 15. Dense causal-language-model baseline
 
 The dense baseline is the control for TTT, Loop, and MoE. It fixes tokenizer, manifests, sequence length, effective token budget, initialization, optimizer, schedule, seed, precision, hardware, and checkpoint format before adding dynamic state or routing.
 
-For logits z at position t and target y_t:
+For logits \(z\) at position \(t\) and target \(y_t\):
 
 $$
 \ell_t=-\log\frac{\exp z_{t,y_t}}

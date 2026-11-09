@@ -1,12 +1,12 @@
-# 9. Packing, labels, and masks
+# 10. Packing, labels, and masks
 
-The training loop sees input_ids, labels, and loss_mask, not documents. For tokens [x0,x1,x2,x3]:
+The training loop sees code fields `input_ids`, `labels`, and `loss_mask`, not documents. For tokens \(x_0,x_1,x_2,x_3\):
 
-~~~text
-input_ids = [x0,x1,x2]
-labels    = [x1,x2,x3]
-mask      = [1,1,1]
-~~~
+$$
+X=(x_0,x_1,x_2),\qquad
+Y=(x_1,x_2,x_3),\qquad
+M=(1,1,1).
+$$
 
 The current TokenDataset.rows returns a window and a mask shifted by one position. A wrong shift can still produce finite loss while training the wrong task.
 

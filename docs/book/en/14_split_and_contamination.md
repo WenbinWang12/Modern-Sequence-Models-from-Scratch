@@ -1,4 +1,4 @@
-# 7. Splits and contamination
+# 8. Splits and contamination
 
 Randomly assigning records is not enough when mirrors, versions, authors, or repositories are related. Choose the split unit for the evaluation question: document cluster, project, time window, or another stable group.
 

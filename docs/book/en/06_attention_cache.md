@@ -1,13 +1,10 @@
-# 17. Attention, caches, and streaming inference
+# 18. Attention, caches, and streaming inference
 
 ## One model, two timelines
 
 Training commonly processes a complete batch while inference receives one token at a time. Full forward can construct a causal mask directly; streaming inference must carry past information in KV cache, Delta state, and TTT fast weights.
 
-~~~text
-prefill:  x[0:L]  → hidden states + cache + fast weights
-decode:   x[L]     → read cache → produce y[L] → append state
-~~~
+Prefill processes \(x_{1:L}\) and produces hidden states, cache, and fast weights. Decode processes the next token \(x_{L+1}\), reads the cache, produces the next prediction, and appends the new state.
 
 Prefill establishes context. Decode reads and appends state incrementally. Recomputing all history may be numerically correct but does not represent serving cost; an off-by-one cache position can silently change the output.
 

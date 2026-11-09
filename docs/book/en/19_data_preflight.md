@@ -1,4 +1,4 @@
-# 12. Data preflight
+# 13. Data preflight
 
 Preflight rejects an incoherent input before a long compile or multi-day run. It joins the data, tokenizer, model configuration, sampler, and output directory into one check.
 

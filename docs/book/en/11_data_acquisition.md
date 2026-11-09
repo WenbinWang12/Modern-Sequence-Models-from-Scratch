@@ -1,4 +1,4 @@
-# 4. Data acquisition, licensing, and provenance
+# 5. Data acquisition, licensing, and provenance
 
 ## A download URL is not an identity
 

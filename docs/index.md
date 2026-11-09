@@ -32,7 +32,7 @@ flowchart LR
 | 部分 | 要回答的问题 | 主要产物 |
 |---|---|---|
 | 序章 | 为什么要从零训练基模 | 系统全景、变量关系和研究边界 |
-| Part I 工具链 | 怎样让一次运行可启动、可恢复、可审计 | 环境快照、配置、checkpoint 和运行记录 |
+| Part I 实验契约 | 怎样让一次运行可启动、可恢复、可审计 | 研究主张、环境快照、配置、checkpoint 和运行记录 |
 | Part II 数据 | 模型究竟从哪一批数据中学习 | 来源记录、清洗报告、tokenizer、manifest 和 preflight |
 | Part III 基线 | dense Causal LM 是否已经可靠 | 固定数据和预算的 baseline |
 | Part IV TTT-E2E | 快权重在哪里更新，梯度怎样传播 | 前向、内循环、外循环和状态边界 |
@@ -41,4 +41,4 @@ flowchart LR
 
 主线章节优先建立稳定的实验协议；Frontier Lab 允许更快地加入新论文和新假设。只有当一个前沿想法能够复用主线的数据、训练和评估协议时，才把它写成可比较的结果。
 
-开始阅读：[为什么训练基模](book/00_why_pretrain.md)。
+开始阅读：[为什么训练基模](book/00_why_pretrain.md)，然后阅读[实验契约](book/01_experiment_contract.md)。

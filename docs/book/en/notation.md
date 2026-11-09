@@ -106,3 +106,5 @@ Parameters, optimizer state, data-sampler state, and request/session state shoul
 5. $L$ means sequence length, $\mathcal{L}$ means a loss, and $B$ means batch size.
 6. Scaling uses $N_{\mathrm{param}}$ and $N_{\mathrm{tok}}$ rather than ambiguous $N$ and $D$.
 7. Equations use one-based positions; code uses zero-based array indices, and the conversion must be stated when it matters.
+
+Mathematical variables, probabilities, sets, and tensor shapes must use rendered LaTeX, such as \(x\), \(\theta\), \(P_{\mathrm{train}}\), and \(X\in\mathbb{R}^{B\times L\times d}\). Backticks are reserved for actual code names; mathematical variables must not use code styling.

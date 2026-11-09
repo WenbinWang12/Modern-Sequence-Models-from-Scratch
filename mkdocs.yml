@@ -75,32 +75,33 @@ nav:
       - TTT 与线性注意力: frontier/ttt_linear_attention.md
       - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
       - Looped Transformer: frontier/loop_transformer.md
-  - Part I — 工具链:
-      - 环境与第一次训练: book/01_environment.md
-      - 仓库与实验记录: book/02_reproducible_runs.md
+  - Part I — 实验契约与工具链:
+      - 1. 实验契约: book/01_experiment_contract.md
+      - 2. 环境与第一次训练: book/01_environment.md
+      - 3. 仓库与实验记录: book/02_reproducible_runs.md
   - Part II — 数据:
-      - 预训练数据：分布、质量与可复现性: book/10_data_contract.md
-      - 数据获取、许可与溯源: book/11_data_acquisition.md
-      - 数据清洗与质量过滤: book/12_data_cleaning.md
-      - 精确与近似去重: book/13_deduplication.md
-      - 数据切分与污染: book/14_split_and_contamination.md
-      - Tokenizer 与词表: book/15_tokenizer.md
-      - Token Packing 与 Mask: book/16_packing_and_masks.md
-      - Dataset、分片与 manifest: book/17_dataset_and_manifest.md
-      - 数据混合与确定性采样: book/18_data_mixture.md
-      - 训练前数据验证: book/19_data_preflight.md
+      - 4. 预训练数据：分布、质量与可复现性: book/10_data_contract.md
+      - 5. 数据获取、许可与溯源: book/11_data_acquisition.md
+      - 6. 数据清洗与质量过滤: book/12_data_cleaning.md
+      - 7. 精确与近似去重: book/13_deduplication.md
+      - 8. 数据切分与污染: book/14_split_and_contamination.md
+      - 9. Tokenizer 与词表: book/15_tokenizer.md
+      - 10. Token Packing 与 Mask: book/16_packing_and_masks.md
+      - 11. Dataset、分片与 manifest: book/17_dataset_and_manifest.md
+      - 12. 数据混合与确定性采样: book/18_data_mixture.md
+      - 13. 训练前数据验证: book/19_data_preflight.md
   - Part III — 标准基线:
-      - 配置、词表与维度: book/03_configuration.md
-      - Causal LM 基线: book/20_baseline_model.md
+      - 14. 配置、词表与维度: book/03_configuration.md
+      - 15. Causal LM 基线: book/20_baseline_model.md
   - Part IV — 读懂 TTT-E2E:
-      - 前向顺序与快权重: book/04_forward_and_ttt.md
-      - 内循环与外循环: book/05_inner_outer_loop.md
+      - 16. 前向顺序与快权重: book/04_forward_and_ttt.md
+      - 17. 内循环与外循环: book/05_inner_outer_loop.md
   - Part V — 扩展模型:
-      - 注意力、缓存与流式推理: book/06_attention_cache.md
-      - MoE、路由与专家并行: book/07_moe.md
+      - 18. 注意力、缓存与流式推理: book/06_attention_cache.md
+      - 19. MoE、路由与专家并行: book/07_moe.md
   - Part VI — 做实验:
-      - 消融与 scaling: book/08_experiments.md
-      - GPU、多卡与检查点验证: book/09_gpu_validation.md
+      - 20. 消融与 scaling: book/08_experiments.md
+      - 21. GPU、多卡与检查点验证: book/09_gpu_validation.md
   - 附录:
       - 复现命令: reproducibility.md
       - 验证记录: validation.md
@@ -110,23 +111,24 @@ nav:
       - Overview: book/en/index.md
       - Notation and conventions: book/en/notation.md
       - Why train a base model: book/en/00_why_pretrain.md
-      - Environment and first training run: book/en/01_environment.md
-      - Reproducible runs: book/en/02_reproducible_runs.md
-      - Configuration, vocabulary, and dimensions: book/en/03_configuration.md
-      - Forward order and fast weights: book/en/04_forward_and_ttt.md
-      - Inner and outer loops: book/en/05_inner_outer_loop.md
-      - Attention, caches, and streaming: book/en/06_attention_cache.md
-      - MoE and expert parallelism: book/en/07_moe.md
-      - Ablations, cost, and scaling: book/en/08_experiments.md
-      - GPU and checkpoint validation: book/en/09_gpu_validation.md
-      - "Pretraining data: distribution, quality, and reproducibility": book/en/10_data_contract.md
-      - Acquisition and provenance: book/en/11_data_acquisition.md
-      - Cleaning and quality: book/en/12_data_cleaning.md
-      - Deduplication: book/en/13_deduplication.md
-      - Splits and contamination: book/en/14_split_and_contamination.md
-      - Tokenizer and vocabulary: book/en/15_tokenizer.md
-      - Packing and masks: book/en/16_packing_and_masks.md
-      - Dataset and manifests: book/en/17_dataset_and_manifest.md
-      - Mixtures and sampling: book/en/18_data_mixture.md
-      - Data preflight: book/en/19_data_preflight.md
-      - Dense baseline: book/en/20_baseline_model.md
+      - 1. Experiment contract: book/en/01_experiment_contract.md
+      - 2. Environment and first training run: book/en/01_environment.md
+      - 3. Reproducible runs: book/en/02_reproducible_runs.md
+      - "4. Pretraining data: distribution, quality, and reproducibility": book/en/10_data_contract.md
+      - 5. Acquisition and provenance: book/en/11_data_acquisition.md
+      - 6. Cleaning and quality: book/en/12_data_cleaning.md
+      - 7. Deduplication: book/en/13_deduplication.md
+      - 8. Splits and contamination: book/en/14_split_and_contamination.md
+      - 9. Tokenizer and vocabulary: book/en/15_tokenizer.md
+      - 10. Packing and masks: book/en/16_packing_and_masks.md
+      - 11. Dataset and manifests: book/en/17_dataset_and_manifest.md
+      - 12. Mixtures and sampling: book/en/18_data_mixture.md
+      - 13. Data preflight: book/en/19_data_preflight.md
+      - 14. Configuration, vocabulary, and dimensions: book/en/03_configuration.md
+      - 15. Dense baseline: book/en/20_baseline_model.md
+      - 16. Forward order and fast weights: book/en/04_forward_and_ttt.md
+      - 17. Inner and outer loops: book/en/05_inner_outer_loop.md
+      - 18. Attention, caches, and streaming: book/en/06_attention_cache.md
+      - 19. MoE and expert parallelism: book/en/07_moe.md
+      - 20. Ablations, cost, and scaling: book/en/08_experiments.md
+      - 21. GPU and checkpoint validation: book/en/09_gpu_validation.md

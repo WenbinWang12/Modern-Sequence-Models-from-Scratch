@@ -15,7 +15,7 @@ The stable path starts with the training system and data, establishes a dense ca
 | Part | Question | Main artifacts |
 |---|---|---|
 | Prologue | Why train a base model from scratch? | system map and research boundary |
-| Part I | How do we make a run start, resume, and explain itself? | environment, config, checkpoints, provenance |
+| Part I | How do we make a run start, resume, and explain itself? | experiment contract, environment, config, checkpoints, provenance |
 | Part II | What data distribution does the model learn? | source records, cleaning, tokenizer, manifests, preflight |
 | Part III | Is the dense causal baseline trustworthy? | fixed-budget baseline |
 | Part IV | Where do TTT fast weights update? | forward path and inner/outer loops |
@@ -24,4 +24,4 @@ The stable path starts with the training system and data, establishes a dense ca
 
 The stable path establishes the protocol first. Frontier Lab can move faster, but its claims should reuse the mainline data, training, and evaluation contract before they are compared with the baseline.
 
-Start with [Why train a base model](00_why_pretrain.md).
+Start with [Why train a base model](00_why_pretrain.md), then read [The experiment contract](01_experiment_contract.md).

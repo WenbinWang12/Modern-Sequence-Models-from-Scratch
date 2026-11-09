@@ -1,4 +1,4 @@
-# 10　Dataset、分片与 Manifest：把数据变成可恢复输入
+# 11　Dataset、分片与 Manifest：把数据变成可恢复输入
 
 ## 为什么一个目录不够
 

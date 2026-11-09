@@ -1,4 +1,4 @@
-# 2. Repositories and reproducible runs
+# 3. Repositories and reproducible runs
 
 ## A run is an object
 

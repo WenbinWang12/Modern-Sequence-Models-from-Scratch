@@ -1,4 +1,4 @@
-# 11. Data mixtures and deterministic sampling
+# 12. Data mixtures and deterministic sampling
 
 Concatenating files lets file size define the training distribution. That may overrepresent web text and underrepresent code, books, or minority languages. A mixture should be specified in an effective-token budget with source weights, temperature, seed, exhaustion policy, and target tokens.
 

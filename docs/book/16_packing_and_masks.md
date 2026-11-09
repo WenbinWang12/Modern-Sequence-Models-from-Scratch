@@ -1,17 +1,19 @@
-# 9　Packing、标签与 Mask：一个 batch 是怎样构造出来的
+# 10　Packing、标签与 Mask：一个 batch 是怎样构造出来的
 
 ## 模型真正训练的不是文档
 
-训练循环看到的是 `input_ids`、`labels` 和 `loss_mask`，不是“这是一篇文章”。一个简单的 next-token 样本把：
+训练循环看到的是代码字段 `input_ids`、`labels` 和 `loss_mask`，不是“这是一篇文章”。一个简单的 next-token 样本可以写成：
 
-~~~text
-tokens:     [x0, x1, x2, x3]
-input_ids:  [x0, x1, x2]
-labels:     [x1, x2, x3]
-mask:       [ 1,  1,  1]
-~~~
+\[
+\begin{aligned}
+\text{tokens}&=(x_0,x_1,x_2,x_3),\\
+X&=(x_0,x_1,x_2),\\
+Y&=(x_1,x_2,x_3),\\
+M&=(1,1,1).
+\end{aligned}
+\]
 
-输入位置 `i` 的预测目标是原序列的 `i+1`。如果把 input 和 label 取成相同序列，模型就不再执行标准的 next-token 任务；如果 shift 多一位，模型会学习错位目标，却可能仍然产生有限 loss。
+输入位置 \(i\) 的预测目标是原序列的 \(i+1\)。如果把 input 和 label 取成相同序列，模型就不再执行标准的 next-token 任务；如果 shift 多一位，模型会学习错位目标，却可能仍然产生有限 loss。
 
 在当前实现中，`TokenDataset.rows(starts, length)` 返回长度为 `length` 的 token 窗口，并返回去掉第一列后的 mask。`BatchStream.next_batch_with_masks()` 再把窗口交给训练器。阅读数据代码时，先确认这一处 shift，再看模型的 loss。
 
@@ -35,14 +37,9 @@ mask 的含义是“这个 label 是否参与 loss”，不是“这个 token �
 
 ## 一个可以手算的例子
 
-设 token 序列为 `[10, 11, 12, 2, 20]`，其中 2 是 EOS。长度为 4 的训练窗口是：
+设 token 序列为 \(z=(10,11,12,2,20)\)，其中 2 是 EOS。长度为 4 的训练窗口是 \(X=(10,11,12,2)\)、\(Y=(11,12,2,20)\)。
 
-~~~text
-input_ids = [10, 11, 12, 2]
-labels    = [11, 12,  2, 20]
-~~~
-
-如果我们把 EOS 后的 20 视为下一篇文档的第一个 token，最后一项是否训练取决于 packing 约定。若希望文档之间不互相监督，mask 可以是 `[1,1,1,0]`；若把整个 token 流当作连续语料，则是 `[1,1,1,1]`。两种设置训练的是不同条件分布。
+如果我们把 EOS 后的 20 视为下一篇文档的第一个 token，最后一项是否训练取决于 packing 约定。若希望文档之间不互相监督，mask 可以是 \(M=(1,1,1,0)\)；若把整个 token 流当作连续语料，则是 \(M=(1,1,1,1)\)。两种设置训练的是不同条件分布。
 
 这就是为什么“加了 EOS”还不足以说明边界语义。必须同时写出 input、label、mask 和 attention mask。
 

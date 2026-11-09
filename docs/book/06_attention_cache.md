@@ -1,8 +1,8 @@
-# 17　Attention、Cache 与流式推理
+# 18　Attention、Cache 与流式推理
 
 ## 训练中的矩阵和推理中的状态
 
-训练可以一次看到长度为 L 的整段序列，并构造完整的 causal mask。生成时，模型通常已经处理了前缀，只收到一个新 token。若每次重新计算全部历史，算法可能正确，但成本随历史增长；KV cache 让新 token 复用过去的 key/value。
+训练可以一次看到长度为 \(L\) 的整段序列，并构造完整的 causal mask。生成时，模型通常已经处理了前缀，只收到一个新 token。若每次重新计算全部历史，算法可能正确，但成本随历史增长；KV cache 让新 token 复用过去的 key/value。
 
 TTT 又增加了一层状态：过去的上下文不仅保存在 KV 或 Delta 矩阵里，还可能改变 fast weights。因此推理状态不再是一个 cache 数组，而是：
 
@@ -29,16 +29,7 @@ cache 的 capacity 不是 max_position_embeddings 的同义词。它是一次 se
 
 prefill 把一段 token 写入状态，并输出最后位置的 logits。decode 读取当前状态，处理一个或一小段新 token，然后追加状态。
 
-~~~text
-prefill(x[0:L])
-  → cache at position L
-  → fast state after chosen chunk boundary
-
-decode(x[L])
-  → read cache at L
-  → predict x[L+1]
-  → append key/value and possibly update fast state
-~~~
+Prefill 处理 \(x_{1:L}\)，得到位置 \(L\) 的 cache 和选定 chunk 边界后的快状态；decode 读取位置 \(L\) 的状态，处理新 token \(x_{L+1}\)，预测后续 token，并追加 key/value，必要时更新快状态。
 
 TTT chunk size 大于 1 时，decode 不能把每个 token 都当作完整 inner update；它可能需要把 token 放进 incomplete chunk，待标签和边界满足后更新。`runtime.py` 保存未完成块，就是为了不把半个更新误当成完整状态。
 

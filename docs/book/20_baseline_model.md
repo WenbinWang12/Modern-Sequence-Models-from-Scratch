@@ -1,4 +1,4 @@
-# 14　Dense Causal LM 基线：先证明训练系统能学习
+# 15　Dense Causal LM 基线：先证明训练系统能学习
 
 ## 基线不是最小的玩具
 
@@ -8,7 +8,7 @@
 
 ## 从 logits 到 loss
 
-模型产生 `z_{t,v}`，其中 `t` 是位置、`v` 是词表 ID。交叉熵为：
+模型产生 \(z_{t,v}\)，其中 \(t\) 是位置、\(v\) 是词表 ID。交叉熵为：
 
 $$
 \ell_t=-\log\frac{\exp z_{t,y_t}}
@@ -24,7 +24,7 @@ $$
 \frac{\sum_t m_t\ell_t}{\max(\sum_t m_t,1)},
 $$
 
-其中 `m_t` 是 mask。最后的 max 防止全零 mask 时除零，但全零样本本身应该被 preflight 拒绝。
+其中 \(m_t\) 是 mask。最后的 max 防止全零 mask 时除零，但全零样本本身应该被 preflight 拒绝。
 
 ## 基线配置到底关闭了什么
 

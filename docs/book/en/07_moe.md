@@ -1,4 +1,4 @@
-# 18. MoE, routing, and expert parallelism
+# 19. MoE, routing, and expert parallelism
 
 ## MoE changes the compute path
 

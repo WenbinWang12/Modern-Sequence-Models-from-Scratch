@@ -1,15 +1,10 @@
-# 15. Forward order and fast weights
+# 16. Forward order and fast weights
 
 ## What TTT-E2E changes
 
 TTT-E2E does not simply replace an MLP. Selected later blocks contain an additional MLP-prime that can be updated at test time. The original MLP remains a stable static transformation; MLP-prime absorbs local context through an inner loop.
 
-~~~text
-x
- ├─ causal attention ──┐
- ├─ static MLP ─────────┼─ residual output
- └─ fast MLP-prime ─ inner update ─┘
-~~~
+For a hidden state \(x\), causal attention and the static MLP contribute stable residual paths, while the fast MLP-prime contributes a path whose state is changed by the inner update. The three paths are combined into the residual output.
 
 The model predicts with the current fast weights, computes the inner loss, and then updates the fast state. The boundary at which the new state is used is part of the configuration.
 

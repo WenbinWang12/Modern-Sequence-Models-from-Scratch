@@ -1,4 +1,4 @@
-# 5. Cleaning: every filter changes the distribution
+# 6. Cleaning: every filter changes the distribution
 
 ## Clean is not a natural label
 

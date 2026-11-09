@@ -1,4 +1,4 @@
-# 1. Environment and the first training run
+# 2. Environment and the first training run
 
 ## The engineering question
 

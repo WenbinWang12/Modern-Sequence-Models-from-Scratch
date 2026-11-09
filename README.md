@@ -126,7 +126,7 @@ python -m ttt.convert_official --source /path/to/model_weights --config official
 
 尚未取得官方 requester-pays GCS 检查点的访问与计费条件。布局测试使用已知结构数组，不代表官方 3B/128K 复现。
 
-召回评测支持 `{"prompt":"...","answer":"..."}` 或 `answers` 列表，答案只交给评分器。内置探针不是完整 RULER。`python -m ttt.scaling` 接收含 `parameters/tokens/loss/held_out` 的 JSONL，拟合 N/D scaling law，输出 bootstrap 区间和留出结果，不生成训练结果。
+召回评测支持 `{"prompt":"...","answer":"..."}` 或 `answers` 列表，答案只交给评分器。内置探针不是完整 RULER。`python -m ttt.scaling` 接收含 `parameters/tokens/loss/held_out` 的 JSONL，拟合 $N_{\mathrm{param}}/N_{\mathrm{tok}}$ scaling law，输出 bootstrap 区间和留出结果，不生成训练结果。
 
 ## 审计与检查
 

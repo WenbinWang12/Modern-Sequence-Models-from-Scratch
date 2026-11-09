@@ -1,15 +1,15 @@
-# 8. Tokenizer and vocabulary
+# 9. Tokenizer and vocabulary
 
 A tokenizer determines sequence length, character coverage, special-token semantics, embedding size, output-head size, and evaluation fairness. The same character corpus can produce different numbers of training positions under different tokenizers.
 
-With vocabulary V and hidden size d:
+With vocabulary \(V\) and hidden size \(d\):
 
 $$
 E\in\mathbb R^{V\times d},\qquad
 \mathrm{logits}\in\mathbb R^{\ldots\times V}.
 $$
 
-Tied embeddings use E-transpose for lm_head; untied embeddings add another d by V matrix. The MLP can change its intermediate width, but it must return to d before the residual and vocabulary projection.
+Tied embeddings use the transpose of \(E\) for `lm_head`; untied embeddings add another \(d\times V\) matrix. The MLP can change its intermediate width, but it must return to \(d\) before the residual and vocabulary projection.
 
 The repository ByteTokenizer maps UTF-8 bytes 0–255 to IDs 3–258, reserving 0, 1, and 2 for pad, BOS, and EOS. It is useful for interface and recovery checks, but inefficient for Chinese and mixed technical text.
 

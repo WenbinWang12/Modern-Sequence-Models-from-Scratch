@@ -1,4 +1,4 @@
-# 10. Datasets, shards, and manifests
+# 11. Datasets, shards, and manifests
 
 A directory of NPY files is not a data version. The manifest fixes shard order, counts, vocabulary, mask files, and hashes. The current loader checks format_version, vocab_size, file location, SHA256, one-dimensional integer tokens, token ranges, mask shape, and mask bounds.
 

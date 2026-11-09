@@ -1,4 +1,4 @@
-# 6. Deduplication: control implicit sampling weights
+# 7. Deduplication: control implicit sampling weights
 
 Repeated text receives repeated optimization weight. It can also cross the train/validation boundary and make evaluation measure memorization rather than generalization. Exact and near duplicates should be reported separately.
 

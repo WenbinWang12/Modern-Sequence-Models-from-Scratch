@@ -1,4 +1,4 @@
-# 13　配置：用一份架构合同约束所有张量
+# 14　配置：用一份架构合同约束所有张量
 
 ## 为什么模型不应该“猜”参数
 
@@ -10,11 +10,11 @@
 
 设：
 
-- `V`：词表大小；
-- `d`：hidden size；
-- `n_h`：attention heads；
-- `d_ff`：普通 MLP 中间维度；
-- `d'_ff`：快 MLP 中间维度。
+- \(V\)：词表大小；
+- \(d\)：hidden size；
+- \(n_h\)：attention heads；
+- \(d_{\mathrm{ff}}\)：普通 MLP 中间维度；
+- \(d'_{\mathrm{ff}}\)：快 MLP 中间维度。
 
 输入 embedding：
 
@@ -29,7 +29,7 @@ $$
 \quad W_{\mathrm{out}}\in\mathbb R^{d\times V}.
 $$
 
-如果 tied embeddings，`W_out=E^T`；如果不共享，就额外分配一个 `d×V` 矩阵。无论是否共享，logits 最后一维都是 `V`。这正是 tokenizer 选定后分类头输出维度基本固定的原因。
+如果 tied embeddings，\(W_{\mathrm{out}}=E^\mathsf{T}\)；如果不共享，就额外分配一个 \(d\times V\) 矩阵。无论是否共享，logits 最后一维都是 \(V\)。这正是 tokenizer 选定后分类头输出维度基本固定的原因。
 
 这也解释了为什么不能只把 MLP 中间层扩大来“增加词表能力”。中间层的宽度改变计算和表示容量，词表投影的输出空间仍由 tokenizer 决定。
 

@@ -1,20 +1,10 @@
-# 16　内循环与外循环：两种时间尺度的优化
+# 17　内循环与外循环：两种时间尺度的优化
 
 ## 同一个 loss 里有两条更新路径
 
 TTT 的难点不是写出一个 SGD，而是定义哪些梯度应该流向哪里。对一段序列，模型先用当前快权重预测，再计算局部 loss 和更新快权重；外循环再根据整个序列的预测结果更新静态模型。
 
-~~~text
-static parameters θ
-        │
-        ├── initialize fast weights φ0
-        │
-        └── prefix and suffix computation
-                    │
-       φ0 → inner loss → SGD → φ1 → inner loss → ...
-                    │
-                    └──────── outer loss → AdamW(θ)
-~~~
+静态参数 \(\theta\) 先初始化快权重 \(\phi_0\)，然后经过 prefix 和 suffix 计算。序列内的状态转移可以写成 \(\phi_0\to\text{inner loss}\to\text{SGD}\to\phi_1\)，外循环则根据 outer loss 更新 \(\theta\)。
 
 $\phi$ 的更新是序列内状态转移，$\theta$ 的更新是训练步之间的参数转移。把它们都叫“模型参数更新”会掩盖最重要的算法差异。
 
@@ -68,7 +58,7 @@ $$
 
 ## 一阶与高阶梯度
 
-在严格的 meta-learning 视角下，fast update 本身依赖 theta，outer gradient 还要通过 update 计算。当前路径使用 JAX 的可微函数和 checkpoint scan，因此默认可能保留这条依赖；但具体实验是否截断，需要由配置和实现明确。
+在严格的 meta-learning 视角下，fast update 本身依赖 \(\theta\)，outer gradient 还要通过 update 计算。当前路径使用 JAX 的可微函数和 checkpoint scan，因此默认可能保留这条依赖；但具体实验是否截断，需要由配置和实现明确。
 
 可把两个版本分别命名：
 

@@ -1,15 +1,32 @@
 # Prologue: Why train a base model from scratch
 
+## What the reader should be able to do
+
+The reader should finish this book able to build an auditable training chain from scratch: identify the data a model saw, locate where its state was updated, measure where the budget was spent, and state exactly what an experiment does and does not prove.
+
+The central question is:
+
+> Under fixed data, representation, training budget, and system conditions, how do modern sequence models store, update, and use context?
+
+“From scratch” is the method for answering that question. It keeps data, tokenization, optimization, state, and checkpoints visible before we compare attention, compressed state, TTT, recurrent depth, and MoE.
+
 “Train a language model by putting text through a Transformer and minimizing cross-entropy.” That sentence is correct, but incomplete. It says nothing about where the text comes from, how the tokenizer changes the budget, what a resumed run means, or which evidence can support an architectural claim.
 
 This book builds a complete experiment rather than a single model class. We begin with a controlled corpus, tokenizer, causal objective, and dense baseline. We then study TTT, linear attention, recurrent depth, MoE, and long-context state under the same data and reporting contract.
 
+The progression is deliberately causal:
+
+~~~text
+motivation → experiment contract → data and representation → dense baseline
+→ context memory → compute and capacity → evidence and boundaries
+~~~
+
 ## The objective
 
-For tokens `x_1,\ldots,x_T`, an autoregressive model minimizes
+For tokens $x_1,\ldots,x_L$, an autoregressive model minimizes
 
 $$
-\mathcal L(\theta)=-\frac{1}{T}\sum_{t=1}^{T}
+\mathcal L(\theta)=-\frac{1}{L}\sum_{t=1}^{L}
 \log p_\theta(x_t\mid x_{<t}).
 $$
 

@@ -1,4 +1,4 @@
-# 6. Attention, caches, and streaming inference
+# 17. Attention, caches, and streaming inference
 
 ## One model, two timelines
 

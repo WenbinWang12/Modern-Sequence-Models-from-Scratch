@@ -1,15 +1,36 @@
-# 11. Data acquisition, licensing, and provenance
+# 4. Data acquisition, licensing, and provenance
 
-## Before data enters the repository
+[中文版](../11_data_acquisition.md)
 
-Data acquisition is a source-management problem before it is a download command. We need to know who published the data, which version was obtained, whether research and redistribution are allowed, and whether the same snapshot can be retrieved later.
+## A download URL is not an identity
 
-A source record should include the URL, release or snapshot version, download time, license, raw-file SHA256, and notes about restrictions. The repository stores schemas, source records, processing configuration, manifests, and reports; large raw files live in controlled storage.
+The same URL can point to a changed release. A source record should separate canonical location, immutable release or snapshot, retrieval time, terms, and file digests.
 
-## Review boundaries
+~~~json
+{
+  "source_id": "source-a",
+  "publisher": "<publisher>",
+  "source_url": "<canonical-page>",
+  "release": "<immutable-release>",
+  "retrieved_at": "<UTC-time>",
+  "files": [
+    {"name": "part-000.jsonl.gz", "bytes": 12345, "sha256": "<computed>"}
+  ]
+}
+~~~
 
-Check the raw license, tokenizer training data, embedded third-party content, personal information, benchmark contamination, and the planned model-release terms separately. Publicly downloadable does not mean freely redistributable.
+This is a provenance record, not the input schema consumed by TokenDataset. The training manifest points to derived token files; the source record explains how those files came to exist.
 
-## Artifacts and transition
+## Integrity and extraction
 
-Each processing stage records input digest, configuration, code commit, output digest, document and token counts, and filtering counts. The next chapter turns this provenance into explicit cleaning rules.
+A correct archive hash does not prove that HTML extraction produced the intended text. Extractor versions, retained headings, tables, and code blocks can change the model distribution. Keep raw objects immutable and write clean outputs to a new versioned directory.
+
+Download failure, parse failure, and content filtering are different losses and should not share one “removed” counter.
+
+## Licensing boundaries
+
+Review the license, personal information, third-party content, benchmark contamination, and intended redistribution separately. Unknown terms remain unknown until reviewed. A license field is evidence of a declared term, not proof that the full release plan is compliant.
+
+The repository's sample corpus is an educational input. ttt.data does not implement web crawling, legal review, or general HTML extraction. Those stages belong upstream of tokenization.
+
+The next chapter defines conservative cleaning rules and the statistics that make their effects visible.

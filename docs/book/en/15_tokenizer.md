@@ -1,20 +1,20 @@
-# 15. Tokenizer and vocabulary
+# 8. Tokenizer and vocabulary
 
-## The tokenizer is a model interface
+[中文版](../15_tokenizer.md)
 
-A tokenizer maps variable-length text into a finite vocabulary of IDs. It controls sequence length, character coverage, unknown handling, special-token semantics, and the dimensions of embedding and lm_head.
+A tokenizer determines sequence length, character coverage, special-token semantics, embedding size, output-head size, and evaluation fairness. The same character corpus can produce different numbers of training positions under different tokenizers.
 
-Vocabulary size is a cost and coverage trade-off. A larger vocabulary can shorten common text but increases embedding and output parameters; a smaller vocabulary saves parameters but may lengthen sequences.
+With vocabulary V and hidden size d:
 
-## Versioned choices
+$$
+E\in\mathbb R^{V\times d},\qquad
+\mathrm{logits}\in\mathbb R^{\ldots\times V}.
+$$
 
-A tokenizer version records training data and manifest, algorithm, vocabulary size, normalization, special IDs, byte fallback or unknown policy, code commit, and output digest. Special IDs cannot be silently reordered after they enter checkpoints or token shards.
+Tied embeddings use E-transpose for lm_head; untied embeddings add another d by V matrix. The MLP can change its intermediate width, but it must return to d before the residual and vocabulary projection.
 
-~~~text
-token id ∈ [0, vocab_size)
-embedding: [vocab_size, hidden_size]
-hidden:    [batch, length, hidden_size]
-logits:    [batch, length, vocab_size]
-~~~
+The repository ByteTokenizer maps UTF-8 bytes 0–255 to IDs 3–258, reserving 0, 1, and 2 for pad, BOS, and EOS. It is useful for interface and recovery checks, but inefficient for Chinese and mixed technical text.
 
-Track tokens per byte by source, length quantiles, special-token frequency, fallback rate, and truncation. The next chapter builds fixed-shape sequences, labels, and loss masks.
+A tokenizer version records training manifest, normalization, algorithm, vocabulary size, special IDs, unknown or byte fallback behavior, code version, and output digest. Measure tokens per byte, length quantiles, fallback rate, special-token frequency, truncation, and per-language behavior.
+
+Changing the tokenizer requires new token shards and a compatible model configuration; changing only vocab_size in a checkpoint is not a conversion.

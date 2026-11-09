@@ -1,22 +1,20 @@
-# 20. Dense causal-language-model baseline
+# 14. Dense causal-language-model baseline
 
-## Why the baseline comes first
+[中文版](../20_baseline_model.md)
 
-TTT, linear attention, Loop, and MoE need a trustworthy dense reference. The baseline fixes data, tokenizer, optimizer, training budget, and evaluation before adding new state or routing.
+The dense baseline is the control for TTT, Loop, and MoE. It fixes tokenizer, manifests, sequence length, effective token budget, initialization, optimizer, schedule, seed, precision, hardware, and checkpoint format before adding dynamic state or routing.
 
-~~~text
-num_experts = 0
-use_fast_mlp = false
-inner.enabled = false
-loop_mode = none
-~~~
+For logits z at position t and target y_t:
 
-Verify finite decreasing next-token loss, stable gradients, checkpoint recovery, shape changes, causal consistency, and a held-out distribution that is distinct and traceable.
+$$
+\ell_t=-\log\frac{\exp z_{t,y_t}}
+{\sum_v \exp z_{t,v}}.
+$$
 
-## Code and fair comparison
+The repository can compute cross-entropy in token and vocabulary blocks, preserving the same objective while reducing peak memory. Masked loss uses the sum of valid-token losses divided by the valid-token count.
 
-The dense model lives under ttt/models; training and checkpoints are handled by ttt/training.py and ttt/checkpoint.py. Use the same manifest and preflight as later models. Start with tiny, then scale to 125M by changing only declared configuration fields.
+The baseline disables experts, fast MLP, inner updates, and loop mode. It can still choose sliding or full attention, but attention type must be recorded as a separate variable.
 
-For every comparison, fix initialization rules, tokenizer, manifest, effective tokens, optimizer, seed, and hardware. Report parameters, active parameters, FLOPs, memory, communication, compilation, and inference cost. A lower loss alone is not an efficiency claim.
+Each training step samples a window, runs sequence_loss, computes outer gradients, applies Optax, records loss and state statistics, and periodically checkpoints. A finite decreasing loss is a health signal, not evidence of broad capability; tiny data can simply be memorized.
 
-The next part returns to the TTT forward path with a baseline that has already earned trust.
+For each later comparison, report data and tokens, total and active parameters, optimizer and inner-loop settings, hardware and precision, compile and steady cost, memory, communication, training and held-out loss, and restore behavior. The next part follows a token through the TTT forward path.

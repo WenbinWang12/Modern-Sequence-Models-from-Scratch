@@ -1,4 +1,4 @@
-# 8. Ablations, cost, and scaling
+# 19. Ablations, cost, and scaling
 
 ## Write the comparison protocol first
 

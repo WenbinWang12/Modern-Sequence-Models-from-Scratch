@@ -1,58 +1,117 @@
-# 2. 仓库与可复现实验
+# 2　可复现实验：把一次运行变成一个有身份的对象
 
-## 从一次运行到一个实验对象
+[English](en/02_reproducible_runs.md)
 
-一条训练命令只能说明程序曾经启动过，不能说明结果为什么这样。可复现实验需要把运行看成一个有身份的对象：它由代码版本、配置、数据版本、环境和状态共同定义。
+## “同样的命令”并不代表同样的实验
+
+两台机器执行同一条命令，可能读取不同的数据文件、使用不同默认值、从不同 checkpoint 开始，甚至在不同 step 记录第一条 loss。命令是入口，不是实验身份。
+
+我们把一个运行写成：
+
+$$
+R=(S,C,D,E,K,O),
+$$
+
+其中 `S` 是源码 commit，`C` 是解析后的配置，`D` 是数据指纹，`E` 是环境，`K` 是随机与优化状态，`O` 是输出和证据。复现的目标不是让所有浮点数最后一位相同，而是让这些定义实验的对象一致，并解释不可避免的数值差异。
+
+## resume 和 initialize-from 是两个动词
+
+`--resume` 表示继续同一个优化过程。它必须恢复：
+
+- 模型参数；
+- AdamW 的一阶、二阶统计；
+- 当前 global step；
+- BatchStream 的 RNG state；
+- 数据指纹、sequence length、batch size 和 seed；
+- 任何影响下一步输入的采样状态。
+
+如果只载入参数，优化器会从零开始，学习率 schedule 也可能回到 warmup。这样得到的是新实验，即使输出目录名字叫 resume。
+
+`--initialize-from` 表示使用已有参数作为新实验的初始点。新实验应该有新的输出目录和 experiment identity，optimizer、step、数据顺序可以重新建立。用它从 dense baseline 初始化 TTT 是合理的；用它替代断点恢复会破坏训练曲线的解释。
+
+## 当前 checkpoint 保存什么
+
+`ttt/checkpoint.py` 将 Experiment、TrainState 和数据状态组合起来。实验对象包含模型和训练配置；TrainState 包含 params、opt_state 和 step；数据状态由 BatchStream 保存。恢复时先检查身份，再读取参数，避免在很晚才发现配置不兼容。
+
+检查点不是只有模型权重。对 TTT 来说，快权重有两种不同角色：
+
+- 训练时的 fast weights 是一个序列内部的临时状态，外循环更新静态模型；
+- 服务或流式推理时的 fast weights 是 session 状态，需要随会话保存或回滚。
+
+把 session snapshot 当成训练 checkpoint，会让优化器和数据采样状态缺失；把训练 checkpoint 当成会话 snapshot，又会携带不该暴露给请求的全局状态。两者需要不同的 schema。
+
+## 运行目录应能自己解释自己
+
+一份可审计的输出目录至少能回答：
 
 ~~~text
-experiment id
-├── source: git commit
-├── config: model / optimizer / data
-├── input: manifest and SHA256
-├── environment: Python / JAX / device
-├── state: parameters / optimizer / sampler
-└── evidence: metrics / reports / status
+这次用哪个 commit？
+加载了哪个 config？
+数据文件和 tokenizer 的摘要是什么？
+从哪个 step 开始，消耗了多少有效 token？
+机器、后端和 dtype 是什么？
+最后一次保存在哪里？
+失败发生在哪个阶段？
 ~~~
 
-缺少其中任何一项，复现就会变成“尽量重新跑一次”。尤其要区分两种看似相同的动作：从 checkpoint 恢复训练，和只加载参数、重新开始一个新实验。
+`experiment.json` 写输入，`environment.json` 写机器，`metrics.jsonl` 写过程，`status.json` 写生命周期，checkpoint 写状态。Markdown 报告是阅读入口，但不应成为唯一事实来源。
 
-## 恢复语义
+可以把运行信息组织成一个 manifest：
 
---resume 恢复的是一个训练状态，包括模型参数、优化器动量、已经消耗的数据位置和随机数状态。它适用于作业中断后继续训练；配置、数据和 batch 语义必须兼容。
+~~~json
+{
+  "source": {"commit": "<git-sha>"},
+  "inputs": {
+    "config": "<config-sha256>",
+    "data": "<manifest-sha256>",
+    "tokenizer": "byte-v1"
+  },
+  "budget": {"steps": 4, "sequence_length": 16},
+  "state": {"start_step": 0, "resume": false}
+}
+~~~
 
---initialize-from 只读取参数，随后以新的优化器和新的实验身份开始。它适用于从 baseline 初始化 TTT 或进行迁移实验。把这两种语义混用，会让曲线中的 step、学习率和有效 token 数失去意义。
+这段结构是教学示意；仓库的实际字段以训练输出为准。重要的是把输入、预算和状态分开。
 
-## 代码入口
+## 失败也应成为记录
 
-- ttt/provenance.py 收集 Python、JAX、设备、驱动、PBS 信息和源码摘要。
-- scripts/record_environment.sh 把环境快照写成 JSON，供训练目录和报告引用。
-- ttt/checkpoint.py 保存参数、优化器和数据采样状态，并在恢复时检查身份。
-- docs/reproducibility.md 给出从安装到恢复的完整命令。
+作业可能在下载依赖、编译、设备初始化、数据读取、梯度更新或保存时失败。失败目录应该保留：
 
-训练目录采用“机器可读为主、人工可读为辅”的方式：metrics.jsonl 适合程序聚合，status.json 说明成功或失败，experiment.json 保存输入，Markdown 报告再引用这些文件，而不是手工抄写数字。
+- 运行命令和调度作业 ID；
+- 最后解析成功的配置；
+- 环境摘要；
+- 已写入的 metrics；
+- 异常类型与阶段；
+- 是否可以安全 resume。
 
-## 一个可审计的运行
+“没有输出”通常是最难恢复的状态。即使进程在初始化阶段失败，也应由外层脚本创建目录并写出 status。
+
+## 如何比较两个结果
+
+比较模型质量时，优先固定有效 token 预算和数据 manifest。比较系统效率时，还要固定设备、精度、batch、序列长度和编译策略。比较流式状态时，固定初始 cache、位置和 session seed。
+
+可以把差异分成三类：
+
+**定义差异**：词表、模型结构、训练 token 不同。它们构成新实验，不能用“同配置”描述。
+
+**环境差异**：GPU 型号、驱动或 XLA 版本不同。质量可能仍可比较，但性能必须分开。
+
+**数值差异**：同一输入下并行归约、低精度或非确定性带来的小差异。需要给出容忍范围，而不是把所有差异都叫失败。
+
+## 本章的实际复现路径
+
+在远端环境中执行：
 
 ~~~bash
 git rev-parse HEAD
 bash scripts/record_environment.sh --output outputs/run/environment.json
-sha256sum data/pretrain/manifest.json
-
-bash scripts/run_gpu_train.sh \
-  --config configs/runs/tiny_gpu.json \
+bash scripts/run_train.sh \
+  --config configs/tiny.json \
   --data outputs/sample-tokens.npy \
-  --output outputs/tiny-gpu \
+  --output outputs/tiny \
   --auto-resume
 ~~~
 
-如果命令因为资源不足、编译失败或数据损坏退出，也应保留输出目录和错误状态。失败记录同样是证据：它能告诉我们问题发生在数据读取、参数初始化、编译、通信还是恢复阶段。
+随后检查 step、metrics 和 latest checkpoint。对一个中断实验，先用 resume 继续；对一个新架构实验，复制输入记录并使用 initialize-from。书后面的每个架构消融都应遵循这个区分。
 
-## 结果如何比较
-
-两个运行只有在以下字段一致或被明确声明为变量时才可直接比较：训练 tokens、tokenizer 和词表、序列长度、有效 batch、优化器与学习率、随机种子、模型结构和数据 manifest。GPU 型号不同并不会自动改变 loss 的含义，但会改变编译时间、吞吐和显存，因此性能报告必须同时保留硬件信息。
-
-远端完整 CPU 测试结果记录在 docs/reports/remote-cpu-tests.xml；通用训练入口记录在 docs/reports/remote-generic-run.md。它们分别证明代码行为和启动路径，而不是替代正式规模实验。
-
-## 下一章要解决什么
-
-实验身份确定之后，模型配置才有可比的含义。下一章从词表开始，解释 vocab_size 如何约束 embedding 和分类头，以及模型配置怎样被保存、校验和自动构建。
+下一章进入配置。我们要把词表、隐藏维度、MLP、快权重和训练选项写成一份能被代码校验的架构合同。

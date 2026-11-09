@@ -1,13 +1,28 @@
-# 14. Splits and contamination
+# 7. Splits and contamination
 
-## What a validation set means
+[中文版](../14_split_and_contamination.md)
 
-A validation set should represent data that did not participate in optimization. Randomly taking lines from a corpus is insufficient when versions, authors, web mirrors, or similar documents are related.
+Randomly assigning records is not enough when mirrors, versions, authors, or repositories are related. Choose the split unit for the evaluation question: document cluster, project, time window, or another stable group.
 
-Choose a unit that matches the corpus: document, document cluster, time window, or token shard. Document or cluster splitting usually happens before tokenization and packing so one source cannot cross boundaries through chunking.
+A deterministic hash split can assign a stable group to train, validation, or test:
 
-## The report
+~~~python
+import hashlib
 
-Record document and token counts, source and language distributions, exact and near matches between splits, matches to public benchmarks, split seed and rule, input manifest, and code commit. Use pass, review, and blocked states; a review result is not a pass.
+def choose_split(group_id):
+    value = int.from_bytes(
+        hashlib.sha256(group_id.encode()).digest()[:8],
+        "big",
+    ) % 10_000
+    if value < 100:
+        return "test"
+    if value < 300:
+        return "validation"
+    return "train"
+~~~
 
-Freeze the benchmark version and date. If evaluation data was used for tokenizer training or tuning, declare it. The next chapter fixes how text becomes token IDs.
+This controls group assignment, not exact token proportions. Long groups can dominate token counts. Split before tokenization and packing so random windows cannot overlap across sets.
+
+Contamination checks compare training input with public evaluation data using exact, long-substring, or approximate matches. Report the method, candidate count, reviewed count, and unresolved cases. A zero exact match does not prove that related content is absent.
+
+The next chapter fixes the tokenizer and vocabulary that turn each split into IDs.

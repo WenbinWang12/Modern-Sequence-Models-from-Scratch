@@ -1,46 +1,84 @@
-# 6. 注意力、缓存与流式推理
+# 17　Attention、Cache 与流式推理
 
-## 同一个模型有两种时间轴
+[English](en/06_attention_cache.md)
 
-训练通常一次处理一个完整 batch，推理却经常一次接收一个 token。完整前向可以直接构造因果 mask；流式推理必须把过去的信息放进 KV cache、Delta 状态和 TTT 快权重中。两条路径的数学结果应尽量一致，但内存布局和更新时机不同。
+## 训练中的矩阵和推理中的状态
+
+训练可以一次看到长度为 L 的整段序列，并构造完整的 causal mask。生成时，模型通常已经处理了前缀，只收到一个新 token。若每次重新计算全部历史，算法可能正确，但成本随历史增长；KV cache 让新 token 复用过去的 key/value。
+
+TTT 又增加了一层状态：过去的上下文不仅保存在 KV 或 Delta 矩阵里，还可能改变 fast weights。因此推理状态不再是一个 cache 数组，而是：
 
 ~~~text
-prefill:  x[0:L]  → hidden states + cache + fast weights
-decode:   x[L]     → read cache → produce y[L] → append state
+session
+├── position
+├── KV cache or Delta state
+├── TTT fast weights
+├── incomplete chunk
+└── random state
 ~~~
 
-prefill 负责建立上下文，decode 负责逐 token 增量更新。若 decode 重新计算全部历史 token，结果可能正确，但无法代表真实的服务成本；若 cache 的位置或 mask 错一位，结果会静默偏离。
+这些字段必须一起推进或一起回滚。只恢复 KV 而不恢复 fast weights，会得到另一个模型状态；只恢复 fast weights 而位置错位，后续 RoPE 和 mask 也会错。
 
-## 缓存的三类状态
+## KV cache 的形状和生命周期
 
-| 状态 | 作用 | 生命周期 |
-|---|---|---|
-| KV cache | 保存过去 token 的 key/value | 一个请求或会话 |
-| Delta/GDN 状态 | 维护递归的线性注意力状态 | 一个流式会话 |
-| TTT 快权重 | 由内循环更新的局部参数 | 一个实验定义的 session |
+对 GQA，query heads 可以多于 key/value heads。cache 保存的是 KV heads 的历史表示，不是每个 query head 都复制一份。配置中的 num_key_value_heads 和 num_attention_heads 共同决定形状。
 
-这些状态都不是静态模型参数。它们应该有明确的 batch、层、head、位置和 dtype，并且能被快照、恢复和回滚。HTTP 服务中的请求取消不能留下半更新状态。
+`attention.py` 的 cache 包含 key、value、位置和容量信息。full attention 通常需要完整历史；sliding attention 只保留窗口内历史；gated_delta 不使用同样的 KV 数组，而保留递归状态。
 
-## 代码入口
+cache 的 capacity 不是 max_position_embeddings 的同义词。它是一次 session 分配的存储空间；如果需要延长，`grow_cache` 要处理旧值复制、滑窗截断和新位置。服务应在容量不足时明确报错或回收，而不是静默覆盖历史。
 
-- ttt/models/ttt_e2e/attention.py 实现因果注意力、GQA 和 KV cache。
-- ttt/models/ttt_e2e/gated_delta.py 实现递归状态和门控更新。
-- ttt/runtime.py 组合 prefill、decode、chunk 边界和随机状态。
-- ttt/session_store.py 为会话快照提供原子保存、恢复和容量限制。
-- ttt/serving.py、ttt/serve.py 把运行时状态暴露给服务入口。
+## Prefill 和 decode
 
-## 运行时验证
+prefill 把一段 token 写入状态，并输出最后位置的 logits。decode 读取当前状态，处理一个或一小段新 token，然后追加状态。
 
-GPU 作业中的验证命令为：
+~~~text
+prefill(x[0:L])
+  → cache at position L
+  → fast state after chosen chunk boundary
 
-~~~bash
-bash scripts/validate_gpu.sh outputs/gpu-validation.json
+decode(x[L])
+  → read cache at L
+  → predict x[L+1]
+  → append key/value and possibly update fast state
 ~~~
 
-报告至少应比较：完整前向与 prefill+decode 的 logits、位置 0、chunk 边界、随机流式输入、快照恢复后继续生成，以及超出容量后的错误处理。比较时要固定初始 cache 和 session 状态；“看起来差不多”不能替代数值阈值。
+TTT chunk size 大于 1 时，decode 不能把每个 token 都当作完整 inner update；它可能需要把 token 放进 incomplete chunk，待标签和边界满足后更新。`runtime.py` 保存未完成块，就是为了不把半个更新误当成完整状态。
 
-tests/test_causality.py、tests/test_runtime_consistency.py 和 tests/test_session_store.py 分别覆盖因果性、整段/流式一致性和快照语义。正式实验还应保留运行时报告，而不是只保留测试通过的布尔值。
+## 整段与流式为什么可能不一致
 
-## 下一章要扩大哪一种状态
+常见原因包括：
 
-单个 dense block 的缓存边界明确后，MoE 会把状态扩展到专家路由、共享专家和跨设备 shard。下一章先固定路由语义，再讨论通信和吞吐。
+- position 起点不同；
+- decode 使用了错误的 cache index；
+- sliding window 在边界处移位；
+- prefix 的 KV 被重新计算成不同精度；
+- TTT 更新在整段和 decode 中发生在不同 token；
+- 采样使用了不同随机状态；
+- session snapshot 漏掉一个字段。
+
+因此验证不能只比较最终生成字符串。应比较每个位置的 logits 或 top-k、cache 长度、fast weight norm 和 position。误差阈值要按 dtype 和 kernel 说明。
+
+## Gated Delta 的另一种状态
+
+线性注意力或 gated delta 不保存完整的历史 token，而维护递归统计量。它的状态可能是矩阵、卷积缓冲和门控变量。这样的状态占用与上下文长度关系不同，但表达能力、数值稳定性和更新语义也不同。
+
+这正是 Frontier Lab 里 TTT 与线性注意力需要对照的原因：二者都把历史压缩进状态，却不代表状态更新规则相同。比较时要固定状态尺寸、训练预算和实际 FLOPs。
+
+## Session snapshot 与 checkpoint
+
+`session_store.py` 的快照应该原子写入，带模型版本、session ID、位置、状态摘要和协议版本。恢复前先检查模型参数版本与更新策略；恢复后再继续生成。
+
+训练 checkpoint 还包含 optimizer 和 sampler，因此不能直接作为 HTTP session snapshot。两种文件都可以使用 Orbax 或其他存储后端，但 schema 和生命周期不同。
+
+## 验证清单
+
+在 GPU 作业中，至少验证：
+
+1. 同一个前缀的 prefill 与 token-by-token decode；
+2. chunk 边界前后的位置与状态；
+3. 修改 suffix 不影响 prefix logits；
+4. snapshot 后恢复生成；
+5. 超过容量时的错误；
+6. 多 session 之间状态隔离。
+
+下一章把“一个状态”扩展成“多个专家的状态路径”：MoE 的路由和专家并行会把通信也纳入模型定义。

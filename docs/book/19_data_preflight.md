@@ -1,32 +1,55 @@
-# 19. 训练前数据检查
+# 12　训练前验收：在提交长作业之前发现错误
 
-## Preflight 解决什么问题
+[English](en/19_data_preflight.md)
 
-长时间训练开始后才发现词表不匹配、manifest 指向旧文件或验证集为空，代价远高于提前几分钟检查。preflight 是训练前的“输入验收”，它不训练模型，只验证数据与配置能否组成一个自洽的实验。
+## Preflight 为什么值得单独成章
 
-## 检查清单
+一个 4 步 tiny 训练通常能在几分钟内发现错误；一个 3 天作业可能在下载、编译和几千步之后才失败。Preflight 不训练模型，它把“输入能否组成一个自洽实验”提前变成明确的 pass、warning 或 fail。
 
-训练前至少确认：
+它不是只检查文件存在。它需要把数据、tokenizer、模型配置、采样和输出目录放到同一个关系图里。
 
-1. manifest、tokenizer 和模型的 vocab_size 相同；
-2. 所有 shard 存在且 SHA256 一致；
-3. token id 没有越界；
-4. sequence length、packing、EOS 和 mask 规则一致；
-5. 训练、验证和污染报告都存在；
-6. 混合配方的目标 token 数可满足；
-7. seed、shuffle、起始位置和 checkpoint 语义已定义；
-8. 输出目录为空或明确使用 resume/initialize-from。
+## 八项验收
 
-检查结果应保存为 JSON，包含每一项的状态、计数、输入摘要和失败原因。状态分为 pass、warning 和 fail；warning 不能被静默吞掉，正式规模实验需要在报告中解释。
+**词表对齐。** manifest 的 vocab_size、tokenizer 的 vocab_size、model config 的 vocab_size 必须相同。特殊 token ID 必须位于词表范围内，且数据中的 BOS/EOS 约定与 tokenizer 一致。
 
-## 与模型配置的交叉检查
+**文件完整。** 每个 token 和 mask shard 存在，SHA256 一致，count 与数组长度一致，数组是一维整数，mask shape 相同。
 
-数据检查不能只在 dataset 模块内部完成。它还要读取模型配置，检查 vocab_size、special token ID、sequence length、dtype 和 batch 约束。这样可以在模型初始化前发现“数据能读、模型也能建，但两者无法相连”的错误。
+**样本可训练。** sequence length 至少为 1，窗口能取得 length+1 个 token，有效 mask 不全为零，token 不越界。
 
-## 运行方式
+**边界清楚。** 文档切分、EOS、packing 和是否跨文档监督已经写入版本记录。若当前实现允许跨 EOS 取窗口，报告不能声称它隔离了文档上下文。
 
-小规模 preflight 可以在 CPU 上完成，不需要启动 GPU 编译。正式作业通过后，把 preflight JSON 和 manifest 摘要一起写入 experiment.json。训练中若输入摘要变化，checkpoint 恢复应拒绝继续。
+**数据分布。** train/validation 的文档簇不重叠；来源、语言、长度和有效 token 统计可以对账；污染报告没有未解释的 blocked 项。
 
-## 下一章
+**采样确定。** seed、混合配方、shuffle、rank 分工、起始位置和 resume 语义有记录。当前仓库单流随机 sampler 的限制也要显示出来。
 
-输入验收通过后，模型才有可靠的比较对象。下一章建立 dense Causal LM baseline，并把它作为后续 TTT、Loop 和 MoE 的共同参照。
+**模型接口。** sequence length 不超过 max_position_embeddings；ttt_chunk_size、sliding_window 和 batch mask 满足配置约束；fast MLP 和 C/F 变体使用兼容架构。
+
+**输出安全。** 输出目录为空，或明确指定了 resume/initialize-from；checkpoint 的数据指纹与当前输入一致。
+
+## 把验收写成报告
+
+推荐每一项写成结构化记录：
+
+~~~json
+{
+  "name": "vocab_alignment",
+  "status": "pass",
+  "inputs": {
+    "manifest": "<sha256>",
+    "config": "<sha256>"
+  },
+  "observed": {
+    "manifest_vocab_size": 259,
+    "config_vocab_size": 259
+  },
+  "message": "values agree"
+}
+~~~
+
+`warning` 应该包含人工决定和影响范围；`fail` 应阻止提交长作业。报告本身保存到 run 目录，并被 experiment.json 引用。
+
+当前仓库还没有独立的 `ttt.preflight` 命令。读者可以先使用数据 loader 的校验和 tiny 训练完成最小验收；后续应把上面的检查抽成无 GPU 的命令，方便调度器在申请 GPU 之前运行。
+
+## 从本章进入模型
+
+验收通过只说明输入自洽，不说明模型已经学会语言。下一章定义 dense baseline：固定这些输入，测量 loss、梯度、恢复和计算成本，随后才有资格讨论 TTT。

@@ -1,4 +1,4 @@
-# 5. Inner and outer loops
+# 16. Inner and outer loops
 
 ## Two optimization timescales
 

@@ -1,37 +1,92 @@
-# 8. 消融、成本与 scaling
+# 19　消融、成本与 Scaling：怎样知道收益来自哪里
 
-## 先写比较协议，再写结果
+[English](en/08_experiments.md)
 
-A、D、E、E_plus、S/C/F 和 Loop 等名称只有在结构差异被定义后才有意义。一个公平实验需要先确定不变项，再列出唯一变化项；否则结果表会把不同模型、不同数据和不同训练预算混在一起。
+## 先写不变量
 
-推荐把每个实验写成一行：
+一个实验名称不能替代实验协议。假设我们比较 dense、TTT、Loop 和 MoE。如果 TTT 使用了更多训练 token，Loop 使用了更大 batch，MoE 使用了不同 tokenizer，那么最终 loss 的差异无法归因于结构。
 
-| 字段 | 含义 |
-|---|---|
-| variant | 唯一的结构开关组合 |
-| tokens | 实际消耗的有效 token 数 |
-| params | 总参数与激活参数 |
-| flops | 理论或 profiler 测量的训练 FLOPs |
-| compile_s | 首次编译时间 |
-| steady_tokens_s | 编译后的稳态吞吐 |
-| peak_memory | 峰值显存 |
-| loss | 训练和 held-out loss |
-| status | success、pending 或 failed 及原因 |
+每次实验先列出不变项：
 
-参数量相同不代表计算量相同；同样的 FLOPs 也不代表显存、通信和编译成本相同。报告必须同时保存质量与系统成本。
+~~~text
+data manifest
+tokenizer and vocabulary
+effective training tokens
+sequence length and mask
+initialization and seed
+optimizer and schedule
+hardware and precision
+evaluation code
+~~~
 
-## 三组实验轴
+再列出唯一改变项，例如 use_fast_mlp、inner.enabled、loop_mode、num_experts 或 layer_types。若研究问题本来就是多个变量的组合，则把组合写成明确的因子，而不是事后解释。
 
-第一组是**结构轴**：是否开启 TTT、MLP′ 放在哪些层、Loop 放在 attention 还是 FFN、是否使用 MoE。第二组是**规模轴**：hidden size、层数、序列长度、训练 tokens 和设备数。第三组是**运行时轴**：prefill/decode、完整前向/流式前向、不同 batch 和 cache 长度。
+## 质量与成本是二维结果
 
-每次只改变一组轴，另外两组固定。若需要改变多个变量，应拆成多行实验并在 manifest 中写明原因。
+模型质量常用 train loss、held-out loss 和任务指标衡量。系统成本至少包括参数、active 参数、FLOPs、编译、稳态吞吐、峰值显存、通信、checkpoint 大小和推理延迟。
 
-## 代码入口
+可以用一个结果行表达：
 
-- ttt/experiments.py 生成消融配置和参数/激活成本清单。
-- ttt/profile.py 记录参数、状态、编译和执行成本。
-- ttt/scaling.py 聚合 N/D scaling 数据并检查缺失输入。
-- configs/ablations/manifest.json 是实验矩阵的索引，不要把目录名当成协议。
+~~~json
+{
+  "variant": "F2",
+  "tokens": 1000000000,
+  "parameters": 125000000,
+  "active_parameters": 125000000,
+  "held_out_loss": null,
+  "compile_seconds": null,
+  "steady_tokens_per_second": null,
+  "peak_memory_bytes": null,
+  "status": "pending"
+}
+~~~
+
+`null` 不等于零，表示该实验还没有对应证据。没有实际 profiler 或硬件运行时，不应把理论估计填进实测字段。
+
+## 参数量、FLOPs 和 tokens 的关系
+
+对 dense Transformer，训练计算量常用参数与 token 的乘积估算量级。TTT 还包含 inner gradient、fast weight update 和可能的 post loss；MoE 还包含路由、dispatch、padding 和 all-to-all。因此统一用一个乘数会隐藏真正差异。
+
+更好的做法是把成本拆成：
+
+- 静态模型 forward；
+- 内循环 forward 与 backward；
+- 路由和专家矩阵乘；
+- cache/session 状态；
+- 通信与 checkpoint；
+- 编译与稳态执行。
+
+`ttt/profile.py` 可以报告参数量、fast MLP 参数量、prefill/decode 时间、状态字节和 XLA cost analysis。XLA 的 cost analysis 是编译器估计，不能代替目标硬件上的稳态计时。
+
+## 消融矩阵怎样分层
+
+**功能消融**在 tiny 上回答结构是否能运行：关闭 fast MLP、关闭 inner update、换 attention backend、改变 chunk size。
+
+**质量消融**在固定数据和 token budget 上回答 held-out loss 是否变化：MLP′ 层位置、内循环步数、Loop 位置、MoE top-k。
+
+**系统消融**回答效率：不同 batch、sequence length、mesh、cache、dtype 和 kernel。
+
+三层不要混在一张未经说明的表里。功能通过不代表质量有效，质量更好也不代表系统更快。
+
+## N/D scaling 的问题
+
+Scaling 不是把一条 loss 曲线延长，而是要在多个模型规模 N 和数据量 D 上拟合趋势。一个简单形式可以写成：
+
+$$
+L(N,D)=L_\infty+A N^{-\alpha}+B D^{-\beta}.
+$$
+
+拟合需要独立样本、统一评估和足够范围；少量 pending 行不能被当成观测。`ttt/scaling.py` 读取 JSONL 并可做 bootstrap，但输出仍然依赖输入数据质量。
+
+如果 TTT 的额外参数和 inner FLOPs 没有计入 N 或 D 的定义，scale 曲线会把架构差异折叠进变量。报告要说明 N 是总参数还是 active 参数，D 是原始 token 还是有效监督 token。
+
+## 失败实验也放进矩阵
+
+OOM、编译超时、通信失败或 loss NaN 不应被从表里删除。它们定义了方法的可用边界。记录失败的配置、设备、阶段和原因，后续才知道某个模型是在质量差，还是根本无法完成目标规模。
+
+主线实验报告可以用 success、pending、failed、blocked 四种状态；状态转换需要写原因和时间。
+
+## 一个可执行的最小矩阵
 
 ~~~bash
 python3 -m ttt.experiments \
@@ -44,18 +99,8 @@ python3 -m ttt.profile \
   --context-length 1024 \
   --decode-tokens 16 \
   --training-flops
-
-python3 -m ttt.scaling \
-  --input scaling.jsonl \
-  --output outputs/scaling.json
 ~~~
 
-没有 profiler 或 XLA 成本输入时，scaling 结果应标为 pending，而不是填入估计数字。估计值可以用于规划，但不能作为论文式结论。
+先生成配置和成本清单，再提交训练。配置生成器不会自动保证公平；公平性仍由 manifest 和实验表检查。
 
-## 证据如何支持结论
-
-一个可发布的结果至少能回到：配置文件、代码 commit、数据 manifest、训练 tokens、loss 曲线、硬件、成本测量方式和失败记录。图表只展示聚合结果，原始 JSONL 和报告保存完整证据。
-
-## 下一章要验证什么
-
-消融协议确定了“比较什么”，GPU 验证确定了“结果是否真的在目标硬件上成立”。下一章把功能正确性、分片恢复和目标规模训练拆成三个层级，避免用一次小模型运行替代完整验证。
+下一章把实验矩阵放到 GPU 现实中，区分功能、分布式恢复和目标规模三个验证门槛。

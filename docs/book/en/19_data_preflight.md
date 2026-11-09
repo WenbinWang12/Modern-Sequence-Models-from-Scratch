@@ -1,13 +1,11 @@
-# 19. Data preflight
+# 12. Data preflight
 
-## Why preflight exists
+[中文版](../19_data_preflight.md)
 
-A vocabulary mismatch, stale manifest, or empty validation split discovered after compilation is expensive. Preflight accepts or rejects the complete data input without training the model.
+Preflight rejects an incoherent input before a long compile or multi-day run. It joins the data, tokenizer, model configuration, sampler, and output directory into one check.
 
-## Required checks
+Verify vocabulary and special-token alignment; shard existence, hashes, counts, shapes, and ranges; sequence length and mask validity; split and contamination reports; mixture token capacity; seed, rank, and resume semantics; and output-directory safety.
 
-Verify that manifest, tokenizer, and model share vocab_size; all shards exist and match their hashes; token IDs are in range; sequence length, EOS, packing, and masks agree; train/validation and contamination reports exist; the mixture can satisfy its token budget; seed and resume semantics are defined; and the output directory is safe to use.
+Return pass, warning, or fail for each item with inputs, observations, and a reason. A changed data digest must make checkpoint resume refuse to continue. The current repository exposes these checks through the data loader and tiny run; a dedicated ttt.preflight command remains a useful next implementation.
 
-Return pass, warning, or fail for every item, with counts, digests, and reasons. Save the JSON report beside experiment.json. A changed input digest must make checkpoint resume refuse to continue.
-
-The next chapter establishes the dense causal-language-model baseline.
+A passed preflight proves input consistency, not model quality. The next chapter establishes the dense baseline.

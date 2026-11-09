@@ -1,11 +1,13 @@
-# 18. Data mixtures and deterministic sampling
+# 11. Data mixtures and deterministic sampling
 
-## Mixtures shape the model
+[中文版](../18_data_mixture.md)
 
-File size should not decide the training distribution. A large web source can drown code, books, science, or minority languages. Define source weights in effective token budget and record temperature, seed, exhaustion policy, and target tokens.
+Concatenating files lets file size define the training distribution. That may overrepresent web text and underrepresent code, books, or minority languages. A mixture should be specified in an effective-token budget with source weights, temperature, seed, exhaustion policy, and target tokens.
 
-Record target and observed proportions. Filtering and source exhaustion can make them differ. A changed mixture creates a new data version even when the tokenizer and model are unchanged.
+Keep a recipe table and an observed-consumption table. Filtering, source exhaustion, masks, and padding can make actual proportions differ from targets.
 
-Before training, sample indices without updating the model and check source proportions and repeats. During training, log cumulative source counts; after restore, continue from the same sampler state.
+A distributed sampler must decide whether source selection happens globally before rank partitioning or independently on each rank. A global sample index derived from seed and step makes recovery easier to explain.
 
-The final data chapter performs a preflight before a long job starts.
+The current BatchStream samples windows from one logical token stream. It does not implement source-level mixing. The mixture schema here is a next-stage design and must not be reported as an existing feature.
+
+Validate a mixture by generating a fixed sample plan before training, logging cumulative source tokens during training, and checking that restore continues the same sample indices.

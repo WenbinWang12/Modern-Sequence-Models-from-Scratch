@@ -73,8 +73,8 @@ nav:
       - 数据混合与确定性采样: book/18_data_mixture.md
       - 训练前数据验证: book/19_data_preflight.md
   - Part III — 标准基线:
-      - Causal LM 基线: book/20_baseline_model.md
       - 配置、词表与维度: book/03_configuration.md
+      - Causal LM 基线: book/20_baseline_model.md
   - Part IV — 读懂 TTT-E2E:
       - 前向顺序与快权重: book/04_forward_and_ttt.md
       - 内循环与外循环: book/05_inner_outer_loop.md

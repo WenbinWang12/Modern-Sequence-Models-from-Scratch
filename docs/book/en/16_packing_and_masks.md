@@ -1,19 +1,19 @@
-# 16. Packing, labels, and masks
+# 9. Packing, labels, and masks
 
-## From documents to batches
+[中文版](../16_packing_and_masks.md)
 
-Training needs fixed shapes while documents do not have fixed lengths. Packing decides truncation, concatenation, padding, EOS boundaries, labels, and valid loss positions.
+The training loop sees input_ids, labels, and loss_mask, not documents. For tokens [x0,x1,x2,x3]:
 
 ~~~text
-input_ids: [x0, x1, ..., xL-1]
-labels:    [x1, x2, ..., xL]
-loss_mask: [ 1,  1, ...,  1]
+input_ids = [x0,x1,x2]
+labels    = [x1,x2,x3]
+mask      = [1,1,1]
 ~~~
 
-Independent-document packing can mask cross-document supervision. Continuous-stream packing improves utilization but must define EOS, source boundaries, and evaluation separation. Sequence length, truncation, padding, EOS, and mask rules belong in the manifest.
+The current TokenDataset.rows returns a window and a mask shifted by one position. A wrong shift can still produce finite loss while training the wrong task.
 
-## Checks
+Independent-document packing and continuous-stream packing are different contracts. The current prepare_data and prepare_sharded_data append EOS and write one logical stream; TokenDataset.rows can sample across EOS and does not reset attention at document boundaries. We should therefore describe it as continuous-stream behavior, not claim document isolation.
 
-Every batch has matching input and label shapes, in-range token IDs, a valid mask, nonzero effective tokens, and an explicit next-token convention. Print a sample with text, tokens, labels, masks, and boundaries before a long run.
+A mask means whether a label contributes to loss. Prompt tokens may be visible but masked; padding may also be masked, but the reasons are different. Aggregation should weight samples by valid-token count rather than average per-sample losses equally.
 
-The next chapter makes shard indexing and sampler state reproducible.
+The next chapter makes shards, masks, hashes, and sampler state a recoverable Dataset.

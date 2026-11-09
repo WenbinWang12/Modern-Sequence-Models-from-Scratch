@@ -1,4 +1,4 @@
-# 3. Configuration, vocabulary, and dimensions
+# 13. Configuration, vocabulary, and dimensions
 
 ## Configuration is an architecture contract
 

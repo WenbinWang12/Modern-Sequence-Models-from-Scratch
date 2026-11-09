@@ -1,105 +1,59 @@
-# 10. Training Data: Sources, Schema, and Versions
+# 3. Training data: from raw documents to model inputs
 
-## Start with what the model should learn
+[中文版](../10_data_contract.md)
 
-The first step in training a base model is not creating a Transformer. It is deciding which data distribution the model will learn from.
+## Start by reversing the training command
 
-Web-heavy data, books, code, and scientific text produce different token frequencies, styles, lengths, and knowledge distributions. The training corpus is therefore part of the model definition, not just an argument passed to the training command.
+A training command may have one data path, but that path hides source versions, document boundaries, duplicates, tokenizer identity, masks, and sampler state. This chapter defines the data objects that later chapters refine.
 
-The chapter follows one chain of questions:
+We distinguish raw files, document records, token shards, and training windows. They have different identities and different evidence.
 
-```text
-Where did the data come from?
-    ↓
-Are we allowed to use it?
-    ↓
-What should one record look like?
-    ↓
-Which processed version produced these tokens?
-    ↓
-Can the same training samples be reproduced later?
-```
-
-Cleaning, deduplication, splitting, and tokenization all depend on this chain.
-
-## Three layers of a training corpus
-
-Downloaded files should not be treated as training data directly:
-
-| Layer | Content | Used for training |
+| Object | Main question | Evidence |
 |---|---|---|
-| Raw corpus | Original files from public, web, or internal sources | No |
-| Clean documents | Documents after format, character, language, length, and duplicate checks | Usually no |
-| Training data | Token shards, masks, and manifests | Yes |
+| Raw file | What did we obtain? | source release and digest |
+| Document | Why was it kept? | ID, metadata, filtering reason |
+| Token shard | Which tokenizer produced it? | tokenizer version and hash |
+| Window | What will the model consume next? | seed, sampler state, data digest |
 
-Raw files should be immutable. Cleaning and tokenization are derived processes; a changed rule creates a new version instead of overwriting the old one.
+A changed cleaning rule creates a new document version. A changed tokenizer creates a new token version. A changed sequence length creates a new window protocol.
 
-## The minimum document record
+## The document record
 
-```json
+~~~json
 {
-  "id": "doc-0001",
-  "text": "A raw text document.",
-  "source": "dataset-a",
-  "license": "CC-BY-4.0",
-  "language": "en"
+  "id": "lesson-001",
+  "text": "A document used in the corpus.",
+  "source": "book-original",
+  "language": "en",
+  "split_group": "lesson-001"
 }
-```
+~~~
 
-`text` is what the model eventually sees. The other fields support tracing and filtering:
+IDs locate records; source and language support statistics; split_group keeps related versions together. An ID is not the same as a content hash: one source can change content, and multiple URLs can contain the same text.
 
-- `id` must be stable and unique for deduplication and debugging;
-- `source` must identify a concrete source;
-- `license` keeps redistribution boundaries explicit;
-- language, time, and domain fields support recipes and statistics;
-- raw files, cleaned files, and token shards need SHA256 hashes.
+The current prepare_sharded_data path does not emit a complete document-offset sidecar. Therefore arbitrary token-to-document tracing is a design requirement for the large-corpus pipeline, not a capability we claim the current manifest already provides.
 
-The loader reads token shards, but a problematic token sequence should still be traceable back to a cleaned document and its original source.
+## Counts must stay separate
 
-## Provenance and versions
+Document count, character count, encoded token count, effective supervised token count, and consumed training tokens answer different questions. A corpus with many short documents can dominate document count while contributing fewer tokens than a small collection of long documents.
 
-The repository does not commit the corpus itself. It should commit source records such as:
+The current loader samples random windows from a logical token stream. It does not implement an epoch over documents. That sampling choice must be recorded, especially when comparing source proportions.
 
-```json
-{
-  "source": "dataset-a",
-  "url": "https://example.org/data",
-  "version": "2026-01",
-  "license": "CC-BY-4.0",
-  "downloaded_at": "2026-11-07T00:00:00Z",
-  "raw_sha256": "..."
-}
-```
+## Repository path
 
-This tells future readers where the data came from and whether a later corpus update still supports a fair comparison.
+ttt/data.py creates a single token array or sharded token and mask files. ttt/dataset.py validates hashes, ranges, shapes, and manifest vocabulary size. BatchStream samples windows and saves RNG state.
 
-Licensing, personal information, benchmark contamination, and third-party content require separate review. A tokenizer or training loop cannot solve those problems automatically.
+~~~bash
+.venv/bin/python -m ttt.data \
+  --input examples/book/clean_corpus.jsonl \
+  --output outputs/book-data \
+  --sharded \
+  --tokenizer byte \
+  --shard-tokens 256
+~~~
 
-## From document version to training version
+The shard size controls storage, not model sequence length. A manifest records the fields the loader actually reads; an idealized schema must not be presented as a compatible implementation.
 
-```text
-raw source version
-→ cleaning configuration
-→ deduplication configuration
-→ split configuration
-→ tokenizer version
-→ token shard manifest
-```
+## Transition
 
-The final `manifest.json` should record the format version, vocabulary size, shard paths, counts, and hashes. A checkpoint also stores data fingerprints, sampling seed, sequence length, and batch size so that recovery can reject incompatible inputs.
-
-## The first data path in this book
-
-We start with a small but complete path:
-
-```text
-examples/sample.txt
-→ byte tokenizer
-→ outputs/sample-tokens.npy
-→ tiny baseline
-→ checkpoint and resume
-```
-
-This first path verifies token ranges, sampling, and recovery. Later chapters extend it to JSONL, cleaned documents, sharded manifests, and a production tokenizer.
-
-The next chapter defines which documents are retained or filtered and how every filtering decision becomes part of the statistics report.
+The next chapter records how raw sources are obtained and governed. Only after provenance is clear can cleaning statistics be interpreted.

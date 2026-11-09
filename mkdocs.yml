@@ -101,7 +101,7 @@ nav:
       - MoE and expert parallelism: book/en/07_moe.md
       - Ablations, cost, and scaling: book/en/08_experiments.md
       - GPU and checkpoint validation: book/en/09_gpu_validation.md
-      - Pretraining data: distribution, quality, and reproducibility: book/en/10_data_contract.md
+      - "Pretraining data: distribution, quality, and reproducibility": book/en/10_data_contract.md
       - Acquisition and provenance: book/en/11_data_acquisition.md
       - Cleaning and quality: book/en/12_data_cleaning.md
       - Deduplication: book/en/13_deduplication.md

@@ -1,7 +1,5 @@
 # 11. Data mixtures and deterministic sampling
 
-[中文版](../18_data_mixture.md)
-
 Concatenating files lets file size define the training distribution. That may overrepresent web text and underrepresent code, books, or minority languages. A mixture should be specified in an effective-token budget with source weights, temperature, seed, exhaustion policy, and target tokens.
 
 Keep a recipe table and an observed-consumption table. Filtering, source exhaustion, masks, and padding can make actual proportions differ from targets.

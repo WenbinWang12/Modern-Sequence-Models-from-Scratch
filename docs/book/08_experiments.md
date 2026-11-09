@@ -1,7 +1,5 @@
 # 19　消融、成本与 Scaling：怎样知道收益来自哪里
 
-[English](en/08_experiments.md)
-
 ## 先写不变量
 
 一个实验名称不能替代实验协议。假设我们比较 dense、TTT、Loop 和 MoE。如果 TTT 使用了更多训练 token，Loop 使用了更大 batch，MoE 使用了不同 tokenizer，那么最终 loss 的差异无法归因于结构。

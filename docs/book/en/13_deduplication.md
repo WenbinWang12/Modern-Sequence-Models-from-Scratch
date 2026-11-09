@@ -1,7 +1,5 @@
 # 6. Deduplication: control implicit sampling weights
 
-[中文版](../13_deduplication.md)
-
 Repeated text receives repeated optimization weight. It can also cross the train/validation boundary and make evaluation measure memorization rather than generalization. Exact and near duplicates should be reported separately.
 
 Exact deduplication hashes a defined comparison view. That view might be normalized text, not the original HTML. The normalization must preserve meaningful code structure and be versioned.

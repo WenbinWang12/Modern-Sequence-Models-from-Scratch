@@ -1,7 +1,5 @@
 # 8. Tokenizer and vocabulary
 
-[中文版](../15_tokenizer.md)
-
 A tokenizer determines sequence length, character coverage, special-token semantics, embedding size, output-head size, and evaluation fairness. The same character corpus can produce different numbers of training positions under different tokenizers.
 
 With vocabulary V and hidden size d:

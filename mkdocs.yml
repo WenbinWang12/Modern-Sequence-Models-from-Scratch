@@ -5,6 +5,15 @@ repo_url: https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch
 repo_name: WenbinWang12/Modern-Sequence-Models-from-Scratch
 copyright: Copyright 2026 Wenbin Wang
 
+extra:
+  alternate:
+    - name: 中文版
+      link: https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/
+      lang: zh
+    - name: English
+      link: https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/book/en/
+      lang: en
+
 theme:
   name: material
   language: zh

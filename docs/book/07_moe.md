@@ -1,7 +1,5 @@
 # 18　MoE：路由把模型变成一条动态计算图
 
-[English](en/07_moe.md)
-
 ## 为什么“复制 FFN”不是 MoE
 
 如果把一个 FFN 复制八份，然后每个 token 都执行八份，参数量增加了，激活计算也增加了，这只是更大的 dense 模型。MoE 的关键是 router 根据 hidden state 选择少数专家，使总参数容量和每 token 的激活计算分离。

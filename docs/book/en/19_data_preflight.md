@@ -1,7 +1,5 @@
 # 12. Data preflight
 
-[中文版](../19_data_preflight.md)
-
 Preflight rejects an incoherent input before a long compile or multi-day run. It joins the data, tokenizer, model configuration, sampler, and output directory into one check.
 
 Verify vocabulary and special-token alignment; shard existence, hashes, counts, shapes, and ranges; sequence length and mask validity; split and contamination reports; mixture token capacity; seed, rank, and resume semantics; and output-directory safety.

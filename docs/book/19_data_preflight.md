@@ -1,7 +1,5 @@
 # 12　训练前验收：在提交长作业之前发现错误
 
-[English](en/19_data_preflight.md)
-
 ## Preflight 为什么值得单独成章
 
 一个 4 步 tiny 训练通常能在几分钟内发现错误；一个 3 天作业可能在下载、编译和几千步之后才失败。Preflight 不训练模型，它把“输入能否组成一个自洽实验”提前变成明确的 pass、warning 或 fail。

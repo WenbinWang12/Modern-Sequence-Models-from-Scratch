@@ -1,7 +1,5 @@
 # 9　Packing、标签与 Mask：一个 batch 是怎样构造出来的
 
-[English](en/16_packing_and_masks.md)
-
 ## 模型真正训练的不是文档
 
 训练循环看到的是 `input_ids`、`labels` 和 `loss_mask`，不是“这是一篇文章”。一个简单的 next-token 样本把：

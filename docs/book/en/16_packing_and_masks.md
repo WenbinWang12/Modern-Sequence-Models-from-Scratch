@@ -1,7 +1,5 @@
 # 9. Packing, labels, and masks
 
-[中文版](../16_packing_and_masks.md)
-
 The training loop sees input_ids, labels, and loss_mask, not documents. For tokens [x0,x1,x2,x3]:
 
 ~~~text

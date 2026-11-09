@@ -1,7 +1,5 @@
 # 14　Dense Causal LM 基线：先证明训练系统能学习
 
-[English](en/20_baseline_model.md)
-
 ## 基线不是最小的玩具
 
 我们要比较 TTT、Loop 和 MoE，必须先有一个不会把数据、目标或恢复问题隐藏起来的 dense baseline。它不追求结构新颖，而要把输入 token 变成下一个 token 的 logits，并在固定数据上稳定降低 loss。

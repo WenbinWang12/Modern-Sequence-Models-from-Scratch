@@ -1,7 +1,5 @@
 # 8　Tokenizer：从文本到固定维度的词表
 
-[English](en/15_tokenizer.md)
-
 ## Tokenizer 不只是预处理脚本
 
 模型接收的是整数序列，不是 Unicode 字符。Tokenizer 决定一段文字被切成多少个位置、哪些字符串拥有独立 ID、未知字符如何处理、EOS 如何表示。它因此同时影响上下文容量、embedding 参数、输出头参数、数据吞吐和评估公平性。

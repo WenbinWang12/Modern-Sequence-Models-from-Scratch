@@ -1,7 +1,5 @@
 # 3. Pretraining data: distribution, quality, and reproducibility
 
-[中文版](../10_data_contract.md)
-
 ## What does the model actually learn?
 
 A language model does not optimize an abstract store of knowledge. It optimizes prediction loss over a data distribution. If tokenized sequences are sampled from `D`, then:

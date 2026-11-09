@@ -1,7 +1,5 @@
 # 7. Splits and contamination
 
-[中文版](../14_split_and_contamination.md)
-
 Randomly assigning records is not enough when mirrors, versions, authors, or repositories are related. Choose the split unit for the evaluation question: document cluster, project, time window, or another stable group.
 
 A deterministic hash split can assign a stable group to train, validation, or test:

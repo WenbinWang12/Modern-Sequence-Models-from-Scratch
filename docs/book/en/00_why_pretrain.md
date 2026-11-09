@@ -1,7 +1,5 @@
 # Prologue: Why train a base model from scratch
 
-[中文版](../00_why_pretrain.md)
-
 “Train a language model by putting text through a Transformer and minimizing cross-entropy.” That sentence is correct, but incomplete. It says nothing about where the text comes from, how the tokenizer changes the budget, what a resumed run means, or which evidence can support an architectural claim.
 
 This book builds a complete experiment rather than a single model class. We begin with a controlled corpus, tokenizer, causal objective, and dense baseline. We then study TTT, linear attention, recurrent depth, MoE, and long-context state under the same data and reporting contract.

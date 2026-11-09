@@ -1,7 +1,5 @@
 # 17　Attention、Cache 与流式推理
 
-[English](en/06_attention_cache.md)
-
 ## 训练中的矩阵和推理中的状态
 
 训练可以一次看到长度为 L 的整段序列，并构造完整的 causal mask。生成时，模型通常已经处理了前缀，只收到一个新 token。若每次重新计算全部历史，算法可能正确，但成本随历史增长；KV cache 让新 token 复用过去的 key/value。

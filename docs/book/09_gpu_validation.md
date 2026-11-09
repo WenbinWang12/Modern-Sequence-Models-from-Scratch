@@ -1,7 +1,5 @@
 # 20　GPU、多卡与检查点：从能运行到可扩展
 
-[English](en/09_gpu_validation.md)
-
 ## 三个“通过”不是同一个通过
 
 一个 tiny 模型在 GPU 上得到 loss，说明 Python、JAX 和基本计算图能运行。它没有证明多卡 sharding 正确，也没有证明 125M 模型能放进目标显存，更没有证明长时间训练可以恢复。

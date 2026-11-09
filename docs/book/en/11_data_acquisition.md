@@ -1,7 +1,5 @@
 # 4. Data acquisition, licensing, and provenance
 
-[中文版](../11_data_acquisition.md)
-
 ## A download URL is not an identity
 
 The same URL can point to a changed release. A source record should separate canonical location, immutable release or snapshot, retrieval time, terms, and file digests.

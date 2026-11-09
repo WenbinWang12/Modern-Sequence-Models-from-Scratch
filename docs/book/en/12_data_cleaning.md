@@ -1,7 +1,5 @@
 # 5. Cleaning: every filter changes the distribution
 
-[中文版](../12_data_cleaning.md)
-
 ## Clean is not a natural label
 
 A navigation template, a short code function, and a mathematical proof may all contain punctuation or few alphabetic characters. A rule designed for web prose can delete useful code or mathematics.

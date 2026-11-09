@@ -16,7 +16,7 @@ static parameters θ
                     └──────── outer loss → AdamW(θ)
 ~~~
 
-`phi` 的更新是序列内状态转移，`theta` 的更新是训练步之间的参数转移。把它们都叫“模型参数更新”会掩盖最重要的算法差异。
+$\phi$ 的更新是序列内状态转移，$\theta$ 的更新是训练步之间的参数转移。把它们都叫“模型参数更新”会掩盖最重要的算法差异。
 
 ## inner_step 做了什么
 
@@ -46,8 +46,8 @@ static parameters θ
 训练 batch 内每个样本可能有不同有效 mask 数。`training.py` 对样本调用 sequence_loss，取得每个样本 loss 和有效 token count，再用：
 
 $$
-L_{\mathrm{batch}}=
-\frac{\sum_b n_b L_b}
+\mathcal{L}_{\mathrm{batch}}=
+\frac{\sum_b n_b \mathcal{L}_b}
 {\max(\sum_b n_b,1)}
 $$
 

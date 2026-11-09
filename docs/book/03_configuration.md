@@ -12,9 +12,9 @@
 
 - `V`：词表大小；
 - `d`：hidden size；
-- `h`：attention heads；
-- `f`：普通 MLP 中间维度；
-- `f'`：快 MLP 中间维度。
+- `n_h`：attention heads；
+- `d_ff`：普通 MLP 中间维度；
+- `d'_ff`：快 MLP 中间维度。
 
 输入 embedding：
 
@@ -22,10 +22,10 @@ $$
 E\in\mathbb R^{V\times d}.
 $$
 
-每个位置的隐藏状态位于 `R^d`。SwiGLU 的中间计算可以使用 `f`，但残差输出必须回到 `d`。最后：
+每个位置的隐藏状态位于 $\mathbb R^d$。SwiGLU 的中间计算可以使用 $d_{\mathrm{ff}}$，但残差输出必须回到 $d$。最后：
 
 $$
-z_t=h_tW_{\mathrm{out}}+b,
+\mathbf z_{b,t}=\mathbf h_{b,t}W_{\mathrm{out}}+\mathbf b_{\mathrm{out}},
 \quad W_{\mathrm{out}}\in\mathbb R^{d\times V}.
 $$
 

@@ -42,9 +42,15 @@ theme:
 plugins:
   - search
 
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
 markdown_extensions:
   - admonition
   - attr_list
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
@@ -60,6 +66,8 @@ markdown_extensions:
 
 nav:
   - 首页: index.md
+  - 阅读说明:
+      - 全书统一记号: book/notation.md
   - 序章 — 为什么训练基模:
       - 训练系统全景: book/00_why_pretrain.md
   - Frontier Lab — 前沿专题:
@@ -100,6 +108,7 @@ nav:
       - 生产要求: production_requirements.md
   - English Edition:
       - Overview: book/en/index.md
+      - Notation and conventions: book/en/notation.md
       - Why train a base model: book/en/00_why_pretrain.md
       - Environment and first training run: book/en/01_environment.md
       - Reproducible runs: book/en/02_reproducible_runs.md

@@ -66,17 +66,21 @@ evaluation code
 
 三层不要混在一张未经说明的表里。功能通过不代表质量有效，质量更好也不代表系统更快。
 
-## N/D scaling 的问题
+## 参数量和 token 量的 scaling
 
-Scaling 不是把一条 loss 曲线延长，而是要在多个模型规模 N 和数据量 D 上拟合趋势。一个简单形式可以写成：
+Scaling 不是把一条 loss 曲线延长，而是要在多个参数规模 $N_{\mathrm{param}}$ 和训练 token 量 $N_{\mathrm{tok}}$ 上拟合趋势。一个简单形式可以写成：
 
 $$
-L(N,D)=L_\infty+A N^{-\alpha}+B D^{-\beta}.
+\mathcal{L}(N_{\mathrm{param}},N_{\mathrm{tok}})
+=
+\mathcal{L}_\infty
++A N_{\mathrm{param}}^{-\alpha}
++B N_{\mathrm{tok}}^{-\beta}.
 $$
 
 拟合需要独立样本、统一评估和足够范围；少量 pending 行不能被当成观测。`ttt/scaling.py` 读取 JSONL 并可做 bootstrap，但输出仍然依赖输入数据质量。
 
-如果 TTT 的额外参数和 inner FLOPs 没有计入 N 或 D 的定义，scale 曲线会把架构差异折叠进变量。报告要说明 N 是总参数还是 active 参数，D 是原始 token 还是有效监督 token。
+如果 TTT 的额外参数和 inner FLOPs 没有计入 $N_{\mathrm{param}}$ 或 $N_{\mathrm{tok}}$ 的定义，scale 曲线会把架构差异折叠进变量。报告要说明参数量是总参数还是 active 参数，token 量是原始 token 还是有效监督 token。
 
 ## 失败实验也放进矩阵
 

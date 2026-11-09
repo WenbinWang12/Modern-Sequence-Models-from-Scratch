@@ -26,7 +26,7 @@ Change one axis at a time. If several variables must change together, make the j
 
 ## Code and reports
 
-ttt/experiments.py creates ablation configurations and cost summaries. ttt/profile.py records parameter, state, compile, and execution cost. ttt/scaling.py aggregates N/D scaling data and marks missing inputs.
+ttt/experiments.py creates ablation configurations and cost summaries. ttt/profile.py records parameter, state, compile, and execution cost. ttt/scaling.py aggregates $N_{\mathrm{param}}/N_{\mathrm{tok}}$ scaling data and marks missing inputs.
 
 ~~~bash
 python3 -m ttt.experiments \

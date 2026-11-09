@@ -53,15 +53,15 @@ Attention / Delta
 可以用两个时间索引区分：
 
 $$
-\theta_{k+1}=\mathrm{AdamW}(\theta_k,\nabla_\theta L_{\mathrm{outer}}),
+\theta_{k+1}=\mathrm{AdamW}(\theta_k,\nabla_\theta \mathcal{L}_{\mathrm{outer}}),
 $$
 
 $$
 \phi_{t+1}=\phi_t-\eta_{\mathrm{inner}}
-\nabla_\phi L_{\mathrm{inner}}(x_t;\theta,\phi_t).
+\nabla_\phi \mathcal{L}_{\mathrm{inner}}(x_t;\theta,\phi_t).
 $$
 
-`theta` 是静态参数，`phi` 是快权重。外循环学习的是“怎样初始化和使用 phi”，内循环执行的是“当前上下文如何改变 phi”。如果把 phi 直接放进 optimizer state，TTT 的时间尺度就被错误合并了。
+$\theta$ 是静态参数，$\phi$ 是快权重。外循环学习的是“怎样初始化和使用 $\phi$”，内循环执行的是“当前上下文如何改变 $\phi$”。如果把 $\phi$ 直接放进 optimizer state，TTT 的时间尺度就被错误合并了。
 
 ## 梯度边界和因果性
 
@@ -87,7 +87,7 @@ chunk 0: positions 0,1,2,3
 chunk 1: positions 4,5,6,7
 ~~~
 
-chunk 0 使用 phi_0 产生 loss_0，并更新成 phi_1。chunk 1 使用 phi_1 产生 loss_1。若最后一个块只有 2 个真实位置，另外 2 个是 padding，mask 将后两个 label 置零，状态更新也不应因 padding 发生。
+chunk 0 使用 $\phi_0$ 产生 $\mathcal{L}_0$，并更新成 $\phi_1$。chunk 1 使用 $\phi_1$ 产生 $\mathcal{L}_1$。若最后一个块只有 2 个真实位置，另外 2 个是 padding，mask 将后两个 label 置零，状态更新也不应因 padding 发生。
 
 这个例子解释了为什么 chunk size 不是单纯的 batch 参数。它改变了快权重观察上下文的频率，也改变了内循环反向传播和 cache 的边界。
 

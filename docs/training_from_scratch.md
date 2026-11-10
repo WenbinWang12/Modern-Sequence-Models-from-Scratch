@@ -1,6 +1,6 @@
 # From-scratch 训练
 
-这个仓库提供从随机初始化开始训练 TTT-E2E 的代码。最小示例用于检查训练链路，不代表语言能力。
+这个仓库提供从随机初始化开始构建现代序列模型的代码；TTT-E2E 是前沿主线之一。最小示例用于检查训练链路，不代表语言能力。
 
 ## 安装
 
@@ -45,12 +45,12 @@ python -m ttt.train \
 
 ```bash
 python -m ttt.generate \
-  --checkpoint outputs/tiny/run/step_00000004.npz \
+  --checkpoint outputs/tiny/step_00000004.npz \
   --prompt "The project" \
   --max-new-tokens 16
 
 python -m ttt.profile \
-  --checkpoint outputs/tiny/run/step_00000004.npz \
+  --checkpoint outputs/tiny/step_00000004.npz \
   --context-length 16 \
   --decode-tokens 4
 ```

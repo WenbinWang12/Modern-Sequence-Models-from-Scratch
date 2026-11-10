@@ -1,6 +1,6 @@
 # TTT-E2E and long context: from correct state to quality evidence
 
-**Source snapshot: 2026-11-11. Code review baseline: <code>567fef3</code>. Status: training and runtime paths implemented; 32K/128K quality reproduction incomplete.**
+**Source snapshot: 2026-11-11. Code review baseline: <code>021203e</code>; this round's prose fixes are in the subsequent commit. Status: training and runtime paths implemented; 32K/128K quality reproduction incomplete.**
 
 ## Accepting a long input is not the conclusion
 

@@ -1,6 +1,6 @@
 # Frontier Lab: turning new claims into testable questions
 
-**Source snapshot: 2026-11-11. Code review baseline: <code>567fef3</code>. Status: research protocols and partial implementations; paper reproduction is not claimed.**
+**Source snapshot: 2026-11-11. Code review baseline: <code>021203e</code>; this round's prose fixes are in the subsequent commit. Status: research protocols and partial implementations; paper reproduction is not claimed.**
 
 A lower loss in a paper does not imply that inserting its module into an existing model produces the same gain. Data, training budget, update order, and inference implementation may differ. Frontier Lab makes these differences explicit so readers can distinguish a mathematical relationship, an implemented relationship, and a gain supported by training experiments.
 

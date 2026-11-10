@@ -25,14 +25,17 @@ $$
 
 直接对大词表计算完整 softmax 可能占用显存，因此仓库的 `loss.py` 提供按 token 和 vocab block 处理的路径。数学目标不因分块而改变；实现只是把求和拆成可执行的块。
 
-有效平均 loss 为：
+设 \(W=\sum_t m_t\) 为窗口中的有效监督权重。有效平均 loss 为：
 
 $$
 \mathcal L=
-\frac{\sum_t m_t\ell_t}{\max(\sum_t m_t,1)},
+\frac{\sum_t m_t\ell_t}{\begin{cases}
+W,&W>0,\\
+1,&W=0,
+\end{cases}}
 $$
 
-其中 \(m_t\) 是 mask。最后的 max 防止全零 mask 时除零，但全零样本本身应该被 preflight 拒绝。
+其中 \(m_t\) 是可以取分数值的 loss mask。只有总权重为零时才使用安全分母 1；正的分数权重（即使小于 1）必须保留。全零样本没有监督信号，应该被 preflight 单独报告或拒绝，安全分母不把它变成有效训练样本。
 
 对 logits 的梯度有一个很有用的形式：
 

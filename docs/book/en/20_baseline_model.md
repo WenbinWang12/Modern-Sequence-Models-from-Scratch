@@ -19,7 +19,15 @@ $$
 {\sum_v \exp z_{t,v}}.
 $$
 
-The repository can compute cross-entropy in token and vocabulary blocks, preserving the same objective while reducing peak memory. Masked loss uses the sum of valid-token losses divided by the valid-token count.
+The repository can compute cross-entropy in token and vocabulary blocks, preserving the same objective while reducing peak memory. Let \(W=\sum_t m_t\) be the total supervision weight in a window. The masked loss divides the weighted loss sum by \(W\); only when \(W=0\) does the implementation use a safe denominator of \(1\). A positive fractional weight below \(1\) is kept as written, and an all-zero mask is reported as having no supervision.
+
+$$
+\mathcal L=
+\frac{\sum_t m_t\ell_t}{\begin{cases}
+W,&W>0,\\
+1,&W=0.
+\end{cases}}
+$$
 
 The baseline disables experts, fast MLP, inner updates, and loop mode. It can still choose sliding or full attention, but attention type must be recorded as a separate variable.
 

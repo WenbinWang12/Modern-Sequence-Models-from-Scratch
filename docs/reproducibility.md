@@ -62,7 +62,7 @@ bash scripts/run_gpu_train.sh \
   --config configs/runs/tiny_gpu.json \
   --data outputs/sample-tokens.npy \
   --output outputs/finetune-stage \
-  --initialize-from outputs/tiny-gpu/run/step_00000004.orbax
+  --initialize-from outputs/tiny-gpu/step_00000004.orbax
 ```
 
 `--resume` 要求实验配置和优化器状态完全一致；`--initialize-from` 会重新建立优化器，适合改变训练阶段。

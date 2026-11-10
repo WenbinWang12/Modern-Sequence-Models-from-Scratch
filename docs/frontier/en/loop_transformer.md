@@ -1,6 +1,6 @@
 # Looped Transformer: what exactly gets repeated?
 
-**Source snapshot: 2026-11-11. Code review baseline: <code>567fef3</code>. Status: three local forms of shared repetition implemented; paper protocol and quality comparison not reproduced.**
+**Source snapshot: 2026-11-11. Code review baseline: <code>021203e</code>; this round's prose fixes are in the subsequent commit. Status: three local forms of shared repetition implemented; paper protocol and quality comparison not reproduced.**
 
 ## Why apply the same parameters twice?
 

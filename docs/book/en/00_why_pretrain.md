@@ -1,101 +1,178 @@
 # Prologue: Why train a base model from scratch
 
-## What the reader should be able to do
+## Overview
 
-The reader should finish this book able to build an auditable training chain from scratch: identify the data a model saw, locate where its state was updated, measure where the budget was spent, and state exactly what an experiment does and does not prove.
+If the goal is to ship an application, downloading a checkpoint is usually the shortest route. This book takes the longer route: start with data, build the tokenizer, construct the training windows and loss, save checkpoints, and then study TTT, linear attention, recurrent depth, MoE, and long-context state.
 
 The central question is:
 
-> Under fixed data, representation, training budget, and system conditions, how do modern sequence models store, update, and use context?
+> Under controlled data, representation, training budget, and system conditions, how do sequence models store, update, and use context?
 
-“From scratch” is the method for answering that question. It keeps data, tokenization, optimization, state, and checkpoints visible before we compare attention, compressed state, TTT, recurrent depth, and MoE.
+“From scratch” is a way to make the answer auditable. It does not claim that a tiny model is useful. It gives us evidence that the data path, objective, state transitions, and recovery protocol are correct before we spend a larger budget.
 
-“Train a language model by putting text through a Transformer and minimizing cross-entropy.” That sentence is correct, but incomplete. It says nothing about where the text comes from, how the tokenizer changes the budget, what a resumed run means, or which evidence can support an architectural claim.
+## A concrete scene: predicting “sat”
 
-This book builds a complete experiment rather than a single model class. We begin with a controlled corpus, tokenizer, causal objective, and dense baseline. We then study TTT, linear attention, recurrent depth, MoE, and long-context state under the same data and reporting contract.
-
-The progression is deliberately causal:
+When a person sees “the cat”, “sat” is a plausible continuation. A model does not receive the words directly. A tokenizer maps them to integer coordinates. For hand calculation, suppose a short sentence becomes:
 
 ~~~text
-motivation → experiment contract → data and representation → dense baseline
-→ context memory → compute and capacity → evidence and boundaries
+text token:    the   cat   sat   <EOS>
+token ID:        17    42    31      2
 ~~~
 
-## The objective
+At the first position, the model receives 17 and assigns a score to every vocabulary ID. It does not return only “sat” or “not sat”; it returns a vector of \(V\) logits. Softmax turns the scores into probabilities, and cross-entropy evaluates the probability assigned to the observed target. This small scene contains the whole book: data chooses the sentence, tokenization chooses the integers, architecture transforms context, optimization changes state, systems determine whether the run fits, and evaluation limits the claim.
 
-For tokens $x_1,\ldots,x_L$, an autoregressive model minimizes
+## Prerequisites and outcomes
+
+You need only basic arrays, functions, and command-line usage. Linear algebra, probability, and gradients are introduced when they first appear. By the end of this chapter, you should be able to:
+
+1. distinguish token IDs, embeddings, hidden states, logits, and probabilities;
+2. construct \(X\), \(Y\), and \(M\) from a token stream;
+3. derive the logits gradient from softmax and negative log likelihood;
+4. name which of the six training-system parts changed;
+5. produce a tiny token file and manifest without mistaking that artifact for evidence of language ability.
+
+## What a base model learns
+
+For tokenizer outputs \(x_1,\ldots,x_L\), an autoregressive model factorizes the sequence probability:
 
 $$
-\mathcal L(\theta)=-\frac{1}{L}\sum_{t=1}^{L}
+p_\theta(x_{1:L})
+=
+\prod_{t=1}^{L}p_\theta(x_t\mid x_{<t}).
+$$
+
+Here \(x_{<t}\) is the context before position \(t\), and \(\theta\) denotes model parameters. Training minimizes average negative log likelihood:
+
+$$
+\mathcal{L}(\theta)
+=
+-\frac{1}{L}
+\sum_{t=1}^{L}
 \log p_\theta(x_t\mid x_{<t}).
 $$
 
-The next-token task is local, but useful prediction often requires syntax, code dependencies, discourse, or facts from the context. A low training loss is still not a guarantee of reasoning, factuality, or instruction following. It measures prediction on a data distribution, and duplicated or contaminated data can make that measurement misleading.
+The task is local, but useful prediction may require syntax, code dependencies, discourse, or facts from far earlier in the context. Lower local prediction error can therefore encourage the model to represent those structures.
 
-### A small example of next-token loss
+It does not guarantee reasoning, factuality, or instruction following. Duplicated training data can lower loss through memorization; contaminated validation can make the number look too good; and a different tokenizer can change token counts without changing the characters. Later chapters make these effects explicit.
 
-Suppose the context is `the cat` and the next token is `sat`. The model does not output one answer; it outputs a score for every vocabulary item. Softmax turns those scores into probabilities:
+## From logits to probability, loss, and gradient
 
-$$
-p_\theta(v\mid x_{<t})=
-\frac{\exp z_{t,v}}
-{\sum_{u=1}^{V}\exp z_{t,u}}.
-$$
-
-If the correct token receives probability $0.8$, its contribution is $-\log(0.8)\approx0.223$. If it receives $0.01$, the contribution is about $4.605$. The logarithm makes confident wrong predictions expensive and lets losses from different positions add; averaging then makes runs with different numbers of valid labels comparable. A mask $m_t$ removes padding or prompt labels from this average:
+Suppose the context is “the cat” and the correct next token is “sat”. For three candidates, let the logits be
 
 $$
-\mathcal L=
-\frac{\sum_{t=1}^{L}m_t[-\log p_\theta(x_t\mid x_{<t})]}
+z=(2,1,0).
+$$
+
+Softmax is:
+
+$$
+p_j=\frac{\exp z_j}{\sum_u\exp z_u}.
+$$
+
+The probabilities are approximately \((0.665,0.245,0.090)\). If the correct token is the second candidate, its negative log likelihood is
+
+$$
+\ell=-\log(0.245)\approx1.407.
+$$
+
+If the correct probability rises to \(0.8\), the contribution becomes \(-\log(0.8)\approx0.223\). Thus “loss went down” first means that more probability moved to the observed token; it is not a claim about general intelligence.
+
+Expanding the loss:
+
+$$
+\ell
+=
+-\log\frac{\exp z_y}{\sum_v\exp z_v}
+=
+-z_y+\log\sum_v\exp z_v.
+$$
+
+Differentiating component \(j\):
+
+$$
+\frac{\partial\ell}{\partial z_j}
+=
+p_j-\mathbf{1}[j=y].
+$$
+
+The correct class has a negative gradient, so gradient descent raises its score. Incorrect classes have positive gradients and are lowered. This calculation links the dense baseline to inner SGD and meta-gradients.
+
+With padding or prompt masks, only \(m_t=1\) positions contribute:
+
+$$
+\mathcal{L}
+=
+\frac{\sum_{t=1}^{L}
+m_t[-\log p_\theta(y_t\mid x_{\le t})]}
 {\max(\sum_{t=1}^{L}m_t,1)}.
 $$
 
-This is why “the loss went down” is a precise statement about token prediction under a distribution, but not by itself a statement about broad intelligence. The data, tokenizer, split, and mask determine what the number means.
+A wrong input-label shift trains a different task. Counting padding trains the model to predict padding. Those are data-pipeline errors, not architecture errors.
 
-A base model learns sequence statistics. SFT and preference training add task and interaction behavior later. Keeping these stages separate makes the scope of this project clear.
+## Why train from scratch
 
-## Why from scratch
+Existing checkpoints are often the right choice for applications. From-scratch training is valuable when we need to control data, vocabulary, architecture, optimizer, token budget, and system cost, and ask whether a change in TTT or recurrent state improves an unseen-context metric under the same conditions.
 
-Existing checkpoints are the right starting point for many applications. From-scratch training is valuable when we need to control data, vocabulary, architecture, optimizer, token budget, and system cost. Only then can a change in TTT or recurrent state be compared to a stable control.
+The cost is real: licensing, cleaning, storage, stability, GPU scheduling, communication, and recovery become our responsibility. The book therefore starts with tiny runs and proves, in order, that the graph runs, the objective learns, and the comparison is interpretable. A tiny result is debugging evidence, not a large-model capability claim.
 
-The cost is real: data processing, licensing, storage, monitoring, GPU scheduling, and recovery all become part of the work. The book therefore starts with tiny runs, then scales only after the evidence is useful.
+## The six coupled parts
 
-## A budget example
+| Part | Question | Typical failure |
+|---|---|---|
+| Data | What distribution did the model actually see? | near-duplicate validation and an unrealistically low loss |
+| Representation | How did text become IDs, positions, and masks? | an off-by-one label shift or inconsistent EOS rule |
+| Architecture | How does context change hidden state? | a cache mismatch or suffix reading the future |
+| Optimization | Which state receives which gradient? | treating fast weights as ordinary optimizer parameters |
+| Systems | Can the computation fit and recover? | missing compile, communication, or memory costs |
+| Evaluation | What does each metric support? | treating one loss value as a universal capability score |
 
-Three quantities should be kept separate. $N_{\mathrm{param}}$ is the number of trainable parameters; $N_{\mathrm{tok}}$ is the number of training tokens; and $r_{\mathrm{tok}}$ is the measured token throughput. A simple wall-time estimate is
+Changing vocabulary size \(V\) changes the embedding and output head. Changing sequence length \(L\) changes activation and attention cost. TTT changes state and gradient boundaries. MoE changes communication and load. The chapters are ordered so that these dependencies are visible rather than hidden behind a model name.
+
+## Budget: parameters, tokens, throughput, and wall time
+
+Let \(N_{\mathrm{param}}\) be trainable parameters, \(N_{\mathrm{tok}}\) consumed tokens, and \(r_{\mathrm{tok}}\) measured steady throughput. A common dense-transformer estimate is:
 
 $$
-T_{\mathrm{wall}}\approx
-\frac{N_{\mathrm{tok}}}{r_{\mathrm{tok}}},
+F_{\mathrm{rough}}
+\approx
+6N_{\mathrm{param}}N_{\mathrm{tok}}.
 $$
 
-before adding compilation, evaluation, checkpointing, and failed jobs. For example, $5\times10^9$ tokens at $10^5$ tokens per second is about $5\times10^4$ seconds, or 13.9 hours of steady compute. If the tokenizer produces twice as many tokens for the same characters, the character coverage and cost comparison changes even when the model configuration is unchanged. If a vocabulary grows from 32K to 128K at hidden size 768, one embedding grows from about 24.6M to 98.3M parameters. A fair architecture comparison therefore declares both the model budget and the data budget.
+This does not fully cover long-context attention, special kernels, communication, or TTT inner updates. It cannot be turned directly into a price or completion time. A more useful engineering estimate uses measured throughput:
 
-## Six coupled parts
+| Quantity | Example | Meaning |
+|---|---:|---|
+| training tokens | \(10^9\) | a budget, not file bytes |
+| steady throughput | \(50{,}000\) token/s | measured at the target configuration |
+| pure compute time | \(20{,}000\) s | about 5.6 hours |
+| compile, evaluation, saves, retries | unknown | must be recorded separately |
 
-| Part | Question |
-|---|---|
-| Data | What distribution does the model see? |
-| Representation | How does text become token IDs and masks? |
-| Architecture | How does context change the hidden state? |
-| Optimization | Which state receives which gradient? |
-| Systems | Can the computation fit and recover? |
-| Evaluation | What conclusion does each metric support? |
+Model and data budgets must be reported together. With \(d=768\), increasing vocabulary from 32K to 128K increases one embedding from about \(24.6\)M to \(98.3\)M parameters. The same hidden width therefore does not imply the same model or memory budget.
 
-A vocabulary change affects embedding and lm_head. A context change affects memory and attention cost. TTT changes state and gradient boundaries. MoE changes communication. These dependencies explain the order of the chapters.
+## First runnable checkpoint
 
-For a beginner, the important habit is to ask which object changed. A new tokenizer changes the input coordinate system; a new attention rule changes how positions communicate; a new optimizer changes the update path; a new checkpoint format changes what “resume” means. Calling all of them a “model improvement” hides the cause of a result.
+On the designated remote CPU machine, create the tiny data artifacts:
 
-## The book loop
-
-The stable route is:
-
-~~~text
-source data → cleaning → tokenizer → dense baseline
-→ TTT and streaming state → MoE and loops
-→ controlled ablations → GPU validation
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+python3 -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/sample-shards \
+  --tokenizer byte \
+  --sharded \
+  --shard-tokens 256
 ~~~
 
-Frontier Lab moves faster around TTT, linear attention, recurrent depth, and long context. A frontier claim enters the mainline only after it has a minimal reproduction and a compute-matched control.
+You should see <code>outputs/sample-tokens.npy</code>, shard files, and <code>manifest.json</code>. Check <code>vocab_size</code>, shard lengths, and the input digest. If the files are absent, check the Python environment, input path, and output permissions first. This proves that the data object can be built; it does not prove that the model learns or that GPU training scales.
 
-The first chapter defines the experiment contract. The second fixes the environment, the third fixes reproducible runs, and the fourth data chapter defines the contract that every later model must consume.
+The book uses three completion levels: **runnable** means the entry point and dependencies work; **learnable** means loss, valid-token count, and updates behave plausibly; **interpretable** means controls, metrics, and evidence support a claim. Completing one level never silently implies the next.
+
+## Mainline and Frontier Lab
+
+The mainline follows dependencies: notation, experiment contract, data, dense baseline, state and compute, ablations, and validation. Frontier Lab follows fast-moving questions about TTT and linear attention, recurrent depth, and long context. Each frontier page must state the paper version, implementation status, minimal reproduction entry point, and missing evidence.
+
+A frontier page may propose a hypothesis, but it cannot reuse a paper's numbers as this project's result. It enters the mainline only after a runnable baseline, controlled variables, metrics, and failure criteria exist.
+
+## Summary and next question
+
+This chapter established why we train, what the model predicts, how softmax/NLL/gradients connect, and how budget and evidence limit the claim. The next chapter turns these objects into an experiment contract: what must remain fixed, what must be saved, and how to prove that an interrupted run resumed the same process.

@@ -1,61 +1,146 @@
 # 全书统一记号
 
-这本书同时讨论数据、模型、优化和运行时状态。如果同一个字母在不同章节中反复改变含义，公式看起来会比实现更复杂。因此从这里开始，正文、公式和实验报告使用同一套记号；代码字段名会在首次出现时与数学记号对应起来。
+## 本章导读
 
-数学推导默认使用从 1 开始的位置编号，代码索引默认从 0 开始。两者描述的是同一个序列：数学中的 $x_t$ 对应代码中的 <code>tokens[t - 1]</code>。
+后面的章节会同时讨论数据、张量、概率、优化器和运行时状态。如果同一个字母在不同章节中表示不同东西，读者会很难判断公式和代码是否在描述同一个对象。本章先用一条很短的中文句子走完一次语言模型输入，再固定全书会反复使用的记号。
 
-## 1. 索引和形状
+读完本章，你应该能完成三件事：把文本写成 token ID；把 token 流变成输入 \(X\)、目标 \(Y\) 和损失掩码 \(M\)；看到一个 logits 向量时，知道它如何变成概率和 loss。数学位置从 1 开始，代码数组索引从 0 开始，这是全书最重要的阅读约定。
+
+## 一个贯穿例子：猫坐下
+
+为了手算，我们假设 tokenizer 把“猫坐下”以及句末标记分成四个 token，并给出一组**教学用** ID：
+
+~~~text
+文本 token：猫   坐   下   <EOS>
+token ID：  17   42   31     2
+数学位置：  1    2    3      4
+代码索引：  0    1    2      3
+~~~
+
+真实 tokenizer 的 ID 不一定是 17、42、31、2；ID 只是词表中的整数坐标。模型不会看到“猫”这个汉字，而会看到整数序列 \(s=(17,42,31,2)\)。这个例子中的 \(s\) 表示 tokenizer 产生的连续 token 流，后面还要从它构造模型输入。
+
+数学位置 \(t=1\) 对应代码里的 <code>tokens[0]</code>，一般关系是：
+
+$$
+\text{数学位置 }t
+\quad\longleftrightarrow\quad
+\text{代码索引 }t-1.
+$$
+
+如果代码打印了 <code>tokens[2]</code>，它表示数学位置 \(t=3\)，不是位置 2。我们保留这种差异，因为数学推导用从 1 开始的求和更自然，而 Python、NumPy 和 JAX 都用从 0 开始的数组索引。
+
+## 从 token 流到 \(X,Y,M\)
+
+因果语言模型的任务是：给定当前位置以前看到的 token，预测下一个 token。对上面的四个 token，取前三个作为输入：
+
+$$
+X=(x_1,x_2,x_3)=(17,42,31),
+\qquad
+Y=(y_1,y_2,y_3)=(42,31,2).
+$$
+
+逐项看，位置 1 输入“猫”并预测“坐”，位置 2 输入“猫、坐”并预测“下”，位置 3 输入“猫、坐、下”并预测 EOS。代码中的数组就是：
+
+~~~python
+input_ids = [17, 42, 31]
+labels = [42, 31, 2]
+loss_mask = [1, 1, 1]
+~~~
+
+这里的 <code>input_ids</code> 对应数学 \(X\)，<code>labels</code> 对应 \(Y\)，<code>loss_mask</code> 对应 \(M\)。如果把两篇文档直接拼接，第二篇文档的第一个 token 是否允许被第一篇文档的末尾预测，要由 packing 规则决定。例如：
+
+$$
+M=(1,1,0)
+$$
+
+可以屏蔽跨文档的最后一个目标；而连续语料训练可能使用 \(M=(1,1,1)\)。mask 不是装饰字段，它定义哪些预测真正进入优化目标。
+
+## 索引、形状和 batch
+
+全书使用以下基本符号：
 
 | 对象 | 记号 | 约定 |
 |---|---|---|
-| batch 样本 | $b$ | $b\in\{1,\ldots,B\}$ |
-| token 位置 | $t$ | $t\in\{1,\ldots,L\}$ |
-| Transformer 层 | $\ell$ | $\ell\in\{0,\ldots,n_\ell-1\}$ |
-| chunk | $c$ | 一个序列窗口可以拆成多个连续 chunk |
-| 外循环训练步 | $k$ | 优化器更新一次静态参数的编号 |
-| expert | $e$ | $e\in\{1,\ldots,E\}$ |
-| batch 大小 | $B$ | 一个训练步中的样本数 |
-| 序列长度 | $L$ | 一个窗口中的 token 数 |
-| 词表大小 | $V$ | tokenizer 可以产生的 token ID 数量 |
+| batch 样本 | \(b\) | \(b\in\{1,\ldots,B\}\) |
+| token 位置 | \(t\) | \(t\in\{1,\ldots,L\}\) |
+| Transformer 层 | \(\ell\) | \(\ell\in\{0,\ldots,n_\ell-1\}\) |
+| chunk | \(c\) | 连续 token 窗口的一段 |
+| 外循环训练步 | \(k\) | 静态参数被优化器更新一次 |
+| expert | \(e\) | \(e\in\{1,\ldots,E\}\) |
+| batch 大小 | \(B\) | 一个训练步中的样本数 |
+| 序列长度 | \(L\) | 一个窗口中的 token 数 |
+| 词表大小 | \(V\) | tokenizer 可以产生的 token ID 数量 |
 
-一个 batch 的 token 张量写成 $X\in\{0,\ldots,V-1\}^{B\times L}$。<code>[B, L]</code>、<code>[B, L, d]</code> 这样的顺序表示 batch、序列、特征；除非特别说明，本书不交换这三个轴。
+一个 batch 的输入张量写成：
 
-## 2. 输入、目标和 mask
+$$
+X\in\{0,\ldots,V-1\}^{B\times L}.
+$$
 
-- $x_{b,t}$：第 $b$ 个样本在位置 $t$ 的输入 token ID；
-- $y_{b,t}$：对应的 next-token 目标；
-- $m_{b,t}\in\{0,1\}$：该目标是否计入 loss；
-- $X,Y,M$：分别由 $x,y,m$ 组成的 batch 张量。
+例如 \(B=1,L=3\) 时，<code>input_ids</code> 的形状是 <code>[1, 3]</code>；模型把每个 ID 查成 \(d\) 维向量后，hidden 的形状变成 <code>[1, 3, d]</code>；最后词表投影产生 <code>[1, 3, V]</code> 的 logits。除非特别说明，张量轴顺序都是 batch、sequence、feature。
 
-标准 causal language modeling 使用 $y_{b,t}=x_{b,t+1}$。最后一个输入位置是否有目标，由窗口构造和 padding 规则决定，不能只凭张量长度猜测。
+## embedding、hidden、logits 和概率
 
-## 3. 模型和表示
+四个词容易混在一起：
 
-| 对象 | 记号 | 形状或含义 |
-|---|---|---|
-| hidden/residual width | $d$ | 残差流和归一化层的特征维度 |
-| FFN 中间宽度 | $d_{\mathrm{ff}}$ | MLP 或 SwiGLU 的中间维度 |
-| 层数 | $n_\ell$ | Transformer block 的数量 |
-| attention 头数 | $n_h$ | query heads 的数量 |
-| 单头宽度 | $d_h$ | 通常 $d_h=d/n_h$ |
-| embedding | $E$ | $E\in\mathbb{R}^{V\times d}$ |
-| hidden state | $\mathbf{h}^{(\ell)}_{b,t}$ | 第 $\ell$ 层位置 $t$ 的 $d$ 维向量 |
-| hidden tensor | $\mathbf{H}^{(\ell)}$ | 形状为 $[B,L,d]$ |
-| logits | $\mathbf{z}_{b,t}$ | $\mathbf{z}_{b,t}\in\mathbb{R}^{V}$ |
-| 概率分布 | $p_\theta$ | 模型对下一个 token 的预测分布 |
+1. **token ID** 是词表中的整数坐标，例如 17；
+2. **embedding** 是查表得到的 \(d\) 维向量；
+3. **hidden state** 是经过模型层变换后的 \(d\) 维残差流；
+4. **logits** 是对 \(V\) 个候选 token 的未归一化分数；
+5. **概率** 是把 logits 经过 softmax 后得到的总和为 1 的分布。
 
-模型前向函数统一写作 $f_\theta$。当 TTT 或其他测试时适应机制出现时，使用 $f_{\theta,\phi_t}$：$\theta$ 是跨 batch 学习的静态参数，$\phi_t$ 是当前序列内可能变化的快权重。
+设 embedding 矩阵为 \(E\in\mathbb{R}^{V\times d}\)。token 17 的向量是 \(E_{17,:}\)。某个位置经过模型后得到 hidden \(h\in\mathbb{R}^{d}\)，输出头矩阵为 \(W_{\mathrm{out}}\in\mathbb{R}^{d\times V}\)，则：
 
-## 4. 损失和优化
+$$
+z=hW_{\mathrm{out}}\in\mathbb{R}^{V}.
+$$
 
-- $\ell^{\mathrm{tok}}_{b,t}$：一个有效 token 的负对数似然；
-- $\mathcal{L}_{\mathrm{batch}}$：按有效 token 数加权的 batch loss；
-- $\mathcal{L}_{\mathrm{inner}}$：用来更新快权重的内循环 loss；
-- $\mathcal{L}_{\mathrm{outer}}$：用来更新静态参数的外循环 loss；
-- $\mathcal{L}_{\mathrm{val}}$：验证集上的汇总 loss；
-- $\eta_{\mathrm{outer}}$、$\eta_{\mathrm{inner}}$：外循环和内循环学习率。
+第 \(v\) 个分量 \(z_v\) 只是分数，不是概率。softmax 把它变成：
 
-静态参数的更新写成：
+$$
+p_\theta(v\mid x_{1:t})
+=
+\frac{\exp z_v}{\sum_{u=0}^{V-1}\exp z_u}.
+$$
+
+分母把所有候选的指数分数加起来，所以 \(p_\theta(v\mid x_{1:t})\) 在所有 \(v\) 上相加等于 1。词表大小 \(V\) 因而同时决定输出头的最后一维和概率分布的类别数。
+
+## 损失、梯度和两个时间尺度
+
+如果目标 token 是 \(y_t\)，这个位置的负对数似然为：
+
+$$
+\ell_t^{\mathrm{tok}}(\theta)
+=
+-\log p_\theta(y_t\mid x_{1:t}).
+$$
+
+有 \(m_t\in\{0,1\}\) 时，一个窗口的平均 loss 是：
+
+$$
+\mathcal{L}
+=
+\frac{\sum_{t=1}^{L}m_t\ell_t^{\mathrm{tok}}}
+{\max(\sum_{t=1}^{L}m_t,1)}.
+$$
+
+为什么梯度会出现 \(p-\text{one-hot}\)？设 logits 向量为 \(z\)，正确类别为 \(y\)：
+
+$$
+\ell=-\log\frac{\exp z_y}{\sum_v\exp z_v}
+=-z_y+\log\sum_v\exp z_v.
+$$
+
+对第 \(j\) 个分量求导，第一项贡献 \(-\mathbf{1}[j=y]\)，第二项贡献 softmax 概率 \(p_j\)，因此：
+
+$$
+\frac{\partial\ell}{\partial z_j}
+=p_j-\mathbf{1}[j=y].
+$$
+
+正确类别的梯度为负，梯度下降会提高它的分数；错误类别的梯度为正，梯度下降会降低它们的分数。这个局部推导会在 baseline 和 TTT 内循环中再次使用。
+
+静态参数跨训练 step 更新：
 
 $$
 \theta_{k+1}
@@ -64,7 +149,7 @@ $$
 \left(\theta_k,\nabla_\theta\mathcal{L}_{\mathrm{outer}}\right).
 $$
 
-快权重的更新写成：
+TTT 的快权重在序列或 chunk 内更新：
 
 $$
 \phi_{t+1}
@@ -73,38 +158,39 @@ $$
 \nabla_\phi\mathcal{L}_{\mathrm{inner}}.
 $$
 
-这两个下标表达不同时间尺度：$k$ 跨训练步递增，$t$ 在一个序列或 chunk 内递增。
+\(k\) 和 \(t\) 不能混为同一个下标：前者描述训练过程的长期状态，后者描述当前序列的短期适应。
 
-## 5. 数据、预算和实验
+## 数据集、分布和状态 owner
 
-| 对象 | 记号 | 含义 |
-|---|---|---|
-| 数据集或 manifest | $\mathcal{D}_{\mathrm{train}}$, $\mathcal{D}_{\mathrm{val}}$, $\mathcal{D}_{\mathrm{test}}$ | 具体可读取的数据对象 |
-| 训练数据分布 | $D$ | 采样器实际让模型看到的分布 |
-| 已消费 token 数 | $N_{\mathrm{tok}}$ | 训练预算中的 token 计数 |
-| 参数量 | $N_{\mathrm{param}}$ | 模型可训练参数总数 |
-| 计算量 | $F$ | FLOPs 或声明过的计算量估计 |
-| 墙钟时间 | $T_{\mathrm{wall}}$ | 从启动到完成的实际时间 |
+数据集 \(\mathcal{D}\) 是可以检查文件、manifest 和 hash 的对象；分布 \(D\) 是采样器实际让模型看到的概率分布。例如两个文件各有 100 个 token，按文件数均匀采样得到的分布不一定按 token 均匀；长文件会贡献更多窗口。数据章节会明确采样单位和权重。
 
-数据集 $\mathcal{D}$ 和数据分布 $D$ 不等价：前者是可以校验 hash、manifest 和 split 的输入对象，后者是采样器在训练中形成的概率分布。数据章节讨论的是这两个层次如何联系。
+状态也必须有 owner 和 lifetime：
 
-## 6. 状态边界
+| 状态 | 记号 | owner | 生命周期 |
+|---|---|---|---|
+| 静态参数 | \(\theta\) | model/checkpoint | 多个 batch |
+| 优化器状态 | \(O_k\) | trainer/checkpoint | 训练 step |
+| sampler/RNG | \(R_k\) | data stream/checkpoint | 训练恢复 |
+| KV cache | \(\mathbf c_t\) | request session | 一次推理请求 |
+| TTT fast weights | \(\phi_t\) | chunk/session | 由协议决定 |
 
-- $\mathbf{c}_t$：attention 的 KV cache；
-- $\mathbf{r}_t$：线性注意力或其他递归模块的状态；
-- $\phi_t$：TTT fast weights；
-- $\mathbf{S}_k$：checkpoint 中与第 $k$ 步相关的可恢复训练状态，包括 optimizer、sampler 和随机数状态。
+“模型状态”不是一个足够精确的词。只恢复参数而不恢复 optimizer 和 sampler，可能加载成功，却不能称为同一个训练过程的 resume。
 
-参数、优化器状态、数据采样状态和推理 session 状态不能统称为“模型状态”。每一章都会说明某个状态属于静态参数、训练过程，还是单个请求。
+## 代码检查与证据
 
-## 7. 书中的书写规则
+记号本身不需要 GPU。远端 CPU 节点上可以先生成 tiny token 文件：
 
-1. 标量使用斜体小写或大写字母，向量使用粗体小写，矩阵使用粗体大写，集合或损失使用花体；
-2. <code>d_model</code>、<code>num_heads</code>、<code>vocab_size</code> 等代码字段分别对应 $d$、$n_h$、$V$；
-3. <code>input_ids</code>、<code>labels</code>、<code>loss_mask</code> 分别对应 $X$、$Y$、$M$；
-4. <code>theta</code>、<code>phi</code> 出现在代码或日志中时，正文公式仍写作 $\theta$、$\phi$；
-5. $L$ 只表示序列长度，$\mathcal{L}$ 只表示损失，$B$ 只表示 batch 大小；
-6. scaling 章节使用 $N_{\mathrm{param}}$ 和 $N_{\mathrm{tok}}$，不再用含义不明确的 $N$ 和 $D$；
-7. 公式中的位置从 1 开始，代码中的数组索引从 0 开始，转换关系必须明确写出。
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+python3 -m ttt.data --input examples/sample.txt --output outputs/sample-shards --tokenizer byte --sharded --shard-tokens 256
+~~~
 
-数学变量、概率、集合和张量形状在正文中统一使用 LaTeX 渲染，例如 \(x\)、\(\theta\)、\(P_{\mathrm{train}}\) 和 \(X\in\mathbb{R}^{B\times L\times d}\)。反引号只用于真实代码名称；数学变量不能使用代码样式。
+成功时应看到 token 文件、分片文件和 <code>manifest.json</code>；检查 <code>vocab_size</code>、shard token 数和输入摘要是否存在。这个检查只能证明数据对象和字段能生成，不能证明模型已经学会语言，也不能证明 GPU 训练吞吐。
+
+## 小结与下一问
+
+本章固定了位置、形状、\(X/Y/M\)、embedding/hidden/logits/probability、loss/gradient，以及 \(\theta\) 和 \(\phi\) 的状态边界。下一章用这些记号解释：为什么要先写实验契约，怎样判断一次 tiny run 是否真的可比较。
+
+## 书写规则
+
+标量使用斜体小写或大写字母，向量使用粗体小写，矩阵使用粗体大写，集合或损失使用花体。<code>d_model</code>、<code>num_heads</code>、<code>vocab_size</code> 分别对应 \(d\)、\(n_h\)、\(V\)；<code>input_ids</code>、<code>labels</code>、<code>loss_mask</code> 分别对应 \(X\)、\(Y\)、\(M\)。数学变量和概率必须使用 LaTeX，反引号只用于真实代码名称。

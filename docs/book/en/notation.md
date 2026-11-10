@@ -1,61 +1,140 @@
 # Notation and conventions
 
-This book discusses data, models, optimization, and runtime state together. A symbol that changes meaning from chapter to chapter makes the equations harder to audit than the implementation. The main text, equations, and experiment reports therefore use the notation below.
+## Overview
 
-Mathematical positions are one-based; array indices in code are zero-based. Thus mathematical $x_t$ corresponds to <code>tokens[t - 1]</code> in code.
+This book discusses data, tensors, probability, optimization, and runtime state in one chain. If a symbol changes meaning between chapters, the equations become harder to audit than the code. We therefore begin with one short sentence, use it to build a causal-language-model example, and then fix the notation used by every chapter.
 
-## 1. Indices and shapes
+After this chapter, you should be able to turn text into token IDs, construct \(X\), \(Y\), and \(M\), and explain how logits become probabilities and loss. Mathematical positions start at 1; array indices in code start at 0.
+
+## A running example: “the cat sits”
+
+For hand calculation, suppose a tokenizer maps a short sentence and an end marker to the following **teaching IDs**:
+
+~~~text
+text token:    the   cat   sits   <EOS>
+token ID:        17    42     31      2
+math position:    1     2      3      4
+code index:       0     1      2      3
+~~~
+
+Real tokenizers may assign different IDs. An ID is only an integer coordinate in the vocabulary. The model sees the stream \(s=(17,42,31,2)\), not the human meaning of the words. The conversion is:
+
+$$
+\text{mathematical position }t
+\quad\longleftrightarrow\quad
+\text{code index }t-1.
+$$
+
+Thus <code>tokens[2]</code> is mathematical position \(t=3\), not position 2. One-based sums are convenient in derivations; Python, NumPy, and JAX use zero-based arrays.
+
+## From a token stream to \(X,Y,M\)
+
+A causal language model predicts the next token from the context available so far. For the four-token stream, use the first three positions as input:
+
+$$
+X=(x_1,x_2,x_3)=(17,42,31),
+\qquad
+Y=(y_1,y_2,y_3)=(42,31,2).
+$$
+
+Position 1 predicts “cat” after “the”; position 2 predicts “sits” after “the cat”; position 3 predicts EOS after the full visible prefix. The code fields are:
+
+~~~python
+input_ids = [17, 42, 31]
+labels = [42, 31, 2]
+loss_mask = [1, 1, 1]
+~~~
+
+The code field <code>input_ids</code> is mathematical \(X\), <code>labels</code> is \(Y\), and <code>loss_mask</code> is \(M\). If two documents are packed together, whether the last token of one document may predict the first token of the next is a protocol choice. For example, \(M=(1,1,0)\) masks a cross-document target, while a continuous-corpus protocol may use \(M=(1,1,1)\). The mask defines which predictions enter the objective.
+
+## Indices, shapes, and batches
 
 | Object | Symbol | Convention |
 |---|---|---|
-| batch sample | $b$ | $b\in\{1,\ldots,B\}$ |
-| token position | $t$ | $t\in\{1,\ldots,L\}$ |
-| Transformer layer | $\ell$ | $\ell\in\{0,\ldots,n_\ell-1\}$ |
-| chunk | $c$ | a window may contain several consecutive chunks |
-| outer training step | $k$ | one optimizer update of the static parameters |
-| expert | $e$ | $e\in\{1,\ldots,E\}$ |
-| batch size | $B$ | samples in one training step |
-| sequence length | $L$ | tokens in one window |
-| vocabulary size | $V$ | number of token IDs |
+| batch sample | \(b\) | \(b\in\{1,\ldots,B\}\) |
+| token position | \(t\) | \(t\in\{1,\ldots,L\}\) |
+| Transformer layer | \(\ell\) | \(\ell\in\{0,\ldots,n_\ell-1\}\) |
+| chunk | \(c\) | a consecutive part of a token window |
+| outer training step | \(k\) | one optimizer update of static parameters |
+| expert | \(e\) | \(e\in\{1,\ldots,E\}\) |
+| batch size | \(B\) | samples in one training step |
+| sequence length | \(L\) | tokens in one window |
+| vocabulary size | \(V\) | number of token IDs |
 
-A batch of token IDs is $X\in\{0,\ldots,V-1\}^{B\times L}$. Shapes such as <code>[B, L]</code> and <code>[B, L, d]</code> are ordered as batch, sequence, features unless stated otherwise.
+A batch of inputs is
 
-## 2. Inputs, targets, and masks
+$$
+X\in\{0,\ldots,V-1\}^{B\times L}.
+$$
 
-- $x_{b,t}$: input token ID at position $t$ in sample $b$;
-- $y_{b,t}$: next-token target;
-- $m_{b,t}\in\{0,1\}$: whether that target contributes to the loss;
-- $X,Y,M$: the corresponding batch tensors.
+For \(B=1,L=3\), <code>input_ids</code> has shape <code>[1, 3]</code>. Looking up each ID produces hidden vectors with shape <code>[1, 3, d]</code>; the vocabulary projection produces logits with shape <code>[1, 3, V]</code>. Unless a chapter says otherwise, axes are batch, sequence, features.
 
-Standard causal language modeling uses $y_{b,t}=x_{b,t+1}$. Whether the final input position has a target depends on the window and padding protocol.
+## Embeddings, hidden states, logits, and probabilities
 
-## 3. Model and representations
+These terms name different objects:
 
-| Object | Symbol | Shape or meaning |
-|---|---|---|
-| hidden/residual width | $d$ | feature dimension of the residual stream |
-| FFN width | $d_{\mathrm{ff}}$ | intermediate MLP or SwiGLU width |
-| number of layers | $n_\ell$ | Transformer blocks |
-| attention heads | $n_h$ | number of query heads |
-| head width | $d_h$ | usually $d_h=d/n_h$ |
-| embedding | $E$ | $E\in\mathbb{R}^{V\times d}$ |
-| hidden state | $\mathbf{h}^{(\ell)}_{b,t}$ | $d$-dimensional state at layer $\ell$ |
-| hidden tensor | $\mathbf{H}^{(\ell)}$ | shape $[B,L,d]$ |
-| logits | $\mathbf{z}_{b,t}$ | $\mathbf{z}_{b,t}\in\mathbb{R}^{V}$ |
-| probability distribution | $p_\theta$ | next-token distribution |
+1. A **token ID** is an integer coordinate, such as 17.
+2. An **embedding** is the \(d\)-dimensional vector looked up for that ID.
+3. A **hidden state** is the \(d\)-dimensional residual-stream vector after model layers.
+4. **Logits** are unnormalized scores for the \(V\) candidate tokens.
+5. **Probabilities** are the normalized distribution obtained from logits.
 
-The forward function is written as $f_\theta$. With TTT or another test-time adaptation mechanism, it becomes $f_{\theta,\phi_t}$: $\theta$ are static parameters learned across batches, while $\phi_t$ are fast weights that may change within a sequence.
+Let the embedding matrix be \(E\in\mathbb{R}^{V\times d}\). Token 17 selects \(E_{17,:}\). If a model produces \(h\in\mathbb{R}^{d}\) and the output matrix is \(W_{\mathrm{out}}\in\mathbb{R}^{d\times V}\), then:
 
-## 4. Losses and optimization
+$$
+z=hW_{\mathrm{out}}\in\mathbb{R}^{V}.
+$$
 
-- $\ell^{\mathrm{tok}}_{b,t}$: per-token negative log likelihood;
-- $\mathcal{L}_{\mathrm{batch}}$: batch loss weighted by valid-token count;
-- $\mathcal{L}_{\mathrm{inner}}$: loss used to update fast weights;
-- $\mathcal{L}_{\mathrm{outer}}$: loss used to update static parameters;
-- $\mathcal{L}_{\mathrm{val}}$: aggregate validation loss;
-- $\eta_{\mathrm{outer}}$ and $\eta_{\mathrm{inner}}$: outer and inner learning rates.
+The component \(z_v\) is a score, not a probability. Softmax gives:
 
-The static-parameter update is:
+$$
+p_\theta(v\mid x_{1:t})
+=
+\frac{\exp z_v}{\sum_{u=0}^{V-1}\exp z_u}.
+$$
+
+The denominator sums every candidate, so the probabilities sum to one. Vocabulary size \(V\) therefore fixes both the final logits dimension and the number of classes in the distribution.
+
+## Loss, gradient, and two clocks
+
+For target \(y_t\), the per-token negative log likelihood is:
+
+$$
+\ell_t^{\mathrm{tok}}(\theta)
+=
+-\log p_\theta(y_t\mid x_{1:t}).
+$$
+
+With a mask \(m_t\in\{0,1\}\), the window loss is:
+
+$$
+\mathcal{L}
+=
+\frac{\sum_{t=1}^{L}m_t\ell_t^{\mathrm{tok}}}
+{\max(\sum_{t=1}^{L}m_t,1)}.
+$$
+
+Why does the gradient become \(p-\text{one-hot}\)? For logits \(z\) and correct class \(y\):
+
+$$
+\ell
+=
+-\log\frac{\exp z_y}{\sum_v\exp z_v}
+=
+-z_y+\log\sum_v\exp z_v.
+$$
+
+Differentiating component \(j\), the first term contributes \(-\mathbf{1}[j=y]\), and the log-sum-exp term contributes \(p_j\):
+
+$$
+\frac{\partial\ell}{\partial z_j}
+=
+p_j-\mathbf{1}[j=y].
+$$
+
+The correct class receives a negative gradient, so gradient descent raises its score; incorrect classes receive positive gradients and are lowered. This local derivation reappears in the dense baseline and the TTT inner loop.
+
+Static parameters are updated across training steps:
 
 $$
 \theta_{k+1}
@@ -64,7 +143,7 @@ $$
 \left(\theta_k,\nabla_\theta\mathcal{L}_{\mathrm{outer}}\right).
 $$
 
-The fast-weight update is:
+TTT fast weights can change within a sequence or chunk:
 
 $$
 \phi_{t+1}
@@ -73,38 +152,39 @@ $$
 \nabla_\phi\mathcal{L}_{\mathrm{inner}}.
 $$
 
-The indices represent different time scales: $k$ advances across training steps, while $t$ advances within a sequence or chunk.
+The indices are different clocks: \(k\) describes long-lived training state, while \(t\) describes short-lived adaptation.
 
-## 5. Data, budgets, and experiments
+## Datasets, distributions, and state owners
 
-| Object | Symbol | Meaning |
-|---|---|---|
-| dataset or manifest | $\mathcal{D}_{\mathrm{train}}$, $\mathcal{D}_{\mathrm{val}}$, $\mathcal{D}_{\mathrm{test}}$ | concrete readable data objects |
-| training data distribution | $D$ | distribution actually induced by the sampler |
-| consumed tokens | $N_{\mathrm{tok}}$ | token count in the training budget |
-| parameter count | $N_{\mathrm{param}}$ | total trainable parameters |
-| compute | $F$ | FLOPs or another declared estimate |
-| wall-clock time | $T_{\mathrm{wall}}$ | elapsed execution time |
+A dataset \(\mathcal{D}\) is a checkable object with files, manifests, and hashes. A distribution \(D\) is what the sampler actually shows to the model. Two files may contain the same number of documents but different numbers of tokens, so document-uniform sampling is not token-uniform sampling.
 
-A dataset $\mathcal{D}$ and a data distribution $D$ are different: the former is an input object with hashes, manifests, and splits; the latter is the probability distribution produced by sampling.
+State also needs an owner and lifetime:
 
-## 6. State boundaries
+| State | Symbol | Owner | Lifetime |
+|---|---|---|---|
+| static parameters | \(\theta\) | model/checkpoint | many batches |
+| optimizer state | \(O_k\) | trainer/checkpoint | training steps |
+| sampler/RNG | \(R_k\) | data stream/checkpoint | resume protocol |
+| KV cache | \(\mathbf c_t\) | request session | one request |
+| TTT fast weights | \(\phi_t\) | chunk/session | protocol-defined |
 
-- $\mathbf{c}_t$: attention KV cache;
-- $\mathbf{r}_t$: recurrent or linear-attention state;
-- $\phi_t$: TTT fast weights;
-- $\mathbf{S}_k$: recoverable training state associated with step $k$, including optimizer, sampler, and random state.
+“Model state” is too broad to audit. Loading parameters without optimizer and sampler state may succeed as a file operation, but it is not the same training process.
 
-Parameters, optimizer state, data-sampler state, and request/session state should not all be called “model state.” Each chapter identifies the owner and lifetime of the state it introduces.
+## Code checkpoint and evidence
 
-## 7. Writing rules
+Notation itself does not require a GPU. On the remote CPU machine, generate a tiny token file and shard:
 
-1. Scalars use italic letters, vectors use bold lowercase letters, matrices use bold uppercase letters, and sets or losses use calligraphic letters.
-2. Code fields <code>d_model</code>, <code>num_heads</code>, and <code>vocab_size</code> correspond to $d$, $n_h$, and $V$.
-3. <code>input_ids</code>, <code>labels</code>, and <code>loss_mask</code> correspond to $X$, $Y$, and $M$.
-4. Code and logs may spell the symbols as <code>theta</code> and <code>phi</code>; equations use $\theta$ and $\phi$.
-5. $L$ means sequence length, $\mathcal{L}$ means a loss, and $B$ means batch size.
-6. Scaling uses $N_{\mathrm{param}}$ and $N_{\mathrm{tok}}$ rather than ambiguous $N$ and $D$.
-7. Equations use one-based positions; code uses zero-based array indices, and the conversion must be stated when it matters.
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+python3 -m ttt.data --input examples/sample.txt --output outputs/sample-shards --tokenizer byte --sharded --shard-tokens 256
+~~~
 
-Mathematical variables, probabilities, sets, and tensor shapes must use rendered LaTeX, such as \(x\), \(\theta\), \(P_{\mathrm{train}}\), and \(X\in\mathbb{R}^{B\times L\times d}\). Backticks are reserved for actual code names; mathematical variables must not use code styling.
+Success should produce a token file, shard files, and <code>manifest.json</code>. Inspect <code>vocab_size</code>, shard token counts, and the input digest. This proves that the data object and fields can be produced; it does not prove that the model has learned language or that GPU throughput is adequate.
+
+## Summary and next question
+
+This chapter fixed positions, shapes, \(X/Y/M\), embeddings, hidden states, logits, probabilities, loss, gradients, and the state boundary between \(\theta\) and \(\phi\). The next chapter uses these symbols to define an experiment contract and ask whether a tiny run is genuinely comparable.
+
+## Writing rules
+
+Scalars use italic letters, vectors bold lowercase, matrices bold uppercase, and sets or losses calligraphic letters. Code fields <code>d_model</code>, <code>num_heads</code>, and <code>vocab_size</code> correspond to \(d\), \(n_h\), and \(V\); <code>input_ids</code>, <code>labels</code>, and <code>loss_mask</code> correspond to \(X\), \(Y\), and \(M\). Mathematical variables and probabilities use LaTeX; backticks are reserved for real code names.

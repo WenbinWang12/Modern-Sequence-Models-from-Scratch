@@ -8,6 +8,11 @@ For a hidden state \(x\), causal attention and the static MLP contribute stable 
 
 The model predicts with the current fast weights, computes the inner loss, and then updates the fast state. The boundary at which the new state is used is part of the configuration.
 
+<figure class="book-figure">
+  <img src="../../../assets/figures/ttt-timeline.svg" alt="The timing of token chunks, inner-loop fast-weight updates, and outer-loop static-parameter updates in TTT">
+  <figcaption><strong>Figure 3. Two clocks in TTT.</strong> Each chunk predicts with the current fast weights and updates <span class="arithmatex">\(\phi\)</span> from observed labels; <span class="arithmatex">\(\theta\)</span> is updated across batches by the outer loop.</figcaption>
+</figure>
+
 ## Three boundaries
 
 The implementation must make three boundaries visible:

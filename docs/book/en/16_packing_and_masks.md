@@ -1,10 +1,10 @@
 # 10. Packing, labels, and masks
 
-The training loop sees code fields `input_ids`, `labels`, and `loss_mask`, not documents. For tokens \(x_0,x_1,x_2,x_3\):
+The training loop sees code fields `input_ids`, `labels`, and `loss_mask`, not documents. For tokens \(x_1,x_2,x_3,x_4\):
 
 $$
-X=(x_0,x_1,x_2),\qquad
-Y=(x_1,x_2,x_3),\qquad
+X=(x_1,x_2,x_3),\qquad
+Y=(x_2,x_3,x_4),\qquad
 M=(1,1,1).
 $$
 

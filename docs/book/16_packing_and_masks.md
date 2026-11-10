@@ -6,9 +6,9 @@
 
 \[
 \begin{aligned}
-\text{tokens}&=(x_0,x_1,x_2,x_3),\\
-X&=(x_0,x_1,x_2),\\
-Y&=(x_1,x_2,x_3),\\
+\text{tokens}&=(x_1,x_2,x_3,x_4),\\
+X&=(x_1,x_2,x_3),\\
+Y&=(x_2,x_3,x_4),\\
 M&=(1,1,1).
 \end{aligned}
 \]

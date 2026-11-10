@@ -1,0 +1,51 @@
+:root {
+  --book-ink: #172033;
+  --book-line: #59708a;
+  --book-blue: #dceeff;
+  --book-mint: #ddf7ee;
+  --book-gold: #fff0c2;
+  --book-rose: #ffe0e8;
+  --book-violet: #e9dfff;
+}
+
+.book-figure {
+  margin: 2rem auto 2.5rem;
+  max-width: 1100px;
+  text-align: center;
+}
+
+.book-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid rgba(89, 112, 138, 0.2);
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(23, 32, 51, 0.12);
+}
+
+.book-figure figcaption {
+  margin: 0.8rem auto 0;
+  max-width: 900px;
+  color: var(--book-line);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.mermaid {
+  margin: 1.5rem auto 2rem;
+  overflow-x: auto;
+  padding: 0.5rem;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+[data-md-color-scheme="slate"] .book-figure figcaption {
+  color: #b9c9da;
+}
+
+[data-md-color-scheme="slate"] .book-figure img {
+  border-color: rgba(185, 201, 218, 0.24);
+}

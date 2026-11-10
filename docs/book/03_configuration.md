@@ -25,11 +25,11 @@ $$
 每个位置的隐藏状态位于 $\mathbb R^d$。SwiGLU 的中间计算可以使用 $d_{\mathrm{ff}}$，但残差输出必须回到 $d$。最后：
 
 $$
-\mathbf z_{b,t}=\mathbf h_{b,t}W_{\mathrm{out}}+\mathbf b_{\mathrm{out}},
+\mathbf z_{b,t}=\mathbf h_{b,t}W_{\mathrm{out}},
 \quad W_{\mathrm{out}}\in\mathbb R^{d\times V}.
 $$
 
-如果 tied embeddings，\(W_{\mathrm{out}}=E^\mathsf{T}\)；如果不共享，就额外分配一个 \(d\times V\) 矩阵。无论是否共享，logits 最后一维都是 \(V\)。这正是 tokenizer 选定后分类头输出维度基本固定的原因。
+当前实现的 `lm_head` 使用 `bias=False`；如果以后显式启用输出偏置，可以在公式中再加 \(\mathbf b_{\mathrm{out}}\in\mathbb R^V\)。如果 tied embeddings，\(W_{\mathrm{out}}=E^\mathsf{T}\)；如果不共享，就额外分配一个 \(d\times V\) 矩阵。无论是否共享，logits 最后一维都是 \(V\)。这正是 tokenizer 选定后分类头输出维度基本固定的原因。
 
 这也解释了为什么不能只把 MLP 中间层扩大来“增加词表能力”。中间层的宽度改变计算和表示容量，词表投影的输出空间仍由 tokenizer 决定。
 

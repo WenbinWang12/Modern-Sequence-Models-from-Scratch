@@ -4,6 +4,14 @@
 
 A command proves that a program started. It does not explain why the result looks the way it does. A reproducible run has an identity made from source, configuration, data, environment, and state.
 
+We write that identity as
+
+$$
+R=(S,C,I_{\mathrm{data}},E,K,Q_{\mathrm{budget}},O),
+$$
+
+where $S$ is the source commit, $C$ the resolved configuration, $I_{\mathrm{data}}$ the fingerprints of data, tokenizer, and manifests, $E$ the environment, $K$ random and optimizer state, $Q_{\mathrm{budget}}$ the token, sequence, batch, step, and cost budget, and $O$ the outputs and evidence. Reproduction means keeping these defining objects aligned while explaining unavoidable numerical differences.
+
 ~~~text
 experiment id
 ├── source: git commit

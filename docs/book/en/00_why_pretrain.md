@@ -65,4 +65,4 @@ source data → cleaning → tokenizer → dense baseline
 
 Frontier Lab moves faster around TTT, linear attention, recurrent depth, and long context. A frontier claim enters the mainline only after it has a minimal reproduction and a compute-matched control.
 
-The first chapter fixes the environment. The next data chapter defines the contract that every later model must consume.
+The first chapter defines the experiment contract. The second fixes the environment, the third fixes reproducible runs, and the fourth data chapter defines the contract that every later model must consume.

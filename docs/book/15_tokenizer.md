@@ -127,7 +127,7 @@ Tokenizer 训练语料应来自预训练数据的 `train` 部分，并使用与�
 
 ### 用 SentencePiece 训练 BPE 或 Unigram
 
-SentencePiece 可以直接从原始文本训练 BPE 或 Unigram。下面是一个 BPE 示例；将 `--model_type=bpe` 改成 `unigram` 可以训练 Unigram：
+SentencePiece 可以直接从原始文本训练 BPE 或 Unigram。下面的命令是算法示例，需要额外安装 `sentencepiece` CLI；它不在仓库默认的 `tokenizer` extra 中。将 `--model_type=bpe` 改成 `unigram` 可以训练 Unigram：
 
 ~~~bash
 spm_train \
@@ -277,9 +277,11 @@ python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --token
 | `prepare_sharded_data` 普通 LM | `encode` 默认加入 | 每篇文档追加 | BOS 为 0，其余 token 为 1 |
 | `prepare_sharded_data --supervised` | prompt 加入，response 不重复加入 | response 后追加 | prompt 为 0，response 和 EOS 为 1 |
 
-当前代码不会训练 BPE、WordPiece 或 Unigram tokenizer；本章前面的训练流程说明的是应当如何准备和审计外部 tokenizer。`prepare_data` 和 `prepare_sharded_data` 会在普通文本后追加 EOS，`ByteTokenizer.encode` 默认先加入 BOS，分片数据的普通语言模型路径会把 BOS 的监督 mask 置为 0；监督数据路径则只对 response 计算 loss。Hugging Face 路径调用 `encode(add_special_tokens=False)`，再按配置手动加入 BOS，不会自动加入 EOS。更换 tokenizer 前，必须重新检查这些行为是否符合新的模板和特殊 token 约定。
+当前仓库的 `scripts/train_tokenizer.py` 已提供 BPE 和 Unigram 训练入口，暂不提供 WordPiece 训练入口。本章中的 SentencePiece 命令和 `tokenizers` API 用来解释算法，正式生成文件应优先使用仓库脚本。`prepare_data` 和 `prepare_sharded_data` 会在普通文本后追加 EOS，`ByteTokenizer.encode` 默认先加入 BOS，分片数据的普通语言模型路径会把 BOS 的监督 mask 置为 0；监督数据路径则只对 response 计算 loss。Hugging Face 路径调用 `encode(add_special_tokens=False)`，再按配置手动加入 BOS，不会自动加入 EOS。更换 tokenizer 前，必须重新检查这些行为是否符合新的模板和特殊 token 约定。
 
 当前 manifest 会记录 tokenizer 名称、词表大小、输入文件摘要和分片摘要，但不会自动记录特殊 token ID、normalizer、远端 revision 或 tokenizer 文件哈希。这些字段属于生产复现要求，应由上层实验记录补齐。
+
+训练脚本的 `tokenizer_metadata.json` 同时记录请求词表大小和实际词表大小。接入模型时必须使用实际值，并让它与模型配置中的 `vocab_size`、数据 manifest 中的 `vocab_size` 完全一致；只把配置文件里的数字改成新词表大小，不是可行的 checkpoint 转换。
 
 更换 tokenizer 后必须同步配置中的 vocab_size 与特殊 ID，并重新生成所有 token 分片。旧分片中的整数仍然合法，不代表它们在新词表中具有相同含义。checkpoint 也不能只改一个 JSON 字段继续加载。
 

@@ -2,6 +2,11 @@
 
 This is the English edition of the experiment book. It follows the same code, configurations, remote runs, and evidence as the Chinese edition.
 
+<figure class="book-figure">
+  <img src="../../assets/figures/book-roadmap.svg" alt="Book roadmap from data and tokenizer through the dense baseline and frontier models to reproducible evidence">
+  <figcaption><strong>Figure 1. The book spine.</strong> Every model claim passes through data, budget, implementation, and evidence; Frontier Lab reuses the same experiment contract.</figcaption>
+</figure>
+
 Every chapter uses the same narrative:
 
 ```text
@@ -22,6 +27,6 @@ The stable path starts with the training system and data, establishes a dense ca
 | Part V | How do caches, streaming, and experts change the system? | runtime, MoE, mesh, restore reports |
 | Part VI | How do we separate architecture gains from cost? | ablation matrix, profiling, GPU validation |
 
-The stable path establishes the protocol first. Frontier Lab can move faster, but its claims should reuse the mainline data, training, and evaluation contract before they are compared with the baseline.
+The stable path establishes the protocol first. [Frontier Lab](../../frontier/en/index.md) can move faster, but its claims should reuse the mainline data, training, and evaluation contract before they are compared with the baseline.
 
 Start with [Why train a base model](00_why_pretrain.md), then read [The experiment contract](01_experiment_contract.md).

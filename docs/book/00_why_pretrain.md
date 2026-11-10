@@ -35,7 +35,7 @@
 
 ## 基模究竟在学习什么
 
-设一篇文本经过 tokenizer 后成为 (x_1, x_2, \ldots, x_T)。自回归模型把整段序列的概率分解为：
+设一篇文本经过 tokenizer 后成为 $(x_1,\ldots,x_L)$。自回归模型把整段序列的概率分解为：
 
 $$
 p_\theta(x_{1:L})=\prod_{t=1}^{L}p_\theta(x_t\mid x_{<t}).

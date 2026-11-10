@@ -125,7 +125,7 @@ Record the corpus manifest and version, document and whitespace boundaries, norm
 
 ### Train BPE or Unigram with SentencePiece
 
-SentencePiece can train BPE or Unigram directly from raw text. This command trains BPE; replace `--model_type=bpe` with `unigram` for a Unigram model:
+SentencePiece can train BPE or Unigram directly from raw text. The command below is an algorithm example and requires the extra `sentencepiece` CLI, which is not included in the repository's default `tokenizer` extra. Replace `--model_type=bpe` with `unigram` for a Unigram model:
 
 ~~~bash
 spm_train \
@@ -273,9 +273,11 @@ The three implemented paths have these boundaries:
 | `prepare_sharded_data` ordinary LM | added by default in `encode` | appended per document | BOS is 0; other tokens are 1 |
 | `prepare_sharded_data --supervised` | added to the prompt, not repeated for the response | appended after the response | prompt is 0; response and EOS are 1 |
 
-The repository does not train BPE, WordPiece, or Unigram tokenizers. The training discussion above describes how an external tokenizer should be prepared and audited. `prepare_data` and `prepare_sharded_data` append EOS after ordinary text; `ByteTokenizer.encode` adds BOS by default; the unsupervised sharded path masks BOS out of the loss, while the supervised path computes loss only for the response. The Hugging Face path calls `encode(add_special_tokens=False)`, then prepends BOS when configured; it does not add EOS automatically. Replacing a tokenizer requires checking these behaviors against the new template and special-token contract.
+The repository now provides BPE and Unigram training through `scripts/train_tokenizer.py`; it does not yet provide a WordPiece training entry point. The SentencePiece command and `tokenizers` API above explain the algorithms, while the repository script should be used to produce the files used in experiments. `prepare_data` and `prepare_sharded_data` append EOS after ordinary text; `ByteTokenizer.encode` adds BOS by default; the unsupervised sharded path masks BOS out of the loss, while the supervised path computes loss only for the response. The Hugging Face path calls `encode(add_special_tokens=False)`, then prepends BOS when configured; it does not add EOS automatically. Replacing a tokenizer requires checking these behaviors against the new template and special-token contract.
 
 The current manifest records the tokenizer name, vocabulary size, input digest, and shard digests. It does not automatically record special-token IDs, normalization, a remote revision, or a tokenizer-file hash; those fields must be added to the higher-level experiment record for production reproducibility.
+
+The training script's `tokenizer_metadata.json` records both the requested and actual vocabulary sizes. Use the actual value when integrating the tokenizer, and make it exactly match the model configuration's `vocab_size` and the data manifest's `vocab_size`; changing a number in a config file is not a checkpoint conversion.
 
 Changing the tokenizer requires new token shards and a compatible model configuration; changing only vocab_size in a checkpoint is not a conversion.
 

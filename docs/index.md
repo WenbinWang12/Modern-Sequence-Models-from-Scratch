@@ -2,6 +2,11 @@
 
 这是一本边写边跑的现代序列模型训练实验书。主线从数据、tokenizer 和 dense baseline 开始，逐步进入 TTT、线性注意力、Loop、MoE、长上下文和多卡训练。每一章都对应仓库中的真实代码、配置和实验记录：先解释一个问题，再用最小实现跑起来，最后把结果写回仓库。
 
+<figure class="book-figure">
+  <img src="assets/figures/book-roadmap.svg" alt="从数据和 tokenizer 经过 dense baseline 与前沿模型，最后得到可复现实验证据的全书路线图">
+  <figcaption><strong>图 1　全书主线。</strong> 每个模型结论都要经过数据、预算、实现和证据四层约束；Frontier Lab 复用同一条实验协议。</figcaption>
+</figure>
+
 ## 阅读方式
 
 每章沿着同一条叙事链展开：

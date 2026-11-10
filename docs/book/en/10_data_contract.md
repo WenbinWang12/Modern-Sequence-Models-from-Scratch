@@ -20,6 +20,11 @@ This small example shows why file counts do not describe the training distributi
 
 Direct concatenation makes web tokens dominate; source-uniform sampling gives a different distribution. Both are implementable, but they optimize different objectives. If 30% of web text is duplicated templates, cleaning lowers its effective token count and automatically increases the relative weight of code and books unless the mixture is recomputed. Later sections turn this example into an explicit, reproducible sampling protocol.
 
+<figure class="book-figure">
+  <img src="../../../assets/figures/data-funnel.svg" alt="Data pipeline from raw records through cleaning, tokenization, packing, and masked training windows">
+  <figcaption><strong>Figure 2. The data pipeline.</strong> The data chapter treats training as an auditable chain from raw records to <span class="arithmatex">\(X,Y,M\)</span> and the loss.</figcaption>
+</figure>
+
 ## What is a tokenizer? Turning text into model-readable tokens
 
 A model cannot consume Unicode text directly. A tokenizer is a rule or learned model that encodes text as an integer sequence: it maps a text string $u$ to tokens $s$, then maps each token to an ID in a fixed vocabulary. A token need not be a complete word; it may be a byte, character, or subword. The ID is an index, so its numeric value does not express semantic similarity.

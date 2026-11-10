@@ -35,6 +35,40 @@ $$
 
 The outer objective may include later positions or the whole batch. It differentiates through the static model path and, depending on the chosen algorithm, through the fast update itself. The inner loss says “adapt to this context”; the outer loss says “learn parameters that make adaptation useful.”
 
+## A scalar update that we can calculate by hand
+
+Compress the fast-weight tree to one scalar \( \phi \). Suppose the current chunk wants this scalar to approach \(3\), with
+
+$$
+\ell_{\mathrm{inner}}(\phi)=\frac{1}{2}(\phi-3)^2.
+$$
+
+If \( \phi_0=1 \), the derivative is
+
+$$
+\left.\frac{\partial\ell_{\mathrm{inner}}}{\partial\phi}\right|_{\phi_0}
+=\phi_0-3=-2.
+$$
+
+With \( \eta_{\mathrm{inner}}=0.5 \), ordinary SGD gives
+
+$$
+\phi_1
+=\phi_0-\eta_{\mathrm{inner}}(-2)
+=1-0.5(-2)=2.
+$$
+
+The real model replaces the scalar with many matrix leaves and replaces the squared error with masked token cross-entropy, but the update has the same meaning: the observed chunk moves the fast state toward a state that predicts its context better.
+
+The repository also clips the global fast-weight gradient. If the norm is \(2\) and the clip norm is \(0.5\), the scale is \(0.5/2=0.25\), so the effective update is
+
+$$
+\phi_1
+=1-0.5(0.25)(-2)=1.25.
+$$
+
+The learning rate and clip norm must therefore be reported separately. The final value \(1.25\) alone cannot tell us whether the update was small because the learning rate was small or because clipping was active.
+
 ## What `inner_step` actually receives
 
 `ttt/inner_loop.py` keeps the boundary explicit. `inner_step` receives the model, static parameters, current fast weights, suffix hidden states, target IDs, token mask, cache, position, and inner learning rate. It performs these operations in order:

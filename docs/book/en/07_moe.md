@@ -34,6 +34,35 @@ $$
 
 The router produces \(r_t\in\mathbb R^E\) for \(E\) experts. Top-k chooses \(S_t\) and the corresponding gate weights \(g_{t,e}\). A balanced router might send two of the four tokens to each expert, but the model does not guarantee that balance by itself.
 
+For a two-expert top-1 router, one possible probability table is:
+
+| token | \(p(E_1)\) | \(p(E_2)\) | selected expert |
+|---|---:|---:|---|
+| \(t_1\) | 0.80 | 0.20 | \(E_1\) |
+| \(t_2\) | 0.70 | 0.30 | \(E_1\) |
+| \(t_3\) | 0.40 | 0.60 | \(E_2\) |
+| \(t_4\) | 0.30 | 0.70 | \(E_2\) |
+
+The dispatch groups are therefore \(E_1:[t_1,t_2]\) and \(E_2:[t_3,t_4]\). Expert outputs must be restored to the original order \([t_1,t_2,t_3,t_4]\) before the residual addition. Swapping the second and third rows leaves the shape unchanged while giving two positions the wrong computation.
+
+## Load balancing by hand
+
+Let \(f_e\) be the fraction of tokens actually selected by expert \(e\), and let \(p_e\) be the mean router probability for that expert. A common auxiliary term is
+
+$$
+\mathcal L_{\mathrm{aux}}
+=E\sum_{e=1}^{E}f_ep_e.
+$$
+
+For the table above, \(f=(0.5,0.5)\) and the mean probabilities are \(p=(0.55,0.45)\), so
+
+$$
+\mathcal L_{\mathrm{aux}}
+=2(0.5\cdot0.55+0.5\cdot0.45)=1.
+$$
+
+If all four tokens go to \(E_1\), then \(f=(1,0)\). With mean probabilities \((0.7,0.3)\), the same term is \(2(1\cdot0.7)=1.4\), indicating a more concentrated route. This auxiliary value is not language-model NLL; publish both values.
+
 ## Capacity, drop, and auxiliary objectives
 
 An expert's capacity is derived from the number of tokens in the step, `top_k`, and a capacity factor. If the assigned rows exceed capacity, the implementation must choose a policy: drop tokens, pad and mask them, or allow a larger allocation that may cause an out-of-memory error. Token drop saves memory but means those tokens did not receive a full expert computation.
@@ -41,6 +70,14 @@ An expert's capacity is derived from the number of tokens in the step, `top_k`, 
 The repository reports language-model NLL separately from routing auxiliary loss and router z loss. NLL asks whether the next token was predicted; auxiliary loss encourages balanced usage; z loss controls the scale of router logits. A lower combined value can come from an auxiliary term even when token prediction is unchanged, so publish each component.
 
 If load bias is updated from expert counts, that update is another algorithmic state transition. It is not an ordinary AdamW parameter step; record its rate and whether it is included in the checkpoint.
+
+With \(T\) tokens, \(E\) experts, top-k \(k\), and capacity factor \(\alpha\), a common per-expert capacity is
+
+$$
+C=\left\lceil\frac{Tk}{E}\alpha\right\rceil.
+$$
+
+For \(T=4\), \(E=2\), \(k=1\), and \(\alpha=1\), \(C=2\). If all four tokens select \(E_1\), only two fit. The remaining tokens must be dropped, padded and masked, redirected, or admitted through a larger allocation. The current reference <code>moe_forward</code> groups tokens by top-k but does not expose an independent capacity-factor/drop switch, so this calculation describes an implementation boundary rather than an existing command-line option.
 
 ## Code path and the three implementation levels
 

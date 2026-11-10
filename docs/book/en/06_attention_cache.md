@@ -28,6 +28,41 @@ All fields must advance together. Restoring only the cache while leaving fast we
   <figcaption><strong>Figure 4. Prefill and decode.</strong> The KV cache stores past keys and values; it is not trainable, but it must be restored together with positions, recurrent state, and TTT fast weights.</figcaption>
 </figure>
 
+## Two tokens by hand: Q, K, V, and the causal mask
+
+Let the query, key, and value width be \(2\). Choose
+
+$$
+q_1=(1,0),\quad q_2=(1,0),\quad
+k_1=(1,0),\quad k_2=(0,1),
+$$
+
+$$
+v_1=(10,0),\qquad v_2=(0,10).
+$$
+
+Scaled dot-product attention uses
+
+$$
+s_{t,j}=\frac{q_t k_j^{\mathsf T}}{\sqrt{d_h}}.
+$$
+
+At position 1, the causal mask hides position 2, so the only visible score is \(1/\sqrt{2}\). Softmax over one visible entry gives weight \(1\), and the output is \(v_1=(10,0)\).
+
+At position 2, both keys are visible. The score vector is
+
+$$
+\left(\frac{1}{\sqrt{2}},0\right)\approx(0.707,0).
+$$
+
+Its softmax is approximately \((0.67,0.33)\), so the output is
+
+$$
+0.67v_1+0.33v_2\approx(6.7,3.3).
+$$
+
+The query expresses what the current position is looking for, the key expresses how well each history position matches, and the value carries the information that is retrieved. The causal mask decides which keys are allowed to enter the softmax; it is therefore part of the model's semantics, not just a memory optimization.
+
 ## State lifetimes and memory
 
 | State | Role | Lifetime |
@@ -44,6 +79,17 @@ $$
 $$
 
 where the factor 2 counts keys and values. A sliding window caps \(L\) at the window size. Cache capacity is not identical to `max_position_embeddings`: the former is storage allocated for a session, while the latter is the maximum legal model position. `grow_cache` must copy valid entries and preserve positions; silently overwriting old entries corrupts causality.
+
+## A concrete KV-memory calculation
+
+For one layer, let \(B=1\), \(H_{\mathrm{KV}}=2\), \(L=4096\), \(d_{\mathrm{head}}=64\), and bfloat16 storage with \(s=2\) bytes. Then
+
+$$
+2\cdot1\cdot2\cdot4096\cdot64\cdot2
+=2{,}097{,}152\ \text{bytes}\approx2\ \text{MiB}.
+$$
+
+Twelve layers would use about \(24\) MiB for KV alone. Activations, fast weights, allocator fragmentation, and other session fields are additional. This is why reducing \(H_{\mathrm{KV}}\), using a sliding window, or changing dtype changes serving memory even when the hidden width is unchanged.
 
 ## Code path
 

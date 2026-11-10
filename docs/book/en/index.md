@@ -4,6 +4,8 @@ This is the English edition of a book under active development. It follows the s
 
 The manuscript remains under revision and has not passed publication review. See the [editorial records](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/tree/main/editorial) for paragraph-level findings, revisions, and pending checks.
 
+The data section now includes five inspectable experiments: [source records](11_data_acquisition.md), Unicode cleaning, MinHash deduplication, grouped splits, and the [complete BPE learning and encoding process](15_tokenizer.md). Inputs, scripts, and a shared validation entry point are in the [chapter examples directory](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/tree/main/examples/book). Hand-derived expectations are distinguished from runtime evidence.
+
 <figure class="book-figure">
   <img src="../../assets/figures/book-roadmap.svg" alt="Book roadmap from data and tokenizer through the dense baseline and frontier models to reproducible evidence">
   <figcaption><strong>Figure 1. The book spine.</strong> Every model claim passes through data, budget, implementation, and evidence; Frontier Lab reuses the same experiment contract.</figcaption>

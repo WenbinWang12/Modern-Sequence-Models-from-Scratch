@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 820" role="img" aria-labelledby="title desc">
+<title id="title">Separate training text from measurement views</title>
+<desc id="desc">Valid text is normalized into training text and copied into measurement views without being overwritten by them. Primary outcomes route records to retained or rejected outputs. The full fixture has 13 inputs, 5 retained, 8 rejected, and 10 diagnostic hits.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#63758c"/></marker>
+  <style>
+    text{font-family:Inter,system-ui,sans-serif;fill:#192b42}
+    .title{font-size:30px;font-weight:700}.sub{font-size:17px;fill:#52677c}
+    .label{font-size:19px;font-weight:650}.copy{font-size:16px;fill:#425a70}
+    .tag{font-size:13px;font-weight:700;letter-spacing:1px;fill:#5c7187}
+    .mono{font-family:ui-monospace,"Cascadia Code",monospace;font-size:19px}
+    .arrow{fill:none;stroke:#63758c;stroke-width:2;marker-end:url(#arrow)}
+  </style>
+</defs>
+<rect width="1120" height="820" rx="22" fill="#f7fafc"/>
+<text x="48" y="52" class="title">Ignore whitespace in a count; retain it in training text</text>
+<text x="48" y="85" class="sub">The upper path shows valid text. The counts below refer to all 13 fixture inputs.</text>
+
+<rect x="48" y="121" width="1024" height="90" rx="12" fill="#e8edf5" stroke="#cdd8e5"/>
+<text x="70" y="149" class="tag">ORIGINAL TEXT · c02</text>
+<text x="70" y="181" class="mono" xml:space="preserve">"    return x + 1\n"</text>
+<text x="600" y="156" class="copy">Save as original_text for traceability</text>
+<text x="600" y="183" class="copy">Four leading spaces inside the quotes</text>
+
+<path d="M280 212V270" class="arrow"/>
+<text x="300" y="247" class="copy">Leading marker / newlines / NFC</text>
+<rect x="48" y="280" width="472" height="112" rx="12" fill="#dcf2eb" stroke="#89c6b2"/>
+<text x="70" y="310" class="label">Training text · text</text>
+<text x="70" y="343" class="mono" xml:space="preserve">"    return x + 1\n"</text>
+<text x="70" y="372" class="copy">Retain indentation and final newline</text>
+
+<path d="M522 333H589" class="arrow"/>
+<text x="553" y="313" text-anchor="middle" class="tag">COPY</text>
+<rect x="600" y="280" width="472" height="112" rx="12" fill="#fff2dc" stroke="#dec392"/>
+<text x="622" y="310" class="label">Temporary measurement views</text>
+<text x="622" y="342" class="copy">Strip text ends → code-point count</text>
+<text x="622" y="370" class="copy">Strip each line → duplicate fraction</text>
+
+<path d="M280 394V436" class="arrow"/>
+<path d="M836 394V436" class="arrow"/>
+<rect x="48" y="448" width="1024" height="86" rx="12" fill="#192b42"/>
+<text x="70" y="480" class="label" style="fill:#fff">Route each record using measurements and rules</text>
+<text x="70" y="511" class="copy" style="fill:#d8e5ef">No hit → kept. Otherwise → first hit is primary; retain every applicable rule hit as diagnostics.</text>
+<path d="M280 536V572" class="arrow"/>
+<path d="M836 536V572" class="arrow"/>
+
+<rect x="48" y="584" width="472" height="94" rx="12" fill="#fff" stroke="#89c6b2"/>
+<text x="70" y="615" class="label">kept.jsonl</text>
+<text x="70" y="647" class="copy">Original + normalized text + rule version</text>
+<rect x="600" y="584" width="472" height="94" rx="12" fill="#fff" stroke="#d3a39e"/>
+<text x="622" y="615" class="label">rejected.jsonl</text>
+<text x="622" y="647" class="copy">Original record + primary reason + all hits</text>
+
+<line x1="48" y1="710" x2="1072" y2="710" stroke="#d4dee8"/>
+<text x="48" y="745" class="label">Primary outcomes: 13 = 5 + 8</text>
+<text x="48" y="777" class="copy">Exclusive categories conserve records.</text>
+<text x="600" y="745" class="label">All diagnostics: 10 hits</text>
+<text x="600" y="777" class="copy">Overlapping hits do not count rejected records.</text>
+</svg>

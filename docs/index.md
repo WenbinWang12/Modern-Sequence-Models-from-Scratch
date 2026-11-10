@@ -4,6 +4,8 @@
 
 当前为修订稿，尚未达到出版标准。逐章逐段意见、修复记录及未验收项目见[编辑与审稿记录](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/tree/main/editorial)。
 
+数据部分已补充五个可以逐步核对的小实验：从[来源记录](book/11_data_acquisition.md)开始，经过 Unicode 清洗、MinHash 去重和按组切分，走到[BPE 的完整学习与编码过程](book/15_tokenizer.md)。配套输入、脚本和统一运行说明见[章节实验目录](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/tree/main/examples/book)。正文中的手算预期与实际运行证据分开标注。
+
 <figure class="book-figure">
   <img src="assets/figures/book-roadmap-zh.svg" alt="从数据、词元化、密集基线和前沿模块走向可复现实验证据的全书路线图">
   <figcaption><strong>图 1　全书主线。</strong> 每个模型结论都要经过数据、预算、实现和证据四层约束；Frontier Lab 复用同一条实验协议。</figcaption>

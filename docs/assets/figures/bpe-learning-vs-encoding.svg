@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 1000" role="img" aria-labelledby="title desc">
+<title id="title">Learn adjacent pairs; encode with the learned order</title><desc id="desc">Upper left: weighted base symbols for four word types and all eight first-round pair counts. Upper right: five frozen merge ranks and their counts when selected. Bottom: encode unseen catt by ranks 0 and 1, yielding cat t end marker, then look up IDs 7 5 0. Rank 2 cannot skip the remaining t.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#63758c"/></marker>
+<style>text{font-family:"Noto Sans CJK SC","Microsoft YaHei",Inter,system-ui,sans-serif}.mono{font-family:ui-monospace,"Cascadia Code","DejaVu Sans Mono",monospace}</style></defs>
+<rect x="0" y="0" width="1160" height="1000" rx="20" fill="#f7fafc" stroke="#f7fafc" stroke-width="1.4"/>
+<text x="36" y="49" font-size="29" fill="#192b42" font-weight="700">Learn adjacent pairs; encode with the learned order</text>
+<text x="36" y="83" font-size="17" fill="#52677c" font-weight="400">One teaching corpus: count weighted pairs, then freeze rules. The new word catt does not update counts.</text>
+<rect x="36" y="120" width="526" height="350" rx="10" fill="#ffffff" stroke="#d7e1ea" stroke-width="1.4"/>
+<rect x="598" y="120" width="526" height="350" rx="10" fill="#ffffff" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="60" y="153" font-size="19" fill="#192b42" font-weight="700">01 LEARN FROM THE CORPUS</text>
+<text x="60" y="183" font-size="15" fill="#52677c" font-weight="400">Initial symbols × frequency</text>
+<text x="356" y="183" font-size="15" fill="#52677c" font-weight="400">All round-1 pairs</text>
+<text x="61" y="226" font-size="19" fill="#52677c" font-weight="500">× 5</text>
+<rect x="112" y="201" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="128" y="227" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">c</text>
+<rect x="150" y="201" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="166" y="227" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">a</text>
+<rect x="188" y="201" width="32" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="204" y="227" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">t</text>
+<rect x="226" y="201" width="64" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="258" y="227" font-size="16" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">&lt;/w&gt;</text>
+<text x="61" y="274" font-size="19" fill="#52677c" font-weight="500">× 2</text>
+<rect x="112" y="249" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="128" y="275" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">c</text>
+<rect x="150" y="249" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="166" y="275" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">a</text>
+<rect x="188" y="249" width="32" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="204" y="275" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">t</text>
+<rect x="226" y="249" width="32" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="242" y="275" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">s</text>
+<rect x="264" y="249" width="64" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="296" y="275" font-size="16" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">&lt;/w&gt;</text>
+<text x="61" y="322" font-size="19" fill="#52677c" font-weight="500">× 3</text>
+<rect x="112" y="297" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="128" y="323" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">c</text>
+<rect x="150" y="297" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="166" y="323" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">a</text>
+<rect x="188" y="297" width="32" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="204" y="323" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">p</text>
+<rect x="226" y="297" width="64" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="258" y="323" font-size="16" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">&lt;/w&gt;</text>
+<text x="61" y="370" font-size="19" fill="#52677c" font-weight="500">× 1</text>
+<rect x="112" y="345" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="128" y="371" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">c</text>
+<rect x="150" y="345" width="32" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="166" y="371" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">a</text>
+<rect x="188" y="345" width="32" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="204" y="371" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">p</text>
+<rect x="226" y="345" width="32" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="242" y="371" font-size="17" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">s</text>
+<rect x="264" y="345" width="64" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="296" y="371" font-size="16" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">&lt;/w&gt;</text>
+<text x="356" y="218" font-size="15" fill="#192b42" font-weight="400" class="mono">c·a</text>
+<rect x="427" y="206" width="77" height="10" rx="2" fill="#25836d" stroke="#25836d" stroke-width="1.4"/>
+<text x="540" y="218" font-size="16" fill="#192b42" font-weight="700" text-anchor="end">11</text>
+<text x="356" y="244" font-size="15" fill="#192b42" font-weight="400" class="mono">a·t</text>
+<rect x="427" y="232" width="49" height="10" rx="2" fill="#b9c8d7" stroke="#b9c8d7" stroke-width="1.4"/>
+<text x="540" y="244" font-size="16" fill="#192b42" font-weight="400" text-anchor="end">7</text>
+<text x="356" y="270" font-size="15" fill="#192b42" font-weight="400" class="mono">t·&lt;/w&gt;</text>
+<rect x="427" y="258" width="35" height="10" rx="2" fill="#b9c8d7" stroke="#b9c8d7" stroke-width="1.4"/>
+<text x="540" y="270" font-size="16" fill="#192b42" font-weight="400" text-anchor="end">5</text>
+<text x="356" y="296" font-size="15" fill="#192b42" font-weight="400" class="mono">a·p</text>
+<rect x="427" y="284" width="28" height="10" rx="2" fill="#b9c8d7" stroke="#b9c8d7" stroke-width="1.4"/>
+<text x="540" y="296" font-size="16" fill="#192b42" font-weight="400" text-anchor="end">4</text>
+<text x="356" y="322" font-size="15" fill="#192b42" font-weight="400" class="mono">p·&lt;/w&gt;</text>
+<rect x="427" y="310" width="21" height="10" rx="2" fill="#b9c8d7" stroke="#b9c8d7" stroke-width="1.4"/>
+<text x="540" y="322" font-size="16" fill="#192b42" font-weight="400" text-anchor="end">3</text>
+<text x="356" y="348" font-size="15" fill="#192b42" font-weight="400" class="mono">s·&lt;/w&gt;</text>
+<rect x="427" y="336" width="21" height="10" rx="2" fill="#b9c8d7" stroke="#b9c8d7" stroke-width="1.4"/>
+<text x="540" y="348" font-size="16" fill="#192b42" font-weight="400" text-anchor="end">3</text>
+<text x="356" y="374" font-size="15" fill="#192b42" font-weight="400" class="mono">t·s</text>
+<rect x="427" y="362" width="14" height="10" rx="2" fill="#b9c8d7" stroke="#b9c8d7" stroke-width="1.4"/>
+<text x="540" y="374" font-size="16" fill="#192b42" font-weight="400" text-anchor="end">2</text>
+<text x="356" y="400" font-size="15" fill="#192b42" font-weight="400" class="mono">p·s</text>
+<rect x="427" y="388" width="7" height="10" rx="2" fill="#b9c8d7" stroke="#b9c8d7" stroke-width="1.4"/>
+<text x="540" y="400" font-size="16" fill="#192b42" font-weight="400" text-anchor="end">1</text>
+<text x="60" y="427" font-size="17" fill="#192b42" font-weight="600">11 word occurrences · 47 initial positions</text>
+<text x="60" y="452" font-size="15" fill="#52677c" font-weight="400">Positions include the end marker &lt;/w&gt;</text>
+<text x="622" y="153" font-size="19" fill="#192b42" font-weight="700">02 FREEZE THE MERGE ORDER</text>
+<text x="630" y="185" font-size="15" fill="#52677c" font-weight="400">rank</text>
+<text x="694" y="185" font-size="15" fill="#52677c" font-weight="400">Adjacent pair</text>
+<text x="867" y="185" font-size="15" fill="#52677c" font-weight="400">New token</text>
+<text x="1100" y="185" font-size="15" fill="#52677c" font-weight="400" text-anchor="end">Count then</text>
+<rect x="616" y="198" width="490" height="37" rx="5" fill="#dcf2eb" stroke="#dcf2eb" stroke-width="1.4"/>
+<text x="644" y="223" font-size="19" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">0</text>
+<text x="690" y="223" font-size="17" fill="#192b42" font-weight="400" class="mono">c + a</text>
+<text x="837" y="223" font-size="18" fill="#52677c" font-weight="400" text-anchor="middle">→</text>
+<text x="862" y="223" font-size="17" fill="#192b42" font-weight="500" class="mono">ca</text>
+<text x="1092" y="223" font-size="18" fill="#192b42" font-weight="500" class="mono" text-anchor="end">11</text>
+<rect x="616" y="241" width="490" height="37" rx="5" fill="#e0ebfa" stroke="#e0ebfa" stroke-width="1.4"/>
+<text x="644" y="266" font-size="19" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">1</text>
+<text x="690" y="266" font-size="17" fill="#192b42" font-weight="400" class="mono">ca + t</text>
+<text x="837" y="266" font-size="18" fill="#52677c" font-weight="400" text-anchor="middle">→</text>
+<text x="862" y="266" font-size="17" fill="#192b42" font-weight="500" class="mono">cat</text>
+<text x="1092" y="266" font-size="18" fill="#192b42" font-weight="500" class="mono" text-anchor="end">7</text>
+<rect x="616" y="284" width="490" height="37" rx="5" fill="#fff3dc" stroke="#fff3dc" stroke-width="1.4"/>
+<text x="644" y="309" font-size="19" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">2</text>
+<text x="690" y="309" font-size="17" fill="#192b42" font-weight="400" class="mono">cat + &lt;/w&gt;</text>
+<text x="837" y="309" font-size="18" fill="#52677c" font-weight="400" text-anchor="middle">→</text>
+<text x="862" y="309" font-size="17" fill="#192b42" font-weight="500" class="mono">cat&lt;/w&gt;</text>
+<text x="1092" y="309" font-size="18" fill="#192b42" font-weight="500" class="mono" text-anchor="end">5</text>
+<rect x="616" y="327" width="490" height="37" rx="5" fill="#eff3f7" stroke="#eff3f7" stroke-width="1.4"/>
+<text x="644" y="352" font-size="19" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">3</text>
+<text x="690" y="352" font-size="17" fill="#192b42" font-weight="400" class="mono">ca + p</text>
+<text x="837" y="352" font-size="18" fill="#52677c" font-weight="400" text-anchor="middle">→</text>
+<text x="862" y="352" font-size="17" fill="#192b42" font-weight="500" class="mono">cap</text>
+<text x="1092" y="352" font-size="18" fill="#192b42" font-weight="500" class="mono" text-anchor="end">4</text>
+<rect x="616" y="370" width="490" height="37" rx="5" fill="#eff3f7" stroke="#eff3f7" stroke-width="1.4"/>
+<text x="644" y="395" font-size="19" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">4</text>
+<text x="690" y="395" font-size="17" fill="#192b42" font-weight="400" class="mono">cap + &lt;/w&gt;</text>
+<text x="837" y="395" font-size="18" fill="#52677c" font-weight="400" text-anchor="middle">→</text>
+<text x="862" y="395" font-size="17" fill="#192b42" font-weight="500" class="mono">cap&lt;/w&gt;</text>
+<text x="1092" y="395" font-size="18" fill="#192b42" font-weight="500" class="mono" text-anchor="end">3</text>
+<text x="622" y="452" font-size="15" fill="#52677c" font-weight="400">Recount each round; retain ranks in learning order.</text>
+<path d="M564 285L591 285" fill="none" stroke="#52677c" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="36" y="500" width="1088" height="464" rx="10" fill="#ffffff" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="60" y="537" font-size="20" fill="#192b42" font-weight="700">03 ENCODE catt: apply the lowest available frozen rank</text>
+<text x="60" y="570" font-size="15" fill="#52677c" font-weight="400">Base symbols</text>
+<rect x="76" y="590" width="68" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="110" y="616" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">c</text>
+<rect x="152" y="590" width="68" height="40" rx="6" fill="#dcf2eb" stroke="#9ecdbd" stroke-width="1.4"/>
+<text x="186" y="616" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">a</text>
+<rect x="228" y="590" width="68" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="262" y="616" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">t</text>
+<rect x="304" y="590" width="68" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="338" y="616" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">t</text>
+<rect x="380" y="590" width="100" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="430" y="616" font-size="20" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">&lt;/w&gt;</text>
+<path d="M110 631L148 672" fill="none" stroke="#25836d" stroke-width="2"/>
+<path d="M186 631L148 672" fill="none" stroke="#25836d" stroke-width="2"/>
+<path d="M148 672L148 683" fill="none" stroke="#25836d" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M262 631L262 683" fill="none" stroke="#d7e1ea" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M338 631L338 683" fill="none" stroke="#d7e1ea" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M430 631L430 683" fill="none" stroke="#d7e1ea" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="515" y="634" width="87" height="30" rx="5" fill="#dcf2eb" stroke="#dcf2eb" stroke-width="1.4"/>
+<text x="558" y="655" font-size="16" fill="#25836d" font-weight="700" class="mono" text-anchor="middle">rank 0</text>
+<text x="628" y="612" font-size="19" fill="#192b42" font-weight="600">Available now: c + a, rank 0</text>
+<text x="628" y="642" font-size="17" fill="#52677c" font-weight="400">Recheck adjacency after the merge.</text>
+<rect x="76" y="690" width="144" height="40" rx="6" fill="#e0ebfa" stroke="#9ab8de" stroke-width="1.4"/>
+<text x="148" y="716" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">ca</text>
+<rect x="228" y="690" width="68" height="40" rx="6" fill="#e0ebfa" stroke="#9ab8de" stroke-width="1.4"/>
+<text x="262" y="716" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">t</text>
+<rect x="304" y="690" width="68" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="338" y="716" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">t</text>
+<rect x="380" y="690" width="100" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="430" y="716" font-size="20" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">&lt;/w&gt;</text>
+<path d="M148 731L186 772" fill="none" stroke="#4c78aa" stroke-width="2"/>
+<path d="M262 731L186 772" fill="none" stroke="#4c78aa" stroke-width="2"/>
+<path d="M186 772L186 783" fill="none" stroke="#4c78aa" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M338 731L338 783" fill="none" stroke="#d7e1ea" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M430 731L430 783" fill="none" stroke="#d7e1ea" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="515" y="734" width="87" height="30" rx="5" fill="#e0ebfa" stroke="#e0ebfa" stroke-width="1.4"/>
+<text x="558" y="755" font-size="16" fill="#4c78aa" font-weight="700" class="mono" text-anchor="middle">rank 1</text>
+<text x="628" y="712" font-size="19" fill="#192b42" font-weight="600">Available now: ca + t, rank 1</text>
+<text x="628" y="742" font-size="17" fill="#52677c" font-weight="400">Use fixed rules; do not update counts.</text>
+<rect x="76" y="790" width="220" height="40" rx="6" fill="#e0ebfa" stroke="#9ab8de" stroke-width="1.4"/>
+<text x="186" y="816" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">cat</text>
+<rect x="304" y="790" width="68" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="338" y="816" font-size="22" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">t</text>
+<rect x="380" y="790" width="100" height="40" rx="6" fill="#eff3f7" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="430" y="816" font-size="20" fill="#192b42" font-weight="500" class="mono" text-anchor="middle">&lt;/w&gt;</text>
+<text x="628" y="812" font-size="18" fill="#192b42" font-weight="600">Stop: no rule for cat + t or t + &lt;/w&gt;.</text>
+<text x="628" y="842" font-size="17" fill="#8a641f" font-weight="400">Rank 2 cannot jump over the remaining t.</text>
+<text x="60" y="874" font-size="15" fill="#52677c" font-weight="400">Vocabulary IDs</text>
+<text x="186" y="874" font-size="22" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">7</text>
+<text x="338" y="874" font-size="22" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">5</text>
+<text x="430" y="874" font-size="22" fill="#192b42" font-weight="700" class="mono" text-anchor="middle">0</text>
+<path d="M186 832L186 850" fill="none" stroke="#d7e1ea" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M338 832L338 850" fill="none" stroke="#d7e1ea" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M430 832L430 850" fill="none" stroke="#d7e1ea" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M60 897L1100 897" fill="none" stroke="#d7e1ea" stroke-width="1.4"/>
+<text x="60" y="932" font-size="17" fill="#52677c" font-weight="400">Teaching IDs: [7, 5, 0]. IDs and ranks are separate tables. ID 0 is the word-end marker, not EOS.</text>
+</svg>

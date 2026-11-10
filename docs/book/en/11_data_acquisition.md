@@ -1,134 +1,131 @@
-# 5. Acquiring data: provenance, licensing, and reproducibility
+# 5. Acquiring data and preserving provenance
 
-## Why data acquisition is part of model design
+## The experiment begins before model training
 
-When people say that a model was trained on `dataset-a`, they often mean only that a download command mentioned that name. That description is not reproducible. A URL is a location, not an immutable identity: the publisher can replace the file at that location tomorrow. If two runs use the same URL at different times, their losses can differ even when the model code and random seed are identical.
+Two students use the same download URL, training code, and random seed, but obtain different validation losses. Eventually they discover that the publisher replaced the archive between their downloads. Both files are called `corpus.jsonl.gz`. Their documents differ. Nothing in the model implementation had to change for the experiment to change.
 
-Data acquisition therefore answers a concrete question: **which bytes were allowed to enter the training pipeline, and where did they come from?** A useful record separates the canonical location, an immutable release or snapshot, retrieval time, the terms that were reviewed, and a digest of every file. These fields let us distinguish a changed upstream release from a changed cleaner or a changed model.
+The previous chapter explained why the data distribution matters. This chapter asks how to turn “these are the data we used” into a statement someone else can check. A download command alone is insufficient. We need to retain the received objects, identify their source and version, and preserve the connection between those objects and the eventual training input.
 
-The book uses a small, original corpus for its first commands. That choice keeps the experiment runnable while the reader learns the interface. A production corpus still needs the same records; replacing the sample text does not remove the provenance obligation.
+Think of receiving a laboratory sample. A label helps locate it, a batch number identifies its provenance, and a measurement checks its contents. In a data pipeline, the URL is a location, the release describes an upstream publication, and a digest helps compare the received bytes. Each answers a different question.
 
-## A small example: why a file name is not enough
+We begin with four original records already included in the repository. You can inspect every line without downloading an external corpus. The experiment demonstrates file identity and provenance records; it does not represent a corpus that has already passed a licensing or quality review.
 
-Suppose a source page advertises `part-000.jsonl.gz`. On Monday it contains 10,000 documents. On Friday the publisher adds 500 documents but keeps the file name and URL. Both downloads are named `part-000.jsonl.gz`, yet the token count and the model's sampling distribution differ.
+## File bytes and document records are different objects
 
-If the first run saves only the file name, we cannot tell whether a later loss change came from the architecture or from those 500 documents. If it saves the SHA256 digest, we can compare the exact bytes. The digest does not tell us whether the text is useful or legally redistributable; it tells us whether the object changed.
+A file is a sequence of bytes. Each byte contains eight binary digits and can represent an integer from 0 to 255. An encoding such as UTF-8 maps text to bytes. A format such as JSON describes how text represents fields and values. These two layers explain why identical records need not have identical file bytes.
 
-## Source records and file records
+Consider two JSON representations:
 
-Keep a source-level record separate from the file-level record. One publisher release can contain many files, and one archive can contain documents from several sources. A line of prose such as “downloaded dataset-a” loses that structure.
+~~~json
+{"id":"d1","text":"A cat."}
+{"id": "d1", "text": "A cat."}
+~~~
+
+Saved separately, they contain different bytes because the spaces differ. A JSON parser produces the same `id` and `text` fields from both. **Parsing** means interpreting a format to construct program objects such as dictionaries, lists, or numbers. It does not judge whether the text is useful.
+
+JSONL places one JSON object on each nonempty physical line. A newline inside the text field is represented by the JSON escape `\n`, rather than arbitrarily splitting the object across lines. Our teaching parser permits blank lines and skips them. Consequently, appending a blank line changes the file without adding a document. We will use this small change to separate byte identity from record identity.
+
+Compression adds another layer. A downloaded `.gz` archive and the decompressed JSONL are distinct objects. Recompression can change the archive while preserving its decompressed contents. Every digest must identify the layer it describes; comparing an archive digest with a decompressed-file digest has no useful interpretation.
+
+## What a digest establishes
+
+Let \(b\) denote a file's bytes. SHA-256 maps the input to a 256-bit result:
+
+$$
+h=\operatorname{SHA256}(b).
+$$
+
+We commonly display that result as 64 hexadecimal characters, each representing four bits. This short string is a **digest**, convenient to store in a manifest. Python provides [`hashlib.sha256`](https://docs.python.org/3.12/library/hashlib.html) in its standard library; no training framework is required.
+
+Identical bytes always produce the same digest. Therefore different digests establish that the bytes differ. The converse is not a mathematical proof: distinct inputs can have the same digest, a situation called a collision. There are more possible files than finite digest values. SHA-256 provides a practical integrity check for ordinary experiment files, while a small experiment can also compare the bytes directly.
+
+A digest does not identify the publisher either. Receiving a file and an alleged reference digest from the same incorrect source cannot establish the source's authenticity. A verifiable publication page, fixed release, and trustworthy acquisition channel address provenance; a digest addresses content comparison.
+
+The smallest useful implementation is:
+
+~~~python
+import hashlib
+from pathlib import Path
+
+data = Path("examples/sample.jsonl").read_bytes()
+print(len(data))
+print(hashlib.sha256(data).hexdigest())
+~~~
+
+`read_bytes()` reads the actual bytes, `len(data)` counts them, and `hexdigest()` returns a printable digest. Reading the complete object into memory is appropriate for this tiny file. For large files, feed successive blocks to `update()` and ensure that the blocks cover the same complete object; hashing does not require loading hundreds of gigabytes into memory at once.
+
+## A local acquisition experiment that preserves its input
+
+From the repository root, using the prepared environment, run:
+
+~~~bash
+.venv/bin/python examples/book/acquisition_walkthrough.py \
+  --input examples/sample.jsonl \
+  --output outputs/book-acquisition-v1
+~~~
+
+The script uses only the Python standard library. It requires neither a GPU nor model weights. It validates the input `id` and `text` fields, requires unique document IDs, and copies the original bytes to `raw.jsonl`. It then creates a control copy with one additional newline byte and rereads both saved objects to compute digests, parse records, and verify their contents. It does not alter the source. The default example already ends with a newline, so appending another creates a blank line. For an input without a final newline, the added byte only terminates the last line. Either case adds one byte without adding a document.
+
+| Output | Contents | Question it answers |
+|---|---|---|
+| `raw.jsonl` | A copy of the received bytes | What object did this run actually receive? |
+| `with-extra-newline.jsonl` | A control with one extra newline byte | Must a byte change imply a record change? |
+| `source-record.json` | Digests, sizes, record counts, and script identity | How can this observation be checked? |
+
+With the repository's default input, the report should satisfy the following conditions. These are acceptance conditions derived from the input and program; obtain the complete digests from your actual output.
 
 ~~~json
 {
-  "source_id": "source-a",
-  "publisher": "<publisher>",
-  "source_url": "<canonical-page>",
-  "release": "<immutable-release-or-commit>",
-  "retrieved_at": "<UTC-time>",
-  "terms_snapshot": "<saved-terms-path-or-digest>",
-  "files": [
-    {
-      "name": "part-000.jsonl.gz",
-      "bytes": 12345,
-      "sha256": "<computed-digest>"
-    }
-  ]
+  "records": 4,
+  "byte_counts_differ_by": 1,
+  "same_parsed_records": true,
+  "different_byte_digest": true,
+  "original_preserved": true
 }
 ~~~
 
-Here `source_id` is a stable label chosen by the project, `release` identifies the upstream version, and `retrieved_at` records when this copy entered the project. `bytes` is a cheap sanity check; `sha256` is the content identity used for later comparison. A terms snapshot can be a saved license page or its own digest, depending on the release policy.
+`same_parsed_records` compares the complete object lists parsed again from the two saved files, rather than merely counting texts. Changing a document while retaining a count of four cannot pass that comparison. `original_preserved` comes from comparing the source and saved copy against the received bytes; the script also checks that the control contains exactly the additional newline byte. A failed check raises an error instead of producing a report that claims success.
 
-This JSON is a provenance record. It is **not** the input schema consumed by `TokenDataset`. The training loader needs a token file or the versioned token `manifest.json` described later in this part. The provenance record should point to the derived artifact, while the manifest records the input digest that produced it.
+The `source_id` is a local content identifier derived from the input digest. It distinguishes this experiment's input without impersonating an external dataset release. `observed_at_utc` records the observation time and normally changes between runs. `repository_commit` records the current commit in a Git checkout and is `null` when running from an archive without Git metadata. The script's own digest is also recorded because an uncommitted script edit is not described by the commit ID.
 
-For moving resources, prefer a publisher commit, revision, or snapshot over `latest`. An HTTP ETag may help a cache, but ETag meanings vary by service and it should not silently replace SHA256 in a reproducibility report.
+Reproduction therefore does not require identical timestamp fields. Compare results determined by the fixed input, processing code, and rules. The script refuses to overwrite an existing output directory. Use `outputs/book-acquisition-v2` for a second run to preserve both records.
 
-## Integrity is different from successful extraction
+## Extending the local record to an external source inventory
 
-An archive can have the expected hash and still produce the wrong training text. For example, an HTML extractor may keep headings and code blocks in one version and discard them in another. The archive is unchanged, but the model distribution changes because the extraction program changed.
+The local experiment has established a relationship between an input object, an action, and output objects. External acquisition adds upstream facts. Keep source information and file information as two related layers.
 
-Keep raw objects immutable. Write extracted and cleaned text to a new versioned directory, and record the extractor version, input digest, output digest, and counts. This makes it possible to inspect a failed parser without downloading a source that may have disappeared or changed.
+The source layer records the publisher, canonical location, immutable revision or snapshot when available, acquisition time, and location of the terms-review evidence. The file layer records the actual objects received, their sizes and digests, and acquisition outcomes. One source may contain a thousand files; one file may combine multiple original sources. In the latter case, preserve document-level provenance instead of collapsing it into an overly broad file label.
 
-Also keep failure categories separate:
+Do not invent missing fields. If a publisher exposes only a changing latest version, record the acquisition time, received object, and verifiable publication information available then. A service's ETag can support caching under that service's documented semantics; it is not universally a SHA-256 content digest.
 
-| event | what it means | how to report it |
-|---|---|---|
-| download failure | bytes were not obtained | retry/error count |
-| parse failure | bytes were obtained but could not be decoded | parser error count |
-| content rejection | text was parsed and a rule rejected it | rule-specific count |
+Our report explicitly sets `terms_review` to `not_performed_by_this_script`. Hashing does not review terms. A real project needs evidence appropriate to the particular source and intended release objects. Raw files, cleaned text, token shards, and model weights are different objects; an ambiguous “data usable” field cannot replace the relevant records. The example fields are not legal conclusions.
 
-Putting all three into a single `removed` counter hides where the distribution changed. A timeout is not evidence that a document was low quality.
+## Why retain the original object?
 
-## Licensing and release boundaries
-
-Review four questions independently: what terms were declared, whether personal information needs handling, whether third-party material is embedded, and which artifacts may be redistributed. A populated `license` field is evidence of a declared term; it is not proof that the entire release plan is compliant.
-
-The raw archive, extracted text, cleaned JSONL, token shards, preprocessing code, and model weights are different artifacts. A source may permit local training while restricting redistribution of the original text. In that case a public reproduction must publish the recipe and digests, and explain how an authorized user can rebuild the same input.
-
-The repository does not perform web crawling, legal review, general HTML extraction, or an automatic license decision. The directly runnable teaching input is `examples/sample.txt`; a JSONL corpus should be written as the replaceable placeholder `<prepared-jsonl>`, never as a file that does not exist. `ttt.data` starts after the upstream text has been selected. These boundaries are intentional: the training loader should be small, while the data project keeps the evidence needed to audit it.
-
-## Count the acquisition pipeline
-
-Consider a purely numerical example. A source list claims 1,000 files. We download 990, parse 980, and obtain 100,000 records; 500 records have no usable body. The next stage receives 99,500 documents. The count chain is:
+Let \(R\) be the raw object, \(e\) the extractor version, and \(c\) the cleaner version. The resulting documents can be written as
 
 $$
-1000\ \text{listed files}
-\rightarrow 990\ \text{downloaded}
-\rightarrow 980\ \text{parsed}
-\rightarrow 100000\ \text{records}
-\rightarrow 99500\ \text{usable records}.
+D_{\mathrm{clean}}=C_c(E_e(R)),
 $$
 
-Reporting only “99,500 documents” hides ten missing files and ten parsing failures. If the missing files are all from a small language or domain, the overall loss may look harmless while that domain disappears. Reports should keep the chain by source, language, and format, and should state whether the denominator is listed files, downloaded files, or parsed records.
+where \(E_e\) performs extraction and \(C_c\) performs cleaning. The subscripts emphasize that changing either program can change the documents even when \(R\) is fixed.
 
-## Mapping to this repository
+Suppose a web page contains prose, navigation, and code blocks. An older extractor retains the prose but drops the code; a newer version restores it. Different outputs do not imply that the downloaded page changed. If only final text remains, a reader cannot locate the loss of code in the original page, extraction stage, or later filtering.
 
-For a small text file, the repository command is:
+Write each processing stage to a new location and record its input digest, code and configuration versions, output digest, and counts. These records describe a processing relationship, not merely a list of final filenames. They let us trace training tokens back through cleaned documents and extracted text to the received object. Small experiments can copy files. Large projects can use immutable object storage with manifest references. The principle is traceable identity, not unconditional duplication of every intermediate byte.
 
-~~~bash
-.venv/bin/python -m ttt.data \
-  --input examples/sample.txt \
-  --output outputs/sample-tokens.npy \
-  --tokenizer byte
-~~~
+## Use the correct denominator for acquisition losses
 
-For JSONL records with a `text` field and a versioned shard manifest:
+Consider an explicitly **hypothetical** acquisition. Of 1,000 requested files, 10 fail to download. Of the 990 downloaded files, 10 cannot be parsed. The remaining 980 files yield 100,000 records, of which 500 lack the text field.
 
-~~~bash
-.venv/bin/python -m ttt.data \
-  --input corpus.jsonl \
-  --output data/pretrain-v1 \
-  --sharded \
-  --tokenizer byte
-~~~
+| Stage | Input unit and count | Failure or exclusion | Output |
+|---|---:|---:|---:|
+| Download | 1,000 files | 10 files | 990 files |
+| Parsing | 990 files | 10 files | 980 parseable files |
+| Field validation | 100,000 records | 500 records | 99,500 documents |
 
-These commands encode already selected text; they do not create the source record above. Before running them on a real corpus, save the upstream release, file digests, extraction configuration, and license review beside the output directory. The resulting manifest contains the input SHA256 and token-shard digests, which connect the training artifact to that upstream record.
+It would be wrong to report “520 items removed”: the first two rows count files, whereas the last counts records. Download success is \(990/1000=99\%\). Parseability among received files is \(980/990\approx98.99\%\). Text-field completeness among parsed records is \(99500/100000=99.5\%\). Each fraction answers a different question.
 
-## Minimal run, evidence, and failure diagnosis
+Even these totals can hide bias. If all ten failed downloads belong to a small language source, that source may lose a substantial fraction of its coverage. Break down acquisition outcomes by source, language, or format. Keep accidental operational losses separate from deliberate quality filtering so that the eventual training distribution can be explained.
 
-Start with the teaching text that actually exists in the repository:
-
-~~~bash
-.venv/bin/python -m ttt.data \
-  --input examples/sample.txt \
-  --output outputs/acquisition-sample.npy \
-  --tokenizer byte
-~~~
-
-The expected artifact is a one-dimensional token file. It proves only that the tokenizer can read the input; it does not prove provenance, licensing, extraction quality, or data quality. To inspect a sharded manifest, run:
-
-~~~bash
-.venv/bin/python -m ttt.data \
-  --input examples/sample.jsonl \
-  --output outputs/acquisition-shards \
-  --sharded --tokenizer byte --shard-tokens 256
-~~~
-
-On success, <code>outputs/acquisition-shards/manifest.json</code> should contain <code>vocab_size</code>, an input digest, and token/mask shard records. If the command fails, check the path and Python environment first. If the manifest has unexpected counts, return to the listed→downloaded→parsed→usable chain before changing the model.
-
-For a real JSONL corpus, use the placeholder <code>&lt;prepared-jsonl&gt;</code> in the documentation and replace it with an actual path before running. Save the source record, file bytes and SHA256, download/parse/rejection counts, extractor version, and licensing review link. The repository does not generate these governance records automatically.
-
-## Summary and next question
-
-This chapter separates a URL (location), a release (version), and a digest (byte identity). It separates download failure, parse failure, and content rejection, and it treats raw files, document records, token shards, and model weights as different artifacts. The next chapter fixes an input version and measures how each cleaning rule changes its counts.
-
-The next chapter defines conservative cleaning rules. We will keep the original text and make each rejection reason measurable instead of treating “clean” as a single hidden label.
+We can now distinguish changes to bytes, parsing, and processing rules while preserving the acquired object. The next chapter examines the text itself: which transformations merely organize its representation, which can discard information, and how to make every keep or reject decision inspectable.

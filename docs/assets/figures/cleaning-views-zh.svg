@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 820" role="img" aria-labelledby="title desc">
+<title id="title">训练正文与统计视图分开</title>
+<desc id="desc">合法正文经规范化产生训练文本，复制到统计视图但不被其覆盖。主状态决定保留或拒绝；13 条输入分为 5 条保留和 8 条拒绝，而全部诊断共有 10 次命中。</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#63758c"/></marker>
+  <style>
+    text{font-family:"Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;fill:#192b42}
+    .title{font-size:30px;font-weight:700}.sub{font-size:17px;fill:#52677c}
+    .label{font-size:19px;font-weight:650}.copy{font-size:16px;fill:#425a70}
+    .tag{font-size:13px;font-weight:700;letter-spacing:1px;fill:#5c7187}
+    .mono{font-family:ui-monospace,"Cascadia Code",monospace;font-size:19px}
+    .arrow{fill:none;stroke:#63758c;stroke-width:2;marker-end:url(#arrow)}
+  </style>
+</defs>
+<rect width="1120" height="820" rx="22" fill="#f7fafc"/>
+<text x="48" y="52" class="title">空白可以不计数，但不应被顺手删掉</text>
+<text x="48" y="85" class="sub">上半图展示合法正文的路径；下方计数对应本章完整的 13 条输入。</text>
+
+<rect x="48" y="121" width="1024" height="90" rx="12" fill="#e8edf5" stroke="#cdd8e5"/>
+<text x="70" y="149" class="tag">原始正文 · c02</text>
+<text x="70" y="181" class="mono" xml:space="preserve">"    return x + 1\n"</text>
+<text x="600" y="156" class="copy">保存为 original_text，便于追溯</text>
+<text x="600" y="183" class="copy">引号内仍有四个行首空格</text>
+
+<path d="M280 212V270" class="arrow"/>
+<text x="300" y="247" class="copy">开头标记 / 换行 / NFC</text>
+<rect x="48" y="280" width="472" height="112" rx="12" fill="#dcf2eb" stroke="#89c6b2"/>
+<text x="70" y="310" class="label">训练正文 · text</text>
+<text x="70" y="343" class="mono" xml:space="preserve">"    return x + 1\n"</text>
+<text x="70" y="372" class="copy">保留缩进与末尾换行</text>
+
+<path d="M522 333H589" class="arrow"/>
+<text x="546" y="313" text-anchor="middle" class="tag">复制</text>
+<rect x="600" y="280" width="472" height="112" rx="12" fill="#fff2dc" stroke="#dec392"/>
+<text x="622" y="310" class="label">临时统计视图</text>
+<text x="622" y="342" class="copy">整体 strip → 码点数</text>
+<text x="622" y="370" class="copy">逐行 strip → 重复行比例</text>
+
+<path d="M280 394V436" class="arrow"/>
+<path d="M836 394V436" class="arrow"/>
+<rect x="48" y="448" width="1024" height="86" rx="12" fill="#192b42"/>
+<text x="70" y="480" class="label" style="fill:#fff">根据指标与规则，确定记录去向</text>
+<text x="70" y="511" class="copy" style="fill:#d8e5ef">没有命中 → kept；有命中 → 第一条为主原因，同时保留全部适用规则命中</text>
+<path d="M280 536V572" class="arrow"/>
+<path d="M836 536V572" class="arrow"/>
+
+<rect x="48" y="584" width="472" height="94" rx="12" fill="#fff" stroke="#89c6b2"/>
+<text x="70" y="615" class="label">kept.jsonl</text>
+<text x="70" y="647" class="copy">原文 + 规范化正文 + 规则版本</text>
+<rect x="600" y="584" width="472" height="94" rx="12" fill="#fff" stroke="#d3a39e"/>
+<text x="622" y="615" class="label">rejected.jsonl</text>
+<text x="622" y="647" class="copy">原始记录 + 主原因 + 全部诊断</text>
+
+<line x1="48" y1="710" x2="1072" y2="710" stroke="#d4dee8"/>
+<text x="48" y="745" class="label">主状态：13 = 5 + 8</text>
+<text x="48" y="777" class="copy">互斥归属，记录数可以守恒。</text>
+<text x="600" y="745" class="label">全部诊断：10 次命中</text>
+<text x="600" y="777" class="copy">命中可以重叠，不能当成拒绝记录数。</text>
+</svg>

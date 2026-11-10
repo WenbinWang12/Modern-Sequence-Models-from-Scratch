@@ -1,0 +1,12 @@
+{"id":"d01","split_group":"guide-blue","source":"guide","text":"The blue bridge opens at dawn."}
+{"id":"d02","split_group":"guide-blue","source":"mirror","text":"The blue bridge opens at dawn."}
+{"id":"d03","split_group":"guide-red","source":"guide","text":"The red bridge opens at dusk."}
+{"id":"d04","split_group":"project-cache","source":"code-notes","text":"A cache stores earlier keys and values."}
+{"id":"d05","split_group":"project-cache","source":"code-notes","text":"A cache can be reset before a new document."}
+{"id":"d06","split_group":"book-river","source":"book","text":"The river turns east beyond the bridge. The river turns east beyond the bridge. The river turns east beyond the bridge. The river turns east beyond the bridge. The river turns east beyond the bridge. The river turns east beyond the bridge."}
+{"id":"d07","split_group":"math-circle","source":"lesson","text":"The circle has radius three."}
+{"id":"d08","split_group":"news-rain","source":"news","text":"Morning rain closed the eastern road."}
+{"id":"d09","split_group":"news-reopen","source":"news","text":"The eastern road reopened after the rain."}
+{"id":"d10","split_group":"guide-green","source":"guide","text":"A green gate marks the trail."}
+{"id":"d11","split_group":"manual-token","source":"manual","text":"A tokenizer maps text to integer identifiers."}
+{"id":"d12","split_group":"poem-night","source":"poem","text":"Stars glow above the quiet hill."}

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 890" role="img" aria-labelledby="title desc">
+<title id="title">A candidate is not a deletion</title><desc id="desc">A and B have band one a b, as does D; B and C share band two d c. The four candidates are A B, A D, B D, B C. Only A B and B C have Jaccard three quarters. The retained representative rule removes B against A and retains C and D.</desc>
+<defs><style>
+text{font-family:Inter,"Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;fill:#183044}
+.title{font-size:33px;font-weight:700}.sub{font-size:19px;fill:#516577}
+.head{font-size:23px;font-weight:700}.doc{font-size:24px;font-weight:700}
+.body{font-size:20px}.small{font-size:18px;fill:#516577}
+.mono{font-family:"DejaVu Sans Mono",Consolas,monospace;font-size:28px}
+.green{fill:#10755e}.orange{fill:#a85413}
+</style></defs>
+<rect width="1000" height="890" rx="22" fill="#f7faf8"/>
+<rect x="28" y="31" width="5" height="72" rx="2" fill="#10755e"/>
+<text x="50" y="65" class="title">A candidate is not a deletion</text>
+<text x="50" y="100" class="sub">One fixture · four signatures · three different decisions</text>
+<rect x="28" y="132" width="450" height="418" rx="18" fill="white" stroke="#d6e2df"/>
+<rect x="498" y="132" width="474" height="418" rx="18" fill="white" stroke="#d6e2df"/>
+<text x="52" y="172" class="head">01  Shared signatures</text>
+<text x="52" y="202" class="small">Read down each document column.</text>
+<rect x="133" y="242" width="298" height="88" rx="8" fill="#def0ed"/>
+<rect x="133" y="332" width="298" height="88" rx="8" fill="#e8eafa"/>
+<path d="M133 330H431" stroke="white" stroke-width="4"/>
+<g class="small" text-anchor="end"><text x="112" y="273">1</text><text x="112" y="318">2</text><text x="112" y="363">3</text><text x="112" y="408">4</text></g>
+<text x="176" y="227" class="doc" text-anchor="middle">A</text><text x="176" y="274" class="mono" text-anchor="middle">a</text><text x="176" y="319" class="mono" text-anchor="middle">b</text><text x="176" y="364" class="mono" text-anchor="middle">c</text><text x="176" y="409" class="mono" text-anchor="middle">c</text><text x="248" y="227" class="doc" text-anchor="middle">B</text><text x="248" y="274" class="mono" text-anchor="middle">a</text><text x="248" y="319" class="mono" text-anchor="middle">b</text><text x="248" y="364" class="mono" text-anchor="middle">d</text><text x="248" y="409" class="mono" text-anchor="middle">c</text><text x="320" y="227" class="doc" text-anchor="middle">C</text><text x="320" y="274" class="mono" text-anchor="middle">b</text><text x="320" y="319" class="mono" text-anchor="middle">b</text><text x="320" y="364" class="mono" text-anchor="middle">d</text><text x="320" y="409" class="mono" text-anchor="middle">c</text><text x="392" y="227" class="doc" text-anchor="middle">D</text><text x="392" y="274" class="mono" text-anchor="middle">a</text><text x="392" y="319" class="mono" text-anchor="middle">b</text><text x="392" y="364" class="mono" text-anchor="middle">b</text><text x="392" y="409" class="mono" text-anchor="middle">a</text>
+<rect x="54" y="448" width="15" height="15" rx="3" fill="#def0ed" stroke="#278977"/>
+<text x="81" y="463" class="body">Band 1: rows 1–2</text>
+<rect x="54" y="486" width="15" height="15" rx="3" fill="#e8eafa" stroke="#747dc0"/>
+<text x="81" y="501" class="body">Band 2: rows 3–4</text>
+<text x="522" y="172" class="head">02  Verify candidate pairs</text>
+<text x="522" y="202" class="small">Exact Jaccard threshold: 3/4</text>
+<path d="M583 269H687M753 269H862" fill="none" stroke="#10755e" stroke-width="4"/>
+<path d="M566 296L624 383M705 297L660 383" fill="none" stroke="#b86a23" stroke-width="3" stroke-dasharray="8 6"/>
+<g fill="white" stroke="#536d7f" stroke-width="2">
+<circle cx="550" cy="269" r="32"/><circle cx="720" cy="269" r="32"/><circle cx="895" cy="269" r="32"/><circle cx="642" cy="411" r="32"/>
+</g>
+<g class="doc" text-anchor="middle"><text x="550" y="278">A</text><text x="720" y="278">B</text><text x="895" y="278">C</text><text x="642" y="420">D</text></g>
+<g class="body green" text-anchor="middle"><text x="635" y="251">3/4</text><text x="807" y="251">3/4</text></g>
+<g class="body orange" text-anchor="middle"><text x="562" y="350">2/5</text><text x="716" y="350">1/3</text></g>
+<text x="522" y="476" class="small">A–C has J = 1/2; no candidate edge.</text>
+<path d="M522 506H548" stroke="#10755e" stroke-width="4"/><text x="557" y="512" class="small">Solid: meets threshold</text>
+<path d="M522 531H548" stroke="#b86a23" stroke-width="3" stroke-dasharray="6 4"/><text x="557" y="537" class="small">Dashed: below threshold</text>
+<rect x="28" y="570" width="944" height="268" rx="18" fill="white" stroke="#d6e2df"/>
+<text x="52" y="609" class="head">03  Compare only to retained representatives</text>
+<rect x="54" y="629" width="202" height="111" rx="13" fill="#e5f3ee"/><text x="73" y="661" class="doc">KEEP A</text><text x="73" y="693" class="body">first representative</text><text x="73" y="723" class="small">d01</text><rect x="284" y="629" width="202" height="111" rx="13" fill="#fff0df"/><text x="303" y="661" class="doc">REMOVE B</text><text x="303" y="693" class="body">direct match to A</text><text x="303" y="723" class="small">d03 → d01</text><rect x="514" y="629" width="202" height="111" rx="13" fill="#e5f3ee"/><text x="533" y="661" class="doc">KEEP C</text><text x="533" y="693" class="body">B was removed</text><text x="533" y="723" class="small">d04</text><rect x="744" y="629" width="202" height="111" rx="13" fill="#e5f3ee"/><text x="763" y="661" class="doc">KEEP D</text><text x="763" y="693" class="body">A–D is only 2/5</text><text x="763" y="723" class="small">d05</text>
+<text x="52" y="777" class="body">5 input documents = 3 kept + 1 exact removal + 1 near removal</text>
+<text x="52" y="811" class="small">4 candidate pairs reviewed · 2 qualifying pairs · 1 near-removed document</text>
+<text x="32" y="867" class="small">d02 is the exact copy of d01. The graph contains only the four exact representatives.</text>
+</svg>

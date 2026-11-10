@@ -25,6 +25,8 @@ The shape can remain correct even when the order is wrong. That is why routing n
 
 ## A four-token example
 
+This section intentionally contains two routing outcomes. The first assignment \([0,0,1,0]\) is an imbalanced overflow counterexample. The probability table below is a separate balanced case with selected experts \([E_1,E_1,E_2,E_2]\), used only for the auxiliary-loss calculation. Keeping these cases separate prevents the capacity example from being confused with the load-balancing example.
+
 Assume four tokens, two experts, and `top_k=1`. The router may assign `[A,B,C,D]` to experts `[0,0,1,0]`. Expert 0 receives three rows and expert 1 receives one. After each expert runs its FFN, the dispatch code must put the outputs back into positions A, B, C, D before adding the residual. With `top_k=2`, each token is sent to two experts and the normalized gate weights combine their outputs:
 
 $$

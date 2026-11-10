@@ -1,6 +1,6 @@
 # TTT and linear attention: where similarity begins and equivalence ends
 
-**Source snapshot: 2026-11-11. Code review baseline: <code>021203e</code>; this round's prose fixes are in the subsequent commit. Status: an executable local algebra example; independent model-equivalence and quality experiments are not implemented.**
+**Source snapshot: 2026-11-11. Code review baseline: <code>0614bd5</code>. Status: an executable local algebra example; independent model-equivalence and quality experiments are not implemented.**
 
 ## From “remember this sentence” to a precise question
 

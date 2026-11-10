@@ -1,7 +1,5 @@
 # 4. Pretraining Data: Distribution, Quality, and Reproducibility
 
-This chapter follows the [notation and conventions](../notation.md) used throughout the book. Mathematical positions start at 1; code array indices start at 0.
-
 ## Why data is the first design decision
 
 Pretraining is not a matter of putting a pile of text on a GPU and waiting for the model to absorb “the internet.” The model only sees the training windows produced by the data pipeline. Source selection, filtering, deduplication, tokenization, packing, and masking together define what the optimizer is asked to learn. Data is therefore part of the model specification, rather than a directory chosen after the architecture.
@@ -21,6 +19,21 @@ This small example shows why file counts do not describe the training distributi
 | Books | 10,000 | 10,000 | about 9% | richer long-form structure, fewer documents |
 
 Direct concatenation makes web tokens dominate; source-uniform sampling gives a different distribution. Both are implementable, but they optimize different objectives. If 30% of web text is duplicated templates, cleaning lowers its effective token count and automatically increases the relative weight of code and books unless the mixture is recomputed. Later sections turn this example into an explicit, reproducible sampling protocol.
+
+## What is a tokenizer? Turning text into model-readable tokens
+
+A model cannot consume Unicode text directly. A tokenizer is a rule or learned model that encodes text as an integer sequence: it maps a text string $u$ to tokens $s$, then maps each token to an ID in a fixed vocabulary. A token need not be a complete word; it may be a byte, character, or subword. The ID is an index, so its numeric value does not express semantic similarity.
+
+The conversion can be written as
+
+$$
+u \xrightarrow{\ \tau\ } s=(s_1,\ldots,s_L),
+\qquad s_t\in\{0,\ldots,V-1\},
+$$
+
+where $\tau$ is the tokenizer, $V$ is the vocabulary size, and $L$ is the number of tokens produced for this text. The model's embedding looks up rows from this vocabulary, and the final classification head maps a hidden vector back to the same $V$ possible next-token IDs. Replacing the tokenizer can therefore change sequence length, the number of training positions, memory cost, and the output-head dimension at the same time.
+
+A tokenizer also defines special-token semantics, such as EOS for a document boundary, BOS for a sequence start, PAD for alignment, and unknown or byte-fallback behavior. These choices affect document boundaries, packing, loss masks, and evaluation, so a tokenizer is part of the data protocol rather than a preprocessing script that can be swapped in at the end. A reproducible run records at least the tokenizer file or model name, revision, vocabulary size, special-token IDs, and normalization rules. Changing any of them requires regenerating token shards and updating the manifest. Chapter 9 covers tokenizer training, vocabulary selection, and efficiency measurements.
 
 ## Turn the motivation into a measurable distribution
 

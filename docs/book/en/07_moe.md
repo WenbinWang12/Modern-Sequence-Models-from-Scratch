@@ -1,26 +1,63 @@
-# 19. MoE, routing, and expert parallelism
+# 19. MoE: routing turns a block into a dynamic graph
 
-## MoE changes the compute path
+## Why copying an FFN is not MoE
 
-MoE does not copy an FFN and average the copies. A router sends each token to a small number of experts. This increases total parameters without activating all of them, but adds load imbalance, token permutation, communication, and sharded checkpoint state.
+If we copy one feed-forward network eight times and execute all eight for every token, we have made a larger dense model. A Mixture-of-Experts (MoE) layer instead lets a router choose a small number of experts for each token. Total parameter capacity can grow while the active compute per token stays closer to the selected experts.
+
+The path for one hidden vector is:
 
 ~~~text
-hidden state
-    ↓
-router logits → top-k expert ids + gate weights
-    ↓
-group by expert → expert FFN/MLP-prime → restore token order
-    ↓
-weighted sum + residual
+h
+→ router logits
+→ top-k expert IDs and gate weights
+→ dispatch tokens by expert
+→ expert FFN or MLP-prime
+→ restore original token order
+→ weighted sum + residual
 ~~~
 
-Routing, expert computation, and order restoration form one contract. Output shapes alone cannot detect a token sent to the wrong expert.
+The shape can remain correct even when the order is wrong. That is why routing needs semantic checks, not only a final `shape == expected` assertion.
 
-## Controls and code
+## A four-token example
 
-Fix expert count, top-k, shared experts, capacity, token-drop policy, router loss, and mesh before comparing variants. route_mlp, route_delta, and route_e2e change routing location; they should not also change width or training tokens.
+Assume four tokens, two experts, and `top_k=1`. The router may assign `[A,B,C,D]` to experts `[0,0,1,0]`. Expert 0 receives three rows and expert 1 receives one. After each expert runs its FFN, the dispatch code must put the outputs back into positions A, B, C, D before adding the residual. With `top_k=2`, each token is sent to two experts and the normalized gate weights combine their outputs:
 
-ttt/models/ttt_e2e/moe.py implements routing and dispatch. grouped_gemm.py implements grouped matrix multiplication. ttt/distributed.py defines data/expert mesh axes and sharding. Start with no token drop for correctness, then measure expert counts, routing entropy, load ratio, and all-to-all time.
+$$
+y_t=\sum_{e\in S_t}g_{t,e}f_e(h_t),\qquad
+\sum_{e\in S_t}g_{t,e}=1.
+$$
+
+The router produces (r_t\in\mathbb R^E) for (E) experts. Top-k chooses (S_t) and the corresponding gate weights (g_{t,e}). A balanced router might send two of the four tokens to each expert, but the model does not guarantee that balance by itself.
+
+## Capacity, drop, and auxiliary objectives
+
+An expert's capacity is derived from the number of tokens in the step, `top_k`, and a capacity factor. If the assigned rows exceed capacity, the implementation must choose a policy: drop tokens, pad and mask them, or allow a larger allocation that may cause an out-of-memory error. Token drop saves memory but means those tokens did not receive a full expert computation.
+
+The repository reports language-model NLL separately from routing auxiliary loss and router z loss. NLL asks whether the next token was predicted; auxiliary loss encourages balanced usage; z loss controls the scale of router logits. A lower combined value can come from an auxiliary term even when token prediction is unchanged, so publish each component.
+
+If load bias is updated from expert counts, that update is another algorithmic state transition. It is not an ordinary AdamW parameter step; record its rate and whether it is included in the checkpoint.
+
+## Code path and the three implementation levels
+
+`ttt/models/ttt_e2e/moe.py` owns router scores, dispatch, expert computation, and order restoration. `grouped_gemm.py` provides grouped matrix multiplication paths. `ttt/distributed.py` defines data and expert mesh axes and sharding.
+
+Keep three levels distinct:
+
+1. **Mathematical path:** select experts, compute expert functions, combine outputs.
+2. **Reference path:** often loops over experts and is easier to inspect.
+3. **Optimized path:** groups rows into fewer kernels and may require stricter shapes or padding.
+
+Correctness of the reference path does not prove that a grouped kernel is equivalent. Compare expert counts, order restoration, and logits before comparing timing.
+
+## Expert parallelism
+
+With expert parallelism, an expert's parameters live on one or more devices. Tokens may cross devices through all-to-all communication. `expert_parallel_size` therefore changes the compute graph, memory placement, and failure modes. A rank's local expert shape is only a shard of the global shape; report both.
+
+Before making a quality claim, fix expert count, top-k, shared experts, capacity, drop policy, router losses, mesh, precision, and training tokens. `route_mlp`, `route_delta`, and `route_e2e` change the routing location and should not silently change width or budget at the same time.
+
+## Small remote gate
+
+The mesh configuration and validator provide a reproducible systems check:
 
 ~~~bash
 bash scripts/run_gpu_train.sh \
@@ -33,8 +70,6 @@ bash scripts/validate_mesh.sh \
   outputs/mesh-checkpoint
 ~~~
 
-The report should include global and local expert shapes, routing counts, two training steps, restore consistency, communication time, and memory.
+The report should include global and local expert shapes, route counts, two-step loss, restore consistency, communication time, and memory. Start with a no-drop tiny configuration. This proves the path; it does not prove that a capacity policy or optimized kernel scales to a large model.
 
-## Transition
-
-The next chapter defines the experiment protocol that makes architecture and cost comparisons interpretable.
+The next chapter defines an ablation protocol so changes in quality can be separated from changes in active compute and communication.

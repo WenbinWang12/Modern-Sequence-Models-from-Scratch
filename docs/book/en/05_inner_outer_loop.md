@@ -1,67 +1,95 @@
-# 17. Inner and outer loops
+# 17. Inner and outer loops: two optimization timescales
 
-## Two optimization timescales
+## The basic picture
 
-The inner loop updates fast weights inside a sequence chunk so the model can adapt to the current context. The outer loop updates static parameters so the model learns how to adapt. Their states, losses, and optimizers must remain separate.
+There are two different things that can change during a TTT run. Static parameters $\theta$ are learned across training steps. Fast weights $\phi$ are temporary parameters that adapt inside a sequence or serving session. Calling both of them “the model update” hides the algorithm we are trying to study.
+
+For one chunk, the causal order is:
 
 ~~~text
-fast_0 ──forward(prefix)──> loss_0 ──SGD──> fast_1
-fast_1 ──forward(suffix)──> loss_1
-                              │
-                              └── outer loss → static parameters
+static theta + fast phi_0
+        |
+        | predict with the observed prefix/suffix
+        v
+      loss_0  --gradient w.r.t. phi-->  phi_1
+        |
+        v
+  outer loss --gradient w.r.t. theta--> AdamW update
 ~~~
 
-The safe order is predict, compute loss, then update. Exposing a label before the prediction creates leakage.
+The rule is simple: predict first, reveal the next label only when it is available, then update. If a label is used before its prediction, the update leaks the answer and the experiment no longer measures causal adaptation.
 
-## Gradient semantics
+## A two-token example
 
-Retaining higher-order gradients is closer to a full meta-learning objective but costs memory and compilation time. Truncating the inner update is useful for validating the system path. The choice must be recorded because the two procedures are different algorithms.
+Imagine that the current chunk contains tokens `[A, B, C]`. The model first uses the current fast weights to predict `B` from `A`, and then `C` from `A,B`. Their masked token losses form an inner objective, for example
 
-The outer optimizer, usually AdamW, updates static parameters, normalization, and routing parameters. Fast weights may use SGD or a local optimizer. Their learning rates, weight decay, and clipping rules should be recorded separately.
+$$
+\ell_{\mathrm{inner}}(\phi)=\frac{1}{2}\bigl[-\log p_{\phi}(B\mid A)-\log p_{\phi}(C\mid A,B)\bigr].
+$$
 
-## Code and controls
+An SGD step is
 
-ttt/inner_loop.py implements block prediction, token loss, SGD, and scan. ttt/loss.py handles masks. ttt/training.py owns AdamW and training state. ttt/checkpoint.py saves static state and sampler state; session fast weights belong to runtime.
+$$
+\phi_1=\phi_0-\eta_{\mathrm{inner}}\nabla_{\phi}\ell_{\mathrm{inner}}(\phi_0).
+$$
 
-Set inner.enabled=false for the static C path and true for the F path. Keep tokenizer, width, training tokens, and data order fixed. The evidence should include inner steps, fast-weight norms, finite loss, outer gradient norms, and the next loss after restore.
+The outer objective may include later positions or the whole batch. It differentiates through the static model path and, depending on the chosen algorithm, through the fast update itself. The inner loss says “adapt to this context”; the outer loss says “learn parameters that make adaptation useful.”
 
-## What `inner_step` does
+## What `inner_step` actually receives
 
-`inner_step` receives the model, static parameters, current fast weights, hidden states, targets, masks, cache, and position. Its objective follows one explicit order:
+`ttt/inner_loop.py` keeps the boundary explicit. `inner_step` receives the model, static parameters, current fast weights, suffix hidden states, target IDs, token mask, cache, position, and inner learning rate. It performs these operations in order:
 
 1. run the suffix with the current fast weights;
-2. project hidden states to logits or a vocabulary-block loss;
-3. apply the token mask;
+2. project features to logits or evaluate a vocabulary-block loss;
+3. multiply by the token mask and count valid labels;
 4. differentiate with respect to fast weights;
-5. clip the global fast-weight gradient and apply SGD;
-6. optionally compute a post-update loss.
+5. compute the global fast-weight norm, clip it, and apply SGD;
+6. optionally run a post-update forward pass.
 
-The pre-update loss creates the update. A post-update loss measures whether the same block became easier after adaptation; it is not the outer loss and is normally disabled because it adds another forward pass. The inner clip norm and outer clip norm are separate experiment fields.
+The pre-update loss creates the update. A post-update loss asks whether the same block became easier after adaptation; it is not the outer loss and is normally disabled because it adds a forward pass. The inner clip norm and outer clip norm are separate fields because they stabilize different optimization problems.
 
-## How `sequence_loss` scans a sequence
+## Scanning chunks without changing causality
 
-The sequence is padded to a multiple of `ttt_chunk_size`. The prefix runs once for all positions, while the suffix uses scans over chunks and, when configured, steps within a chunk. Checkpointing the scan trades recomputation for memory; it does not change the meaning that one chunk updates the fast state used by the next chunk.
+`sequence_loss` first checks the one-dimensional token sequence and pads its length to a multiple of `ttt_chunk_size`. The prefix is computed once for the relevant positions. The suffix is scanned over chunks and, when configured, over steps inside each chunk. A checkpointed scan may recompute a forward result during backpropagation to save memory; it does not change the state transition.
 
-Each carry contains the current fast weights and cache. The outputs include token losses, valid-token counts, gradient norms, router loads, fast-weight norms, update norms, and optional post losses. The final partial chunk is scored with a mask, while `where` keeps padding from changing the fast state.
+The carry contains the current fast weights and cache. Metrics include token losses, valid-token counts, gradient norms, router loads, fast-weight norms, update norms, and optional post losses. The final partial chunk is scored with a mask. Padding positions are handled with `where` so they do not update the fast weights.
 
 ## Weighted outer loss
 
-Samples can contain different numbers of valid labels. The batch objective weights each sample by its valid-token count:
+Different samples can have different numbers of valid labels. If sample (b) has (n_b) valid tokens and mean loss (mathcal L_b), the batch objective is
 
 $$
-\mathcal{L}_{\mathrm{batch}}=
-\frac{\sum_b n_b\mathcal{L}_b}
-{\max(\sum_b n_b,1)}.
+\mathcal L_{\mathrm{batch}}=
+\frac{\sum_b n_b\mathcal L_b}{\max(\sum_b n_b,1)}.
 $$
 
-The training path then differentiates this objective with respect to static parameters and applies the outer optimizer. On a data axis it may use `pmean`. MoE auxiliary and router losses are reported separately from language-model NLL.
+This is a token-weighted mean: a sample with 100 valid tokens contributes 50 times as many token observations as a sample with 2, rather than receiving the same weight merely because both are array rows. `training.py` differentiates this objective with respect to static parameters, applies a data-axis `pmean` when configured, and passes the gradients to the outer Optax optimizer. MoE auxiliary and router losses remain separate from language-model NLL in the metrics.
+
+## First-order versus full meta-gradient
+
+The fast update can depend on $\theta$ through the hidden features and the gradient. A full meta-gradient keeps the chain rule:
+
+$$
+\frac{d\mathcal L_{\mathrm{outer}}}{d\theta}
+=\frac{\partial\mathcal L_{\mathrm{outer}}}{\partial\theta}
++\frac{\partial\mathcal L_{\mathrm{outer}}}{\partial\phi_1}
+\frac{\partial\phi_1}{\partial\theta}.
+$$
+
+With one SGD update, $\phi_1=\phi_0-\eta\nabla_\phi\ell_{\mathrm{inner}}$, so the last factor contains a Hessian-like derivative of the inner loss. A first-order approximation applies `stop_gradient` to that path. The two versions are different algorithms, not just two compiler settings; report the choice, memory, compile time, and quality separately.
 
 ## C/F controls and evidence
 
-C and F must share the same architecture, initialization, tokenizer, manifest, sample order, sequence length, batch, token budget, outer optimizer, schedule, hardware, and precision. C disables the inner update; F enables it. If F adds fast-MLP parameters that C does not contain, the comparison changes parameter count as well as update behavior and needs a separate structural control.
+The control (C_k) and adaptive run (F_k) must share architecture, initialization seed, tokenizer, manifest, sample order, sequence length, batch, token budget, outer optimizer and schedule, hardware, and precision. (C_k) disables the inner update; (F_k) enables it. If (F_k) adds fast-MLP parameters that (C_k) does not contain, the comparison changes parameter count as well as update behavior and needs a separate structural control.
 
-Use at least the following evidence: pre- and post-update loss, causality under changed suffix tokens, stable fast-weight update norms, finite outer gradients, continuity after restore, and held-out loss at the same budget. A single fast-weight norm change is not evidence of a quality gain.
+At minimum, collect pre- and post-update loss, a causality check under changed suffix tokens, stable fast-weight update norms, finite outer gradients, resume continuity, and held-out loss at equal token budget. A changed fast-weight norm alone is evidence that an update occurred, not that it improved prediction.
 
-## Transition
+## A remote validation entry point
 
-Fast weights create a changing state. Attention caches and Gated Delta determine how state moves across tokens, chunks, and requests.
+The repository's functional GPU validator exercises the same inner-loop and streaming path used by the tiny architecture checks:
+
+~~~bash
+bash scripts/validate_gpu.sh outputs/gpu-validation.json
+~~~
+
+The resulting JSON records finite loss and gradients, full-versus-streaming logits error, compilation time, execution time, and state bytes. It is a semantic gate, not a quality claim. The next chapter follows the states that make this update causal across prefill, decode, chunks, and sessions.

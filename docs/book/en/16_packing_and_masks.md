@@ -20,7 +20,7 @@ $$
 
 The target at position $i$ is therefore $y_i=s_{i+1}$. If we accidentally set $Y=X$, we train copying rather than next-token prediction. If we shift twice, the loss is still a number, but it describes a different prediction problem.
 
-The current loader requests a window of <code>length + 1</code> tokens. <code>TokenDataset.rows(starts, length)</code> returns the window and a mask with its first column removed, so that the mask has the same positions as the shifted labels. <code>BatchStream.next_batch_with_masks()</code> passes those arrays to the training code. When auditing a new data path, inspect this shift before inspecting the model.
+For a model sequence length of <code>sequence_length</code>, <code>BatchStream</code> requests <code>sequence_length + 1</code> raw tokens. The argument <code>length</code> in <code>TokenDataset.rows(starts, length)</code> already means that raw count: it returns <code>length</code> tokens and <code>length - 1</code> target weights. Thus <code>rows(starts, 5)</code> supplies four prediction positions, not five. <code>BatchStream.next_batch_with_masks()</code> passes those arrays to the training code. Inspect this shift before inspecting the model.
 
 ## What a mask means
 
@@ -42,15 +42,27 @@ $$
 
 so that the final cross-document target is ignored. A continuous-stream policy could use $M=(1,1,1,1)$. The two policies estimate different conditional distributions. Adding EOS alone does not tell us which policy is in use; the input, labels, loss mask, and attention boundary must be documented together.
 
-The masked token loss is commonly written as
+### From position losses to a weighted mean
+
+If the model assigns probability \(p_i\) to the correct target, the position's cross-entropy is \(\ell_i=-\log p_i\). Giving the correct answer more probability reduces the penalty. Probabilities \(1/2\) and \(1/4\), for example, produce losses of approximately \(0.693\) and \(1.386\). We use natural logarithms, so the unit is the nat. Loss is not accuracy: confidence matters even when two predictions have the same correct/incorrect outcome.
+
+Generated masks usually use \(m_i\in\{0,1\}\). The loader also accepts fractional values in \([0,1]\), interpreted as relative target weights. Define total weight \(W=\sum_{i=1}^{L}m_i\). The weighted mean is
 
 $$
-\mathcal{L} = \frac{\sum_{i=1}^{L}m_i\,\ell_i}{\max(1,\sum_{i=1}^{L}m_i)},
+\mathcal L=
+\begin{cases}
+\displaystyle\frac{\sum_{i=1}^{L}m_i\ell_i}{W},&W>0,\\[6pt]
+0,&W=0.
+\end{cases}
 $$
 
-where $m_i\in[0,1]$ and $\ell_i$ is the cross-entropy for target $y_i$. The <code>max</code> avoids division by zero in defensive code; a sample with no valid targets should still be rejected by preflight. Across samples or devices, weight by the number of valid tokens. Averaging one loss per sequence would give a short response and a long response the same weight.
+For losses \(2,4\) and weights \(1/4,1/2\), the weighted sum is \(2.5\), total weight is \(0.75\), and the mean is \(2.5/0.75=10/3\). Doubling both weights to \(1/2,1\) leaves the mean unchanged. Scaling all weights together should not change a mean; relative weights determine the result. With fractional weights, their sum is **total supervision weight**, not a literal token count.
 
-The implementation replaces masked target IDs with a safe in-range ID before indexing logits, then multiplies their losses by zero. The safe ID prevents an indexing error; it is not a training target.
+The implementation selects a safe denominator of 1 only when \(W=0\). Using \(\max(W,1)\) would incorrectly replace \(0.75\) by 1 and return 2.5 in the example. An all-zero mask has no supervision and returns zero language-model NLL by convention. Data checks should still detect that window; zero does not indicate perfect prediction. This statement concerns NLL and does not automatically constrain auxiliary terms, such as those used by MoE models. Momentum or weight decay can update parameters even when the NLL gradient is zero, so an all-zero mask does not imply that the entire training step leaves parameters unchanged.
+
+Across samples, reconstruct each weighted sum before dividing by the batch's total weight. A sample with 100 valid targets and mean loss 2, combined with two valid targets at mean loss 10, gives \((100\times2+2\times10)/102\approx2.157\), not \((2+10)/2=6\). Across devices, aggregate numerators and denominators under the same principle; a device with almost no supervision should not receive the same weight as one with many targets. `tests/test_weighted_loss.py` adds checks for fractional weights, outer gradients, zero weights, and sparse supervision across two devices; they have not been executed in this review.
+
+The implementation replaces masked target IDs with a safe in-range ID before indexing logits, then selects zero for their loss. The safe ID prevents an indexing error; it is not a training target. This explanation assumes finite model logits: a mask does not repair numerical failures inside the model.
 
 ## Independent documents and continuous streams
 
@@ -59,7 +71,9 @@ There are two legitimate packing contracts:
 - **Independent-document packing** prevents attention and carried model state from reading earlier documents, and handles next-token targets at boundaries explicitly. A zero loss mask alone cannot provide this isolation: it removes a loss term but does not erase context. Such packing needs document-aware attention or separate calls with state reset.
 - **Continuous-stream packing** concatenates documents into one stream. It uses storage efficiently and may deliberately learn statistics around EOS, but it must state whether cross-document attention and loss are allowed.
 
-The current <code>prepare_data</code> and <code>prepare_sharded_data</code> functions encode each document, append EOS when the tokenizer provides one, and write tokens in order. <code>TokenDataset.rows</code> selects a window by global offset. A window can therefore cross EOS and a physical shard boundary. The current model path does not create a block attention mask that resets at EOS. Describe it as continuous-stream behavior unless a future implementation adds that boundary state.
+The current <code>prepare_data</code> function writes one NPY file; <code>prepare_sharded_data</code> writes shards and a manifest. Both encode retained documents and append EOS when the tokenizer provides one. <code>TokenDataset.rows</code> selects a window by global offset, which can cross EOS and a physical shard boundary. Neither path creates a block attention mask that resets at EOS. Both retain continuous context rather than independent-document isolation.
+
+Their supervision policies differ. A single NPY has no stored mask, so the loader assigns weight 1 to every target. The sharded path assigns zero weight to the opening BOS of each document. For two documents A and B, the byte tokenizer produces `[1,68,2,1,69,2]`, where 1 is BOS and 2 is EOS. Reading the full stream yields target weights `[1,1,1,1,1]` from the single NPY and `[1,1,0,1,1]` from the shards. The third target is the second document's BOS predicted after the first document's EOS. Masking that target still allows predictions in B to read A. The sharded path also skips whitespace-only text, whereas the single-NPY path encodes it. Switching preparation entry points can therefore change supervision and the token stream; it must not be recorded merely as a storage-format change.
 
 ## Inspect a boundary with actual byte IDs
 
@@ -101,7 +115,7 @@ The relevant path is:
 1. <code>ttt.dataset.prepare_sharded_data</code> writes token and mask shards plus <code>manifest.json</code>.
 2. <code>TokenDataset</code> verifies the manifest and maps global offsets to shards.
 3. <code>BatchStream.next_batch_with_masks</code> samples starts and returns <code>(tokens, masks)</code>.
-4. <code>ttt.inner_loop.sequence_loss</code> shifts targets, applies the mask, and aggregates valid-token loss.
+4. <code>ttt.inner_loop.sequence_loss</code> shifts targets, applies the mask, and aggregates weighted NLL. The outer step combines samples using their supervision-weight sums, which equal valid-target counts only for binary masks.
 5. <code>training.py</code> uses the resulting loss for the outer update.
 
 On a machine with the repository and Python environment already prepared, a small data conversion is:

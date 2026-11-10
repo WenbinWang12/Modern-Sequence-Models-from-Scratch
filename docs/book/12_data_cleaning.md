@@ -80,9 +80,24 @@ training_text = text        # 仍包含四个行首空格和末尾换行
 
 因此程序建立不同用途的视图。训练正文保留空白；长度统计临时忽略整个文本首尾的空白；重复行统计再临时忽略每行两端的空白，并跳过空行。这些统计视图不会写回 `text`。例如两行缩进不同的文字可能在重复统计里被视为相同，但最终保存的代码仍保留各自的缩进。
 
-![原文、训练正文与统计视图分开流动；主状态用于守恒，诊断命中允许重叠](../assets/figures/cleaning-views-zh.svg)
+<figure class="book-figure book-figure--diagram" markdown="1">
+<div class="figure-scroll" role="region" tabindex="0" aria-label="正文沿主线保留，统计视图只提供判断；13 条输入的唯一去向与 10 次可重叠诊断分别计数" markdown="1">
 
-图 6.1：从上到下读。规范化产生训练正文，再复制出只用于统计的视图；判断结果决定记录进入哪个输出文件。右侧两种计数回答不同问题：主状态给每条输入唯一归属，诊断则保存可以重叠的规则命中。统计视图没有回写训练正文的箭头。
+[![正文沿主线保留，统计视图只提供判断；13 条输入的唯一去向与 10 次可重叠诊断分别计数](../assets/figures/cleaning-views-zh.svg)](../assets/figures/cleaning-views-zh.svg){target="_blank" rel="noopener"}
+
+</div>
+<figcaption markdown="span">
+**图 6.1**　沿正文主线看哪些内容会保存，再沿统计支路看判断来自哪里。统计视图不会回写正文。每条输入只有一个最终去向，诊断命中却可以重叠，因此 13 条记录与 10 次命中使用不同的计数单位。数字来自本章教学样例。
+</figcaption>
+<div class="figure-downloads" markdown="1">
+
+[打开 SVG 原图](../assets/figures/cleaning-views-zh.svg){target="_blank" rel="noopener"}
+[高清 PNG](../assets/figures/exports/cleaning-views-zh.png){download="cleaning-views-zh.png"}
+[矢量 PDF](../assets/figures/exports/cleaning-views-zh.pdf){download="cleaning-views-zh.pdf"}
+<span>窄屏可左右滑动；点图查看原尺寸。</span>
+
+</div>
+</figure>
 
 ## 用 13 条记录把规则说清楚
 
@@ -95,6 +110,8 @@ training_text = text        # 仍包含四个行首空格和末尾换行
 `id` 用于定位样本；`source` 表示来源组；`language` 是输入自带的语言标签；`kind` 区分一般文字 `prose` 和代码 `code`；`text` 是正文。这里没有运行语言识别模型，所以不能把 `language` 说成程序推断出的结果。程序要求前四个字段是非空字符串、`text` 是字符串，并限制 `kind` 只能是这两个值。这样的字段及类型约束通常称为 **schema（记录结构约束）**。
 
 结构检查先于文本检查。`text: 42` 的问题是类型错误，不应先转换成 `"42"` 再判断太短；坏 JSON 连完整对象都无法确定，也不能随意从半行字符串中猜出一个样本 ID。程序分别记为 `invalid_schema` 和 `invalid_json`。读取器还拒绝 `NaN`、`Infinity`，以及超出本例有限浮点范围的数字，例如 `1e999`，同样记为 `invalid_json`。最后一类是本读取器的接受范围限制，不是说 `1e999` 在 JSON 语法中非法；拒绝日志保留原始行供检查。通过结构检查后，还会检查正文能否编码为 UTF-8；JSON 转义可以表达某些孤立代理码点，这些不合法的正文记为 `invalid_unicode`。默认样例没有触发最后一种情况，报告仍保留其零计数。
+
+延续上一章的无歧义输入约定，同一 JSON 对象内重复的字段名也记为 `invalid_json`，包括嵌套对象。否则 `{"text":42,"text":"一份足够长的正文"}` 会被默认解析器悄悄缩成只有后一个 `text` 的对象，结构检查根本看不到第一个值。拒绝日志保存原始行，让人决定怎样修复，而不是替来源猜一个答案。
 
 对合法文本，本次规则采用以下参数。长度指规范化后、去掉首尾空白的临时视图中的**码点数**。
 
@@ -234,6 +251,10 @@ PY
 | `count_conservation` | 程序已检查主状态计数守恒；不代表语料质量经过评估 |
 
 本例共有 10 条 schema 合法记录，因此 `groups` 的输入数相加是 10，而全局 `input_records` 是 13。这两个数的差异来自明确的统计范围，不应把缺失的三条强行分配给某个语言组。对缺少合法来源信息的记录单独计数，通常比凭猜测补标签更可解释。
+
+阈值判定还要保留数学上的边界含义。“至少 0.2”包括恰好 \(1/5\)。五行中有四种不同内容时，程序使用标准库 `Fraction(1, 5)` 与阈值比较，避免浮点计算 `1 - 4 / 5` 的舍入误差改变决定。阈值参数先读成 Python 浮点数，再按其 `str` 给出的十进制表示构造分数；报告保存这个表示。`duplicate_comparison_lines` 保存多出的重复行数，`duplicate_line_fraction` 是便于阅读的近似小数，不用于最终判定。[浮点数的表示与舍入](https://docs.python.org/3.12/tutorial/floatingpoint.html)
+
+这一“包含等号”的约定也决定端点：阈值设为 0，会拒绝所有满足至少三行条件的 `prose`，即使没有重复；设为 1，则有限个非空行的重复比例总小于 1，不会由这条规则拒绝。这些端点用来检查实现，不是推荐的清洗设置。代码和报告的规则版本已更新为 `cleaning-walkthrough-v2`。
 
 输入 UTF-8 解码失败会使整个运行停止；单条 JSON 或 schema 错误则进入拒绝日志，其他记录继续处理。程序先完成分析，再创建输出目录，并最后写报告。磁盘写入中断仍可能留下不完整目录；若没有完整的三个文件和可读的报告，不能把它算作成功运行。
 

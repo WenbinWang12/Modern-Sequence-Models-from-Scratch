@@ -58,7 +58,7 @@ In this teaching example, <code>input_ids</code> denotes \(X\), <code>labels</co
 | outer training step | \(k\) | one optimizer update of static parameters |
 | expert | \(e\) | \(e\in\{0,\ldots,n_{\mathrm{exp}}-1\}\), matching code expert IDs |
 | batch size | \(B\) | samples in one training step |
-| sequence length | \(L\) | tokens in one window |
+| sequence length | \(L\) | model input positions; read \(L+1\) raw tokens before label shifting |
 | vocabulary size | \(V\) | number of token IDs |
 | hidden width | \(d\) | residual-vector size; <code>hidden_size</code> |
 | MLP intermediate width | \(d_{\mathrm{ff}}\) | <code>intermediate_size</code> |
@@ -111,14 +111,17 @@ $$
 -\log p_\theta(y_t\mid x_{1:t}).
 $$
 
-With a mask \(m_t\in\{0,1\}\), the window loss is:
+Usually \(m_t\in\{0,1\}\) selects supervised targets. Fractional values in \([0,1]\) represent relative weights. Define \(W=\sum_{t=1}^{L}m_t\); the window's weighted mean is:
 
 $$
-\mathcal{L}
-=
-\frac{\sum_{t=1}^{L}m_t\ell_t^{\mathrm{tok}}}
-{\max(\sum_{t=1}^{L}m_t,1)}.
+\mathcal L=
+\begin{cases}
+\displaystyle\frac{\sum_{t=1}^{L}m_t\ell_t^{\mathrm{tok}}}{W},&W>0,\\[6pt]
+0,&W=0.
+\end{cases}
 $$
+
+The zero value for an all-zero mask means there is no supervision; it does not indicate correct predictions. The implementation substitutes a safe denominator of 1 only when \(W=0\). A positive \(W<1\) retains its actual value. Otherwise uniformly scaling weights down would change the mean, contradicting the definition of a weighted average.
 
 Why does the gradient become \(p-\text{one-hot}\)? For logits \(z\) and correct class \(y\):
 

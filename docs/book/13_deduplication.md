@@ -22,7 +22,7 @@
 | `d04` | notes | `"blue green amber gold\n"` | 文档 C |
 | `d05` | notes | `"red blue green violet silver\n"` | 文档 D |
 
-如果直接比较原始字节，`d01` 与 `d02` 不相同。我们先明确本次实验的规则：把 Unicode 文本规范化为 NFC，并把 CRLF 统一成 LF；保留大小写、标点、缩进、行尾空格和其他字符。NFC 处理的是同一字符的规范等价写法，例如一个预组合的“é”和“e 加组合重音”。它不是翻译，也不会把不同含义的单词变成同一个词。这里也没有把单独出现的 CR 全部替换掉。
+如果直接比较原始字节，`d01` 与 `d02` 不相同。我们先明确本次实验的规则：把 Unicode 文本规范化为 NFC，并把 CRLF 统一成 LF；保留大小写、标点、缩进、行尾空格和其他字符。NFC 处理的是规范等价的写法，例如一个预组合的“é”和“e 加组合重音”。它不做翻译，也不根据词义判断两篇文档是否相同。规范等价仍可能合并某些符号的编码区别，因此这里比较的是选定表示，不是证明语义无损。这里也没有把单独出现的 CR 全部替换掉。
 
 规范化后的字符串叫**比较文本**。它只用于判断重复，选中代表后保存的仍是代表文档原有的 `text`。这个区分很重要：用于判断相似的表示可以比训练文本更粗，但不应该悄悄改写训练内容。例如，去掉所有空格可能方便比较网页，却会破坏代码缩进。
 
@@ -216,9 +216,24 @@ $$
 
 band 1 中 A、B、D 进入同一个桶，产生 A—B、A—D、B—D 三对。band 2 中 B、C 进入同一个桶，新增 B—C 一对。最后对文档对本身去重，得到四个候选对。若同一对在两个 band 都命中，也只需要复核一次。桶键必须包含 band 编号，不能把 band 1 的值与 band 2 的值混在一起比较。
 
-![四行 MinHash 签名分成两个 band，生成四个候选对；精确复核仅保留两条阈值边，代表规则最终保留 A、C、D。](../assets/figures/dedup-candidates-zh.svg)
+<figure class="book-figure book-figure--diagram" markdown="1">
+<div class="figure-scroll" role="region" tabindex="0" aria-label="签名色带产生四个候选对；两对达到相似阈值；按已保留代表处理后只有 B 被近似删除" markdown="1">
 
-图中先沿着两个色带读签名，再沿候选连线读结果：实线 A—B、B—C 达到阈值，虚线 A—D、B—D 没达到。最后注意 C 的去向：B 与 C 足够相似，却没有导致 C 被删除，因为 B 已经不是保留代表。[下载可编辑的 SVG](../assets/figures/dedup-candidates-zh.svg)，可以放大核对每个签名值和相似度。
+[![签名色带产生四个候选对；两对达到相似阈值；按已保留代表处理后只有 B 被近似删除](../assets/figures/dedup-candidates-zh.svg)](../assets/figures/dedup-candidates-zh.svg){target="_blank" rel="noopener"}
+
+</div>
+<figcaption markdown="span">
+**图 7.1**　先从签名色带找到四个候选对，再比较实线与虚线对应的精确 Jaccard。最后沿保留顺序读：B 被 A 代表以后，不能再以 B 为理由删除 C。四个候选对、两条达标边与一篇近似删除文档是三个不同的量。
+</figcaption>
+<div class="figure-downloads" markdown="1">
+
+[打开 SVG 原图](../assets/figures/dedup-candidates-zh.svg){target="_blank" rel="noopener"}
+[高清 PNG](../assets/figures/exports/dedup-candidates-zh.png){download="dedup-candidates-zh.png"}
+[矢量 PDF](../assets/figures/exports/dedup-candidates-zh.pdf){download="dedup-candidates-zh.pdf"}
+<span>窄屏可左右滑动；点图查看原尺寸。</span>
+
+</div>
+</figure>
 
 ### 候选概率从哪里来
 

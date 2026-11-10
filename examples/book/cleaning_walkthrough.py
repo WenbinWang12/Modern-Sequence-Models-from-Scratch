@@ -12,10 +12,11 @@ import math
 import platform
 import unicodedata
 from collections import Counter
+from fractions import Fraction
 from pathlib import Path
 
 
-RULE_VERSION = "cleaning-walkthrough-v1"
+RULE_VERSION = "cleaning-walkthrough-v2"
 RULE_ORDER = (
     "invalid_json",
     "invalid_schema",
@@ -84,7 +85,11 @@ def inspect_record(
     count_view = normalized.strip()
     lines = [line.strip() for line in normalized.splitlines() if line.strip()]
     content_chars = len(count_view)
-    duplicate_fraction = 1 - len(set(lines)) / len(lines) if lines else 0.0
+    duplicate_count = len(lines) - len(set(lines))
+    duplicate_ratio = Fraction(duplicate_count, len(lines)) if lines else Fraction(0)
+    # 展示使用小数；判定使用精确计数比例与解析后阈值的十进制表示。
+    duplicate_fraction = float(duplicate_ratio)
+    duplicate_threshold = Fraction(str(max_duplicate_line_fraction))
     minimum = min_code_chars if record["kind"] == "code" else min_prose_chars
     diagnostics = []
     if not count_view:
@@ -97,7 +102,7 @@ def inspect_record(
     if (
         record["kind"] == "prose"
         and len(lines) >= 3
-        and duplicate_fraction >= max_duplicate_line_fraction
+        and duplicate_ratio >= duplicate_threshold
     ):
         diagnostics.append("repeated_line")
 
@@ -114,6 +119,7 @@ def inspect_record(
             "content_chars": content_chars,
             "nonempty_lines": len(lines),
             "unique_comparison_lines": len(set(lines)),
+            "duplicate_comparison_lines": duplicate_count,
             "duplicate_line_fraction": duplicate_fraction,
             "minimum_content_chars": minimum,
         },
@@ -155,6 +161,16 @@ def reject_json_constant(value: str) -> None:
     raise ValueError(f"nonstandard_json_constant: {value}")
 
 
+def unique_json_object(pairs: list[tuple[str, object]]) -> dict:
+    """任何层级都不允许重复字段名，避免后一个值静默覆盖前一个值。"""
+    record = {}
+    for key, value in pairs:
+        if key in record:
+            raise ValueError(f"duplicate_json_key: {key}")
+        record[key] = value
+    return record
+
+
 def parse_finite_float(value: str) -> float:
     """拒绝溢出为无穷的 JSON 数字，避免保留的元数据变成非标准 JSON。"""
     number = float(value)
@@ -192,7 +208,8 @@ def run(args: argparse.Namespace) -> dict:
             continue
         try:
             record = json.loads(
-                raw_line, parse_constant=reject_json_constant, parse_float=parse_finite_float
+                raw_line, object_pairs_hook=unique_json_object,
+                parse_constant=reject_json_constant, parse_float=parse_finite_float,
             )
         except ValueError as error:
             record = None
@@ -285,6 +302,8 @@ def run(args: argparse.Namespace) -> dict:
             "min_code_chars": args.min_code_chars,
             "max_chars": args.max_chars,
             "max_duplicate_line_fraction": args.max_duplicate_line_fraction,
+            "duplicate_line_threshold_decimal": str(args.max_duplicate_line_fraction),
+            "duplicate_line_comparison": "exact_count_ratio_greater_equal_decimal_threshold",
             "duplicate_rule_kind": "prose",
             "duplicate_rule_minimum_lines": 3,
         },

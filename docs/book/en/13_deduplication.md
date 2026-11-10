@@ -22,7 +22,7 @@ These are all five texts in `examples/book/dedup_documents.jsonl`. The JSON esca
 | `d04` | notes | `"blue green amber gold\n"` | Document C |
 | `d05` | notes | `"red blue green violet silver\n"` | Document D |
 
-Their original bytes make `d01` and `d02` different. We first define this experiment's rule: normalize Unicode to NFC and replace CRLF with LF, preserving case, punctuation, indentation, trailing spaces, and other characters. NFC handles canonically equivalent character representations, such as a precomposed “é” and an “e followed by a combining accent.” It does not translate text or equate words with different meanings. This rule does not replace every standalone CR either.
+Their original bytes make `d01` and `d02` different. We first define this experiment's rule: normalize Unicode to NFC and replace CRLF with LF, preserving case, punctuation, indentation, trailing spaces, and other characters. NFC handles canonically equivalent representations, such as a precomposed “é” and an “e followed by a combining accent.” It neither translates text nor decides whether documents have the same meaning. Canonical equivalence can still collapse encoding distinctions between some symbols, so this is a chosen comparison representation, not proof of semantic losslessness. This rule does not replace every standalone CR either.
 
 Call the resulting string the **comparison text**. It is used for matching, while the selected representative keeps its original `text`. This distinction matters: a similarity representation may be coarser than the training text, but it should not silently rewrite that text. Removing all spaces might simplify some webpage comparisons while destroying code indentation.
 
@@ -216,9 +216,24 @@ Split our four signature rows into two **bands**, each containing two consecutiv
 
 Band 1 places A, B, and D in one bucket, generating pairs A—B, A—D, and B—D. Band 2 groups B and C, adding B—C. Deduplicating the pair list gives four candidates. A pair found in both bands still needs verification only once. Bucket keys must include the band index: a value from band 1 must not match a value from band 2 merely because their tuples happen to be equal.
 
-![Four MinHash rows form two bands and generate four candidate pairs. Exact verification leaves two threshold edges, while representative selection ultimately retains A, C, and D.](../../assets/figures/dedup-candidates.svg)
+<figure class="book-figure book-figure--diagram" markdown="1">
+<div class="figure-scroll" role="region" tabindex="0" aria-label="Signature bands produce four candidate pairs; two meet the similarity threshold, but only B is removed by the retained-representative rule" markdown="1">
 
-Read the two colored signature bands first, then follow the candidate edges. Solid edges A—B and B—C meet the threshold; dashed edges A—D and B—D do not. Finally inspect C: its similarity to B does not cause its deletion, because B is no longer a retained representative. [Download the editable SVG](../../assets/figures/dedup-candidates.svg) to inspect each signature value and similarity at full scale.
+[![Signature bands produce four candidate pairs; two meet the similarity threshold, but only B is removed by the retained-representative rule](../../assets/figures/dedup-candidates.svg)](../../assets/figures/dedup-candidates.svg){target="_blank" rel="noopener"}
+
+</div>
+<figcaption markdown="span">
+**Figure 7.1**　Start with the signature bands and their four candidate pairs, then compare the exact Jaccard values on solid and dashed edges. Follow retention order last: once B is represented by A, B cannot justify removing C. Four candidates, two threshold edges, and one near-duplicate removal are different quantities.
+</figcaption>
+<div class="figure-downloads" markdown="1">
+
+[Open SVG](../../assets/figures/dedup-candidates.svg){target="_blank" rel="noopener"}
+[PNG · 2×](../../assets/figures/exports/dedup-candidates.png){download="dedup-candidates.png"}
+[Vector PDF](../../assets/figures/exports/dedup-candidates.pdf){download="dedup-candidates.pdf"}
+<span>Scroll on narrow screens; open the image for full size.</span>
+
+</div>
+</figure>
 
 ### Deriving the candidate probability
 

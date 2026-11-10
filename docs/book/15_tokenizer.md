@@ -9,10 +9,10 @@
 设原文为 \(u\)，tokenizer 为 \(\tau\)，输出为
 
 $$
-\tau(u)=s=(s_1,\ldots,s_L),\qquad s_t\in\{0,\ldots,V-1\}.
+\tau(u)=s=(s_1,\ldots,s_{n_u}),\qquad s_t\in\{0,\ldots,V-1\}.
 $$
 
-这里 \(L\) 是这段文本产生的序列长度，\(V\) 是词表大小。**词表（vocabulary）** 保存 token 与整数 ID 的对应关系。例如，把“猫”编成 17、把“坐下”编成 42，就是一种可能的教学约定。17 比 42 小，不表示“猫”的含义更小；它们只是查表时使用的地址。后面的模型训练会学习这些地址所对应的向量。
+这里 \(n_u\) 是这段文本产生的 token 数，\(V\) 是词表大小。稍后构造模型窗口时，仍用全书的 \(L\) 表示输入位置数；一篇文档可以贡献多个窗口，二者并不相同。**词表（vocabulary）** 保存 token 与整数 ID 的对应关系。例如，把“猫”编成 17、把“坐下”编成 42，就是一种可能的教学约定。17 比 42 小，不表示“猫”的含义更小；它们只是查表时使用的地址。后面的模型训练会学习这些地址所对应的向量。
 
 Tokenizer 同时影响训练位置数、上下文覆盖和参数量，因此属于模型训练方案的一部分。本章先通过一个可以全部手算的小语料理解 BPE，再解释其他常见方法的区别，最后把分词规则连接到训练脚本、模型维度和数据分片。
 
@@ -153,9 +153,25 @@ cat · t · </w>
 
 然后再查 ID 表。脚本先按 Unicode 字典序排列基础符号，再按学习顺序追加新符号；因此 `catt` 的 token 是 `cat | t | </w>`，教学 ID 为 `[7, 5, 0]`。这些数只属于小实验，不能复制到模型配置里。本实验没有 BOS、EOS 或 PAD；ID 0 是词末标记。
 
-![从带词频的符号序列学习 pair，冻结五条 merge rank，再将新词 catt 编成 cat、t、词末标记及 ID 7、5、0](../assets/figures/bpe-learning-vs-encoding-zh.svg)
+<figure class="book-figure book-figure--diagram" markdown="1">
+<div class="figure-scroll" role="region" tabindex="0" aria-label="从四种带词频词形学习相邻关系，冻结五条 merge rank，再将新词 catt 编成 cat、t、词末标记，ID 为 7、5、0" markdown="1">
 
-图 9.1：先在左上核对 `(c,a)` 的 11 次来自哪四种词形，再沿下半图应用右上已经冻结的 rank 表。合并后保留各 token 的位置跨度，使未参与合并的第二个 `t` 清晰可见：它阻止 `cat` 与词末标记相邻，因此 rank 2 不能使用。最后一行才查询词表 ID；ID 和 rank 不是同一张表。图中数字是前述小语料的手算结果。[可编辑 TikZ 源](../assets/figures/bpe-learning-vs-encoding-zh.tex)
+[![从四种带词频词形学习相邻关系，冻结五条 merge rank，再将新词 catt 编成 cat、t、词末标记，ID 为 7、5、0](../assets/figures/bpe-learning-vs-encoding-zh.svg)](../assets/figures/bpe-learning-vs-encoding-zh.svg){target="_blank" rel="noopener"}
+
+</div>
+<figcaption markdown="span">
+**图 9.1**　先核对 `(c,a)` 的 11 次来自哪四种词形，再按冻结的 rank 表追踪新词。合并后的色带保留原始位置跨度：第二个 `t` 阻止 `cat` 与词末标记相邻，因此 rank 2 不能使用。最后才查 ID 表；ID 与 rank 各有用途。图中数字是前述语料的手算结果。
+</figcaption>
+<div class="figure-downloads" markdown="1">
+
+[打开 SVG 原图](../assets/figures/bpe-learning-vs-encoding-zh.svg){target="_blank" rel="noopener"}
+[高清 PNG](../assets/figures/exports/bpe-learning-vs-encoding-zh.png){download="bpe-learning-vs-encoding-zh.png"}
+[矢量 PDF](../assets/figures/exports/bpe-learning-vs-encoding-zh.pdf){download="bpe-learning-vs-encoding-zh.pdf"}
+[TikZ](../assets/figures/bpe-learning-vs-encoding-zh.tex){download="bpe-learning-vs-encoding-zh.tex"}
+<span>窄屏可左右滑动；点图查看原尺寸。</span>
+
+</div>
+</figure>
 
 ### 把手算变成可核对的产物
 

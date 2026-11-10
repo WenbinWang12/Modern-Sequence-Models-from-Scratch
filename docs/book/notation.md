@@ -68,7 +68,7 @@ $$
 | 外循环训练步 | \(k\) | 静态参数被优化器更新一次 |
 | expert | \(e\) | \(e\in\{0,\ldots,n_{\mathrm{exp}}-1\}\)，与代码专家 ID 一致 |
 | batch 大小 | \(B\) | 一个训练步中的样本数 |
-| 序列长度 | \(L\) | 一个窗口中的 token 数 |
+| 序列长度 | \(L\) | 模型窗口的输入位置数；移位前读取 \(L+1\) 个 token |
 | 词表大小 | \(V\) | tokenizer 可以产生的 token ID 数量 |
 | 隐藏宽度 | \(d\) | 残差向量的分量数，配置 <code>hidden_size</code> |
 | MLP 中间宽度 | \(d_{\mathrm{ff}}\) | 配置 <code>intermediate_size</code> |
@@ -121,14 +121,17 @@ $$
 -\log p_\theta(y_t\mid x_{1:t}).
 $$
 
-有 \(m_t\in\{0,1\}\) 时，一个窗口的平均 loss 是：
+通常 \(m_t\in\{0,1\}\)，表示目标是否参与监督；若使用 \([0,1]\) 中的分数，则把它解释为相对权重。令 \(W=\sum_{t=1}^{L}m_t\)，窗口的加权平均为：
 
 $$
-\mathcal{L}
-=
-\frac{\sum_{t=1}^{L}m_t\ell_t^{\mathrm{tok}}}
-{\max(\sum_{t=1}^{L}m_t,1)}.
+\mathcal L=
+\begin{cases}
+\displaystyle\frac{\sum_{t=1}^{L}m_t\ell_t^{\mathrm{tok}}}{W},&W>0,\\[6pt]
+0,&W=0.
+\end{cases}
 $$
+
+全零时的 0 是没有监督的约定值，不代表预测正确。实现仅在 \(W=0\) 时使用安全分母 1；正数 \(W<1\) 仍使用实际权重和。否则，把全部权重按相同比例缩小就会改变平均，违背加权平均的定义。
 
 为什么梯度会出现 \(p-\text{one-hot}\)？设 logits 向量为 \(z\)，正确类别为 \(y\)：
 

@@ -97,14 +97,15 @@ $$
 
 ## 外循环：不同样本如何合成一个目标
 
-若样本 \(b\) 有 \(n_b\) 个有效标签，其平均损失为 \(\mathcal L_b\)，则全 batch 的 token 平均是
+若样本 \(b\) 的监督权重和为 \(n_b=\sum_t m_{b,t}\)，其平均损失为 \(\mathcal L_b\)，则全 batch 的加权平均是
 
 $$
 \mathcal L_{\mathrm{batch}}
-=\frac{\sum_b n_b\mathcal L_b}{\max(\sum_b n_b,1)}.
+=\frac{\sum_b n_b\mathcal L_b}{\sum_b n_b},
+\qquad \sum_b n_b>0.
 $$
 
-100 个标签、平均 loss 为 2 的样本，与 2 个标签、平均 loss 为 10 的样本，合并后是 \(220/102\approx2.157\)，不是 \((2+10)/2=6\)。分母保护避免数值除零，不表示全零 mask 是有用的训练数据。
+对于二值 mask，\(n_b\) 就是有效标签数。100 个标签、平均 loss 为 2 的样本，与 2 个标签、平均 loss 为 10 的样本，合并后是 \(220/102\approx2.157\)，不是 \((2+10)/2=6\)。只有总权重为零时，代码才用安全分母 1 并返回零 NLL；分数权重的正分母小于 1 时也不能被截成 1。全零 mask 没有监督信息，零 NLL 不是有用训练或参数必然不变的证据。
 
 <code>ttt/training.py</code> 对这个目标求静态参数梯度，再交给外循环 Optax optimizer。MoE 正则项会加入训练目标，但 <code>nll</code> 单独记录。内循环学习率还有独立的 warmup：从 <code>inner_lr_start</code> 线性走向目标学习率；外循环则使用 warmup 和 cosine schedule。两者时间表必须分别固定和记录。
 

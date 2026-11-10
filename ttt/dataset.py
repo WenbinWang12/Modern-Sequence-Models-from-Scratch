@@ -82,11 +82,14 @@ class TokenDataset:
 def prepare_sharded_data(input_path, output_dir, tokenizer, *, shard_tokens=1_000_000, supervised=False):
     if shard_tokens < 2:
         raise ValueError("每个分片至少包含两个 token。")
+    input_path = Path(input_path)
     output = Path(output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     manifest_path = output / "manifest.json"
     if manifest_path.exists():
         raise FileExistsError("数据清单已存在；新版本应使用新目录。")
+    input_before = file_sha256(input_path)
+    consumed_digest = hashlib.sha256()
     version = uuid.uuid4().hex
     records, buffer, mask_buffer = [], [], []
     stats = {"documents": 0, "empty_documents": 0, "tokens": 0, "supervised_tokens": 0}
@@ -113,8 +116,11 @@ def prepare_sharded_data(input_path, output_dir, tokenizer, *, shard_tokens=1_00
         )
         buffer, mask_buffer = buffer[count:], mask_buffer[count:]
 
-    with Path(input_path).open(encoding="utf-8") as source:
-        for line in source:
+    with input_path.open("rb") as source:
+        for raw_line in source:
+            # 按实际消费的原字节计算，包括空行与 CRLF，避免只记录处理结束时的文件。
+            consumed_digest.update(raw_line)
+            line = raw_line.decode("utf-8")
             if not line.strip():
                 continue
             record = json.loads(line)
@@ -154,13 +160,16 @@ def prepare_sharded_data(input_path, output_dir, tokenizer, *, shard_tokens=1_00
         flush(len(buffer))
     if stats["tokens"] < 2:
         raise ValueError("数据至少需要两个 token。")
+    input_consumed = consumed_digest.hexdigest()
+    if input_before != input_consumed or file_sha256(input_path) != input_consumed:
+        raise RuntimeError("输入语料在分片准备期间发生变化；未发布数据清单，请使用稳定输入重试。")
     manifest = {
         "format_version": 1,
         "version": version,
         "vocab_size": tokenizer.vocab_size,
         "tokenizer": getattr(tokenizer, "name", "byte"),
         "supervised": supervised,
-        "input_sha256": file_sha256(input_path),
+        "input_sha256": input_consumed,
         "shards": records,
         "stats": stats,
     }

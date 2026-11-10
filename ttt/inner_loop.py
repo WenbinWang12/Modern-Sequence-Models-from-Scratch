@@ -98,7 +98,9 @@ def inner_step(
                 vocab_block=model.config.loss_vocab_block_size,
             )
             output = ModelOutput(None, next_cache, auxiliary)
-        loss = jnp.sum(losses) / jnp.maximum(jnp.sum(mask), 1.0)
+        weight_sum = jnp.sum(mask)
+        # 只有零权重才用 1 防止除零；小于 1 的正权重仍须正常归一化。
+        loss = jnp.sum(losses) / jnp.where(weight_sum > 0, weight_sum, 1.0)
         return loss, (output, losses)
 
     if inner.enabled and fast_weights:
@@ -177,7 +179,8 @@ def sequence_loss(model, params, tokens, inner, loss_mask=None, *, return_logits
     outputs = jax.tree.map(lambda value: value.reshape(chunks, *value.shape[2:]), grouped_outputs)
     token_losses = outputs[0].reshape(-1)[:length]
     logits = outputs[6].reshape(padded_length, -1)[:length] if return_logits else None
-    loss = jnp.sum(token_losses) / jnp.maximum(jnp.sum(loss_mask), 1.0)
+    weight_sum = jnp.sum(loss_mask)
+    loss = jnp.sum(token_losses) / jnp.where(weight_sum > 0, weight_sum, 1.0)
     fractions = jnp.sum(mask > 0, axis=1) / jnp.maximum(jnp.sum(mask > 0), 1)
     suffix_aux = outputs[2]
     routing = prefix_aux["loads"] + jnp.sum(suffix_aux["loads"], axis=0)

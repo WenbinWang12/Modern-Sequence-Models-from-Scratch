@@ -30,6 +30,16 @@ def reject_json_constant(value: str) -> None:
     raise ValueError(f"nonstandard_json_constant: {value}")
 
 
+def unique_json_object(pairs: list[tuple[str, object]]) -> dict:
+    """不让重复的 group、text 或嵌套元数据字段被解析器静默覆盖。"""
+    record = {}
+    for key, value in pairs:
+        if key in record:
+            raise ValueError(f"duplicate_json_key: {key}")
+        record[key] = value
+    return record
+
+
 def parse_finite_float(value: str) -> float:
     """本例仅接收可表示为有限浮点数的小数，避免元数据溢出后写出 Infinity。"""
     number = float(value)
@@ -44,7 +54,10 @@ def load_records(data: bytes) -> list[dict]:
     for number, line in enumerate(data.decode("utf-8").split("\n"), start=1):
         if not line.strip():
             continue
-        record = json.loads(line, parse_constant=reject_json_constant, parse_float=parse_finite_float)
+        record = json.loads(
+            line, object_pairs_hook=unique_json_object,
+            parse_constant=reject_json_constant, parse_float=parse_finite_float,
+        )
         if not isinstance(record, dict):
             raise ValueError(f"第 {number} 行不是对象。")
         for name in ("id", "split_group", "source", "text"):

@@ -116,9 +116,11 @@ def make_train_step(model, inner, training, optimizer, *, jit=True, distributed=
             denominator = jnp.sum(counts)
             if distributed:
                 denominator = jax.lax.pmean(denominator, "data")
+            # pmean 后即使原掩码只有 0/1，正分母也可能小于 1。
+            safe_denominator = jnp.where(denominator > 0, denominator, 1.0)
             average = jax.tree.map(lambda value: jnp.mean(value, axis=0), statistics)
-            average["nll"] = jnp.sum(statistics["nll"] * counts) / jnp.maximum(denominator, 1)
-            return jnp.sum(losses * counts) / jnp.maximum(denominator, 1), average
+            average["nll"] = jnp.sum(statistics["nll"] * counts) / safe_denominator
+            return jnp.sum(losses * counts) / safe_denominator, average
 
         (loss, statistics), grads = jax.value_and_grad(objective, has_aux=True)(state.params)
         if distributed:

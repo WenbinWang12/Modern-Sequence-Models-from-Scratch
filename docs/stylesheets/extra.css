@@ -49,3 +49,103 @@
 [data-md-color-scheme="slate"] .book-figure img {
   border-color: rgba(185, 201, 218, 0.24);
 }
+
+/* 教学图保留阅读字号；窄屏可平移，原图和下载入口始终可见。 */
+.book-figure--diagram {
+  margin: 2.2rem 0 2.8rem;
+  text-align: left;
+}
+
+.book-figure--diagram .figure-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid #d9e2df;
+  border-radius: 12px;
+  background: #fbfaf6;
+  box-shadow: 0 8px 25px rgba(25, 43, 66, 0.07);
+  scrollbar-width: thin;
+  scrollbar-color: #90a9a4 #eeeae1;
+}
+
+.book-figure--diagram .figure-scroll a {
+  display: block;
+  width: 100%;
+  min-width: 760px;
+  line-height: 0;
+}
+
+.book-figure--diagram .figure-scroll p {
+  margin: 0;
+}
+
+.book-figure--diagram img {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.book-figure--diagram figcaption {
+  margin: 1rem 0 0;
+  color: #52677c;
+  line-height: 1.8;
+  font-size: 0.82rem;
+}
+
+.book-figure--diagram figcaption strong {
+  color: #243c4a;
+}
+
+.book-figure--diagram .figure-downloads > p {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  font-size: 0.7rem;
+}
+
+.book-figure--diagram .figure-downloads a {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  color: #166c61;
+  border: 1px solid #cbded6;
+  border-radius: 6px;
+  background: #f3f8f5;
+  text-decoration: none;
+}
+
+.book-figure--diagram .figure-downloads a:hover {
+  background: #e3f0e9;
+  border-color: #7da79c;
+}
+
+.book-figure--diagram .figure-downloads span {
+  color: #657682;
+  margin-left: 0.15rem;
+}
+
+.book-figure--diagram :focus-visible {
+  outline: 3px solid #168b78;
+  outline-offset: 3px;
+}
+
+[data-md-color-scheme="slate"] .book-figure--diagram figcaption strong {
+  color: #e3eee9;
+}
+
+[data-md-color-scheme="slate"] .book-figure--diagram .figure-downloads a {
+  color: #b1e6d5;
+  border-color: #45685f;
+  background: #253b39;
+}
+
+[data-md-color-scheme="slate"] .book-figure--diagram .figure-downloads a:hover {
+  background: #344e47;
+}
+
+[data-md-color-scheme="slate"] .book-figure--diagram .figure-downloads span {
+  color: #b9c9da;
+}

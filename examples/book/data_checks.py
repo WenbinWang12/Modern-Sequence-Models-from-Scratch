@@ -191,6 +191,63 @@ class DataArtifactChecks(unittest.TestCase):
             CLEANING.run(args)
         self.assertEqual(snapshot(args.output), saved)
 
+    def test_cleaning_duplicate_threshold_includes_exact_boundary(self):
+        cases = (
+            ("below", 0.19999999999999998, "A.\nB.\nC.\nD.\nA.", "repeated_line", 1),
+            ("exact", 0.2, "A.\nB.\nC.\nD.\nA.", "repeated_line", 1),
+            ("above", 0.20000000000000004, "A.\nB.\nC.\nD.\nA.", "kept", 1),
+            ("zero", 0.0, "A.\nB.\nC.\nD.\nE.", "repeated_line", 0),
+            ("one", 1.0, "A.\nA.\nA.\nA.\nA.", "kept", 4),
+        )
+        for name, threshold, body, reason, repeats in cases:
+            with self.subTest(name=name):
+                source = self.write_records(f"boundary-{name}.jsonl", [
+                    {"id": name, "source": "test", "language": "en", "kind": "prose", "text": body}
+                ])
+                args = self.clean_args(source, f"clean-boundary-{name}")
+                args.max_duplicate_line_fraction = threshold
+                report = CLEANING.run(args)
+                decision = report["decisions"][0]
+                self.assertEqual(decision["primary_reason"], reason)
+                self.assertEqual(decision["metrics"]["nonempty_lines"], 5)
+                self.assertEqual(decision["metrics"]["duplicate_comparison_lines"], repeats)
+                self.assertEqual(decision["metrics"]["duplicate_line_fraction"], repeats / 5)
+                self.assertEqual(report["parameters"]["duplicate_line_threshold_decimal"], str(threshold))
+                filename = "kept.jsonl" if reason == "kept" else "rejected.jsonl"
+                self.assertEqual(len(read_jsonl(args.output / filename)), 1)
+                self.assertEqual(report["kept_records"], int(reason == "kept"))
+
+    def test_duplicate_json_members_are_not_silently_overwritten(self):
+        base = {"id": "dup", "source": "test", "language": "en", "kind": "prose",
+                "split_group": "project-a", "text": "This text is otherwise acceptable."}
+        extras = (
+            '"text": 42',
+            '"te\\u0078t": "A different sufficiently long text."',
+            '"split_group": "project-b"',
+            '"metadata": {"score": 1, "score": 2}',
+            '"metadata": {"items": [{"tag": "a", "tag": "b"}]}',
+        )
+        for index, extra in enumerate(extras):
+            with self.subTest(extra=extra):
+                raw_line = json.dumps(base)[:-1] + ", " + extra + "}"
+                source = self.work / f"duplicate-member-{index}.jsonl"
+                source.write_bytes((raw_line + "\n").encode("utf-8"))
+                acquired = self.work / f"duplicate-acquisition-{index}"
+                split = self.work / f"duplicate-split-{index}"
+                with self.assertRaisesRegex(ValueError, "duplicate_json_key"):
+                    ACQUISITION.run(source, acquired)
+                with self.assertRaisesRegex(ValueError, "duplicate_json_key"):
+                    SPLIT.run(source, split, 17)
+                self.assertFalse(acquired.exists())
+                self.assertFalse(split.exists())
+                args = self.clean_args(source, f"duplicate-clean-{index}")
+                report = CLEANING.run(args)
+                self.assertEqual((report["kept_records"], report["rejected_records"]), (0, 1))
+                self.assertEqual(report["primary_counts"]["invalid_json"], 1)
+                rejected = read_jsonl(args.output / "rejected.jsonl")
+                self.assertEqual(rejected[0]["raw_line"], raw_line)
+                self.assertIn("duplicate_json_key", rejected[0]["json_error"]["message"])
+
     def test_split_rejects_nonfinite_metadata_and_preserves_finite_values(self):
         records = read_jsonl(BOOK / "fixtures" / "split_records.jsonl")
         cases = (

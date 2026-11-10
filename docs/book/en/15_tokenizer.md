@@ -9,10 +9,10 @@ Tokenization is broader than identifying complete words. A **token** can be a wo
 For raw text \(u\), write the output of tokenizer \(\tau\) as
 
 $$
-\tau(u)=s=(s_1,\ldots,s_L),\qquad s_t\in\{0,\ldots,V-1\}.
+\tau(u)=s=(s_1,\ldots,s_{n_u}),\qquad s_t\in\{0,\ldots,V-1\}.
 $$
 
-Here \(L\) is the resulting sequence length and \(V\) is the vocabulary size. A **vocabulary** maps tokens to integer IDs. Assigning 17 to “猫” and 42 to “坐下” is one possible teaching convention. The fact that 17 is smaller than 42 says nothing about their meanings: these integers are addresses for a lookup. Model training will learn the vectors stored at those addresses.
+Here \(n_u\) counts tokens produced from this text and \(V\) is the vocabulary size. Later, \(L\) retains its book-wide meaning as the number of model input positions in a window; one document can contribute several windows. A **vocabulary** maps tokens to integer IDs. Assigning 17 to “猫” and 42 to “坐下” is one possible teaching convention. The fact that 17 is smaller than 42 says nothing about their meanings: these integers are addresses for a lookup. Model training will learn the vectors stored at those addresses.
 
 A tokenizer affects the number of training positions, context coverage, and parameter count. It is part of the training design. We will first work through a complete BPE example, then distinguish other common methods, and finally connect tokenization to the training script, model dimensions, and data shards.
 
@@ -153,9 +153,25 @@ Even though `cat</w>` is in the vocabulary, it cannot be used here: another `t` 
 
 Token-to-ID lookup happens after segmentation. The teaching script sorts the initial symbols by Unicode order, then appends learned symbols in order. Thus `catt` becomes `cat | t | </w>` with teaching IDs `[7, 5, 0]`. These IDs belong only to this experiment and must not be copied into a model configuration. This example has no BOS, EOS, or PAD; ID 0 is the end-of-word marker.
 
-![Learn weighted adjacent pairs, freeze five merge ranks, then encode unseen catt as cat, t, and the end marker with IDs 7, 5, and 0](../../assets/figures/bpe-learning-vs-encoding.svg)
+<figure class="book-figure book-figure--diagram" markdown="1">
+<div class="figure-scroll" role="region" tabindex="0" aria-label="Learn adjacent pairs from four weighted word types, freeze five merge ranks, and encode unseen catt as cat, t, and the end marker, with IDs 7, 5, and 0" markdown="1">
 
-Figure 9.1: First identify the four word types contributing to the count of 11 for `(c,a)` at upper left. Then follow the bottom trace using the frozen rank table at upper right. Merged tiles preserve their original spans, making the remaining second `t` visible: it prevents `cat` from being adjacent to the end marker, so rank 2 cannot apply. Only the final row looks up vocabulary IDs; IDs and ranks are different tables. The numbers are hand-derived from the small corpus above. [Editable TikZ source](../../assets/figures/bpe-learning-vs-encoding.tex)
+[![Learn adjacent pairs from four weighted word types, freeze five merge ranks, and encode unseen catt as cat, t, and the end marker, with IDs 7, 5, and 0](../../assets/figures/bpe-learning-vs-encoding.svg)](../../assets/figures/bpe-learning-vs-encoding.svg){target="_blank" rel="noopener"}
+
+</div>
+<figcaption markdown="span">
+**Figure 9.1**　Identify the four word types contributing to the count of eleven for `(c,a)`, then trace the new word using frozen ranks. Merged ribbons retain their original spans: the second `t` prevents `cat` from being adjacent to the end marker, so rank 2 cannot apply. Vocabulary IDs are looked up only at the end; IDs and ranks serve different roles. Numbers are hand-derived from the corpus above.
+</figcaption>
+<div class="figure-downloads" markdown="1">
+
+[Open SVG](../../assets/figures/bpe-learning-vs-encoding.svg){target="_blank" rel="noopener"}
+[PNG · 2×](../../assets/figures/exports/bpe-learning-vs-encoding.png){download="bpe-learning-vs-encoding.png"}
+[Vector PDF](../../assets/figures/exports/bpe-learning-vs-encoding.pdf){download="bpe-learning-vs-encoding.pdf"}
+[TikZ](../../assets/figures/bpe-learning-vs-encoding.tex){download="bpe-learning-vs-encoding.tex"}
+<span>Scroll on narrow screens; open the image for full size.</span>
+
+</div>
+</figure>
 
 ### Produce an artifact that can be checked against the arithmetic
 

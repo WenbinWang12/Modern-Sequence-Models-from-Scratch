@@ -97,14 +97,15 @@ In <code>ttt/inner_loop.py</code>, <code>inner_step</code> runs the suffix, comp
 
 ## Combining examples in the outer objective
 
-If sample \(b\) has \(n_b\) valid targets and mean loss \(\mathcal L_b\), the batch's token mean is
+If sample \(b\) has total supervision weight \(n_b=\sum_t m_{b,t}\) and mean loss \(\mathcal L_b\), the batch's weighted mean is
 
 $$
 \mathcal L_{\mathrm{batch}}
-=\frac{\sum_b n_b\mathcal L_b}{\max(\sum_b n_b,1)}.
+=\frac{\sum_b n_b\mathcal L_b}{\sum_b n_b},
+\qquad \sum_b n_b>0.
 $$
 
-Combining 100 targets at mean loss 2 with 2 targets at mean loss 10 gives \(220/102\approx2.157\), not \((2+10)/2=6\). The denominator guard prevents division by zero; it does not make an all-zero mask useful training data.
+For binary masks, \(n_b\) is the valid-target count. Combining 100 targets at mean loss 2 with 2 targets at mean loss 10 gives \(220/102\approx2.157\), not \((2+10)/2=6\). The code substitutes a safe denominator of 1 and returns zero NLL only when the total weight is zero. A positive fractional denominator below 1 must retain its actual value. An all-zero mask supplies no supervision; zero NLL is not evidence of useful training or an unchanged optimizer state.
 
 <code>ttt/training.py</code> differentiates the objective with respect to static parameters and passes gradients to the outer Optax optimizer. MoE regularization enters the training objective while <code>nll</code> remains separate. The inner learning rate has its own warmup, moving linearly from <code>inner_lr_start</code> to its target. The outer schedule uses warmup and cosine decay. Fix and record both schedules in a comparison.
 

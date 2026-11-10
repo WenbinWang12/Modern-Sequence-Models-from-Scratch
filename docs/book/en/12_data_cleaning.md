@@ -80,9 +80,24 @@ Writing `text.strip()` back to the training record loses the first code line's i
 
 The program therefore creates views for separate purposes. Training text retains its whitespace. Length measurement temporarily ignores whitespace at the two ends of the whole text. Repeated-line measurement additionally ignores whitespace at both ends of each line and omits empty lines. Neither measurement view replaces `text`. Two differently indented lines may therefore compare as equal in the diagnostic view while retaining their original indentation in saved code.
 
-![Separate original text, training text, and measurement views; primary outcomes conserve records while diagnostic hits may overlap](../../assets/figures/cleaning-views.svg)
+<figure class="book-figure book-figure--diagram" markdown="1">
+<div class="figure-scroll" role="region" tabindex="0" aria-label="The text-preserving path and measurement branch remain separate; thirteen record outcomes differ from ten overlapping diagnostic hits" markdown="1">
 
-Figure 6.1: Read from top to bottom. Normalization produces training text, which is copied into measurement views. Decisions determine the output file for a record. The two counts at the right answer different questions: each input has exactly one primary outcome, while diagnostic hits can overlap. No arrow writes a measurement view back into training text.
+[![The text-preserving path and measurement branch remain separate; thirteen record outcomes differ from ten overlapping diagnostic hits](../../assets/figures/cleaning-views.svg)](../../assets/figures/cleaning-views.svg){target="_blank" rel="noopener"}
+
+</div>
+<figcaption markdown="span">
+**Figure 6.1**　Follow the text path to see what is saved, then the measurement branch to see where decisions come from. Measurements never replace the training text. Each record has one final outcome, while diagnostic hits can overlap: thirteen records and ten hits use different counting units. Numbers come from this chapter's teaching fixture.
+</figcaption>
+<div class="figure-downloads" markdown="1">
+
+[Open SVG](../../assets/figures/cleaning-views.svg){target="_blank" rel="noopener"}
+[PNG · 2×](../../assets/figures/exports/cleaning-views.png){download="cleaning-views.png"}
+[Vector PDF](../../assets/figures/exports/cleaning-views.pdf){download="cleaning-views.pdf"}
+<span>Scroll on narrow screens; open the image for full size.</span>
+
+</div>
+</figure>
 
 ## Make the rules concrete with 13 records
 
@@ -95,6 +110,8 @@ The input is `examples/book/fixtures/cleaning_records.jsonl`; open it in an edit
 `id` locates a sample; `source` names its source group; `language` is a label supplied by the input; `kind` distinguishes ordinary text, `prose`, from `code`; and `text` holds the content. No language-identification model runs here, so the language label is not a prediction made by this program. The first four fields must be nonempty strings, `text` must be a string, and `kind` must be one of the two supported values. These constraints on fields and types form a **schema**.
 
 Structure is checked before text. `text: 42` is a type error: silently converting it to `"42"` before judging its length would conceal the problem. Invalid JSON may not even define a complete object; we do not guess its ID from a partial line. These cases receive `invalid_schema` and `invalid_json`, respectively. The reader also rejects `NaN`, `Infinity`, and numbers outside its supported finite floating-point range, such as `1e999`, recording them as `invalid_json`. The last case is a limit of this reader, not a claim that `1e999` violates JSON syntax; the rejection log preserves the original line. After schema validation, the program checks that the normalized text can be encoded as UTF-8. JSON escapes can represent lone surrogate code points that are not valid UTF-8 text; these receive `invalid_unicode`. The default fixture does not trigger this case, but the report retains its zero count.
+
+Following the previous chapter's unambiguous-input policy, repeated names within any JSON object, including nested objects, also receive `invalid_json`. Otherwise `{"text":42,"text":"A sufficiently long text"}` silently becomes an object containing only the last `text`, hiding the first value from schema validation. The rejection log preserves the original line for repair rather than guessing which value the source intended.
 
 Valid text is evaluated with the following settings. Length means the number of **code points** in the normalized text after temporarily excluding leading and trailing whitespace.
 
@@ -234,6 +251,10 @@ Several report fields need precise interpretations:
 | `count_conservation` | The program checked conservation of primary counts; it does not certify corpus quality |
 
 Ten fixture records pass the schema, so the input counts in `groups` sum to 10 while global `input_records` is 13. The difference follows from the stated scope. The other three records should not be forced into a guessed language group. Counting records with invalid provenance separately is usually more interpretable than inventing labels for them.
+
+Threshold decisions must preserve the mathematical boundary: “at least 0.2” includes exactly \(1/5\). With five lines and four distinct contents, the program compares the standard-library value `Fraction(1, 5)` with the threshold, avoiding rounding in `1 - 4 / 5`. The parameter is first parsed as a Python float, then interpreted as the decimal number printed by its `str`; that representation is recorded. `duplicate_comparison_lines` counts the excess copies, while the approximate `duplicate_line_fraction` is for display, not the final decision. See [floating-point representation and rounding](https://docs.python.org/3.12/tutorial/floatingpoint.html).
+
+Including equality also defines the endpoints. A threshold of zero rejects every eligible `prose` record with at least three nonempty lines, even without repetition. At one, this rule rejects none: finitely many nonempty lines always have a duplicate fraction below one. These endpoints check implementation behavior, rather than recommend cleaning settings. The rule version is now `cleaning-walkthrough-v2`.
 
 A UTF-8 decoding failure aborts the whole input. A single JSON or schema failure instead enters the rejection log while other records continue. The program finishes its analysis before creating the output directory and writes the report last. An interrupted disk write can still leave a partial directory. Without all three complete files and a readable report, the run is not a successful result.
 

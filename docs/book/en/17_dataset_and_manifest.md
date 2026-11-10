@@ -28,7 +28,7 @@ The current loader accepts a version-one manifest with the following essential s
 
 <code>tokens</code> and <code>mask</code> are filenames relative to the manifest directory. The loader rejects paths that escape that directory. This is a reproducibility and safety rule: an old manifest should not silently read a file from an unrelated absolute path on a new machine.
 
-The vocabulary field matters even when every integer is in range. A file produced with one tokenizer can contain valid integers for another tokenizer. <code>vocab_size</code> catches only the range mismatch; the tokenizer name, special-token IDs, and tokenizer digest must also be recorded in the experiment record.
+The vocabulary field matters even when every integer is in range. Suppose two vocabularies both contain 259 entries, but ID 68 means A in one and B in the other. Every stored ID can be legal and every file digest can match while the model receives different meanings. <code>vocab_size</code> checks vocabulary-size agreement, not the identity of equally sized mappings. The tokenizer version, special-token IDs, and tokenizer-file digest must also be recorded in the experiment record.
 
 ## What the loader verifies
 
@@ -41,7 +41,7 @@ The vocabulary field matters even when every integer is in range. A file produce
 5. It checks that each mask has the same shape as its token shard and values in $[0,1]$.
 6. It records cumulative end offsets, allowing a global position to be mapped to a physical shard.
 
-A hash proves that bytes match the manifest; it does not prove that the bytes represent the right corpus. That is why source digests, tokenizer metadata, and split records remain necessary.
+A matching digest is evidence that bytes match the recorded version, assuming a trusted reference manifest and ignoring practically infeasible SHA256 collisions. It does not establish corpus quality, permission to use it, or immunity to later edits. Replacing both a shard and its recorded digest also defeats comparison with that replacement manifest. Source digests, tokenizer metadata, split records, and a trusted record of the intended version remain necessary.
 
 ### A worked cross-shard window
 
@@ -63,7 +63,7 @@ tokens:            12,13 | 20,21,22
 
 The endpoint shows why <code>side='right'</code> matters. Global position 4 belongs to the second shard at local offset \(4-4=0\). <code>searchsorted([4,9], 4, side='right')</code> returns shard index 1; the default left search would return 0 and assign the position to the already ended first shard.
 
-For a next-token window of length 5, the training path reads one additional token before shifting labels. A shard boundary does not insert EOS and does not reset attention; it is only a storage boundary. Document isolation comes from tokenization and packing policy, not from the fact that two arrays have different filenames.
+In this example, <code>length=5</code> is the raw count and supplies four prediction positions. If the model's configured input length is 5 instead, the training path reads six raw tokens before shifting labels. A shard boundary does not insert EOS and does not reset attention; it is only a storage boundary. Document isolation comes from tokenization and packing policy, not from the fact that two arrays have different filenames.
 
 ## Three identities to keep
 
@@ -73,21 +73,29 @@ There are three useful layers of identity:
 - A **manifest digest** detects changed shard order, counts, vocabulary, or metadata.
 - A **source digest** connects derived tokens back to the input records used to create them.
 
-If someone reorders two shards, every shard digest still matches but the training sequence changes. The manifest digest catches that. If someone replaces a shard without editing the manifest, the shard digest catches it. Neither digest explains which original JSONL file was used, so the source digest remains part of provenance.
+If someone reorders two shards, every shard digest still matches but the training sequence changes. Comparison with a trusted manifest digest catches that. Replacing a shard while retaining its trusted manifest triggers a digest mismatch. The loader checks the bytes available during loading; it does not lock files against later modification. Published data directories should be treated as immutable versions. Neither digest explains which original JSONL file was used, so the source digest remains part of provenance.
 
-<code>prepare_sharded_data</code> currently assigns a random UUID-like version and refuses to overwrite an existing manifest. This protects old outputs. It does not make two byte-identical runs receive the same version; content-addressed versioning is a future design if that property is required.
+<code>prepare_sharded_data</code> assigns a random UUID version and rejects an existing manifest at the start. Use a single writer per output directory: that existence check is not a multiprocess write lock. Two identical runs do not receive the same version. Content-addressed versioning would instead derive identity from input and complete processing configuration, including the format version.
+
+### The source digest must describe consumed bytes
+
+Hashing the source only after processing leaves a provenance gap. Suppose the preparer has read `{"text":"A"}` and written A's tokens. Another process then replaces the source with `{"text":"Z"}`. A final-only source hash attaches Z's identity to A's tokens. The shards are intact, so ordinary shard verification cannot detect this mistake.
+
+The preparer now hashes the source before reading, hashes the raw bytes actually consumed while reading, and hashes the source again before publishing the manifest. All three must agree. Blank lines and CRLF line endings participate in the consumed digest because source identity describes complete bytes, not just parsed JSON values. A mismatch prevents manifest publication. Some shard files may already have been written when preparation fails; without a successful manifest referencing them, they are not a completed dataset version.
+
+This binds the output to consumed bytes and detects differences between the compared versions. It does not prove that the source never changed during processing: a file could change and be restored, or change after the final check. Formal preparation should still use immutable, read-only input versions. Regressions in `tests/test_dataset.py` change A to Z during encoding and require failure without a manifest, and separately cover blank lines and CRLF in the source digest. They were written but not executed in this review.
 
 ## Global offsets and windows
 
 Let shard lengths be $(n_1,n_2,\ldots,n_K)$ and define cumulative ends
 
 $$
-e_j=\sum_{k=1}^{j} n_k.
+e_0=0,\qquad e_j=\sum_{k=1}^{j} n_k.
 $$
 
-A global position $p$ belongs to the first shard with $e_j>p$. <code>TokenDataset.rows</code> performs this search and subtracts the previous cumulative end to obtain a local offset. A requested window may therefore read the end of one shard and the beginning of the next without changing the logical token order.
+A zero-based global position $p$ belongs to shard $j$ satisfying $e_{j-1}\le p<e_j$, at local offset $p-e_{j-1}$. <code>searchsorted</code> returns the zero-based shard index $j-1$. For example, $p=6$ in the second shard gives local offset $6-4=2$, containing token 22. A window can read the end of one shard and the beginning of the next without changing logical order. Changing physical shard size should preserve every valid window **provided both tokens and masks remain identical**. The preceding chapter explains why switching between the single-NPY and sharded preparation entry points does not automatically meet that condition: their mask and empty-text policies differ.
 
-The same distinction matters for document boundaries: physical storage is not semantic structure. If document offsets are needed for contamination checks or interpretability, the current manifest must be extended with a document-offset sidecar; it does not provide complete token-to-document reverse lookup.
+The same distinction matters for document boundaries: physical storage is not semantic structure. If document offsets are needed for contamination checks or interpretability, add a document-offset sidecar linked to source record IDs. The current manifest does not provide complete token-to-document reverse lookup; shard filenames and token offsets alone cannot recover that provenance.
 
 ## Dataset state and sampler state
 
@@ -166,4 +174,4 @@ The next chapter separates file layout from the statistical mixture of data sour
 
 ## Summary and next question
 
-A dataset is a logical token stream plus a sampling protocol; a shard is only a storage fragment; the manifest is the verifiable contract between them. Recovery needs the data digest, sampler position, and window protocol in addition to a seed. The next chapter asks which sources produced those windows and how a sampler realizes a target recipe.
+A dataset provides a verifiable logical token stream; a shard is a storage fragment; the manifest records shard order and identity. The sampler separately chooses the next window. Recovery needs the data digest, generator state, and window protocol in addition to a seed. The next chapter asks which sources produced those windows and how a sampler realizes a target recipe.

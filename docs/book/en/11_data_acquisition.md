@@ -23,6 +23,8 @@ Consider two JSON representations:
 
 Saved separately, they contain different bytes because the spaces differ. A JSON parser produces the same `id` and `text` fields from both. **Parsing** means interpreting a format to construct program objects such as dictionaries, lists, or numbers. It does not judge whether the text is useful.
 
+Parsing also needs an ambiguity policy. For `{"text":"first text","text":"second text"}`, Python keeps only the last value by default. Our acquisition reader instead rejects repeated field names within any object, including nested metadata. This differs from checking document IDs across the file: it prevents a parser's last-value rule from silently deciding which source text exists. See [Python's repeated-name behavior](https://docs.python.org/3.12/library/json.html#repeated-names-within-an-object).
+
 JSONL places one JSON object on each nonempty physical line. A newline inside the text field is represented by the JSON escape `\n`, rather than arbitrarily splitting the object across lines. Our teaching parser permits blank lines and skips them. Consequently, appending a blank line changes the file without adding a document. We will use this small change to separate byte identity from record identity.
 
 Compression adds another layer. A downloaded `.gz` archive and the decompressed JSONL are distinct objects. Recompression can change the archive while preserving its decompressed contents. Every digest must identify the layer it describes; comparing an archive digest with a decompressed-file digest has no useful interpretation.

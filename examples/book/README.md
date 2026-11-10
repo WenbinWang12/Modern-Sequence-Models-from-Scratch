@@ -26,7 +26,7 @@ TTT_INSTALL_CUDA=0 bash scripts/bootstrap_linux.sh
 
 The first command needs only Python 3.10 or newer. The full command additionally checks the production tokenizer and runs Ruff. The CPU bootstrap and frozen sync use the repository's lockfile. Execute commands on the experiment machine, from the repository root.
 
-运行器拒绝覆盖已有目录，默认执行两个边界检查文件和五个章节实验，共七条子命令。每条命令的标准输出、标准错误和实际退出码写入独立文件；`validation.json` 保存执行计划、逐条状态、Python 版本及来源摘要。当前 `data_checks.py` 包含 10 个标准库测试方法，`dedup_checks.py` 包含 7 个；子测试还会检查多个输入变体，不能把“七条命令”当成“七个测试”。具体执行数量以本次日志为准。
+运行器拒绝覆盖已有目录，默认执行两个边界检查文件和五个章节实验，共七条子命令。每条命令的标准输出、标准错误和实际退出码写入独立文件；`validation.json` 保存执行计划、逐条状态、Python 版本及来源摘要。当前 `data_checks.py` 包含 12 个标准库测试方法，`dedup_checks.py` 包含 7 个；子测试还会检查多个输入变体，不能把“七条命令”当成“七个测试”。具体执行数量以本次日志为准。
 
 任何命令失败、测试报告不符合要求或首尾来源摘要不一致，都会使 `all_requested_commands_passed` 保持 `false`。终态分别为 `completed`、`failed` 或 `interrupted`；只剩 `running` 的报告不是完成证据。摘要覆盖教学脚本、输入、tokenizer 实现与测试、`pyproject.toml` 和 `uv.lock`，并保存运行结束时的再次读取结果。它检查这些文件在首尾是否一致，不是对整个操作系统或 Python 安装做快照。应在没有并发修改的仓库副本中执行。
 

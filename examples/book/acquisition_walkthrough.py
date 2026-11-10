@@ -8,6 +8,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+def unique_json_object(pairs: list[tuple[str, object]]) -> dict:
+    """拒绝重复字段名，让每个 JSON 对象只对应一种字段取值。"""
+    record = {}
+    for key, value in pairs:
+        if key in record:
+            raise ValueError(f"duplicate_json_key: {key}")
+        record[key] = value
+    return record
+
+
 def read_records(data: bytes) -> list[dict]:
     """跳过空行，严格读取本例要求的 JSONL 文档。"""
     records = []
@@ -15,7 +25,7 @@ def read_records(data: bytes) -> list[dict]:
     for number, line in enumerate(data.decode("utf-8").split("\n"), start=1):
         if not line.strip():
             continue
-        record = json.loads(line)
+        record = json.loads(line, object_pairs_hook=unique_json_object)
         if not isinstance(record, dict) or not isinstance(record.get("text"), str):
             raise ValueError(f"第 {number} 行必须为含字符串 text 的对象。")
         identifier = record.get("id")

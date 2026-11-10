@@ -128,6 +128,8 @@ Use a fresh output directory for another run to preserve prior evidence. A repla
 
 Additional metadata is retained with each document, so it too must remain valid JSON. This example rejects `NaN`, `Infinity`, and numbers outside the supported finite floating-point range, such as `1e999`. Such a value at any nesting level stops the whole split before the output directory is created. The literal `1e999` is valid JSON number syntax; its rejection is a numeric-range limit of this reader, not a syntax error.
 
+Field names must also be unique within each object. If a record contains two `split_group` fields, group identity is ambiguous before splitting begins; a parser must not silently choose one and then declare the groups separate. The reader rejects repeated names at every nesting level before writing outputs. This is an interoperability policy: the [JSON standard](https://www.rfc-editor.org/rfc/rfc8259#section-4) describes differing implementation behavior when object names are not unique.
+
 ## Establish boundaries before encoding and packing
 
 Documents should enter separate encoding pipelines after splitting. If we first concatenate every document into one token stream and then assign windows to training and validation, the windows can share substantial content: two windows of length 1,024 offset by one position overlap by 1,023 tokens. Those training instances are not independent evidence.

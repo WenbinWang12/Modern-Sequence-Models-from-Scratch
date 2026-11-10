@@ -21,7 +21,7 @@
 直接拼接会让网页占据大多数训练位置；按来源均匀抽取又会得到另一种分布。两种方案都可以实现，但它们训练的目标不同。若网页中有 30% 是重复模板，清洗后有效 token 下降，代码和书籍的相对权重还会自动上升，除非重新声明并执行混合策略。后文会把这个例子写成可计算、可复现的采样协议。
 
 <figure class="book-figure">
-  <img src="../../assets/figures/data-funnel.svg" alt="从原始记录、清洗切分、Tokenizer、packing 到带 mask 训练窗口的数据流水线">
+  <img src="../../assets/figures/data-funnel-zh.svg" alt="从原始记录、清洗切分、Tokenizer、packing 到带 mask 训练窗口的数据流水线">
   <figcaption><strong>图 2　数据流水线。</strong> 数据章的对象不是一个文件夹，而是从原始记录到 <span class="arithmatex">\(X,Y,M\)</span> 和 loss 的一串可审计变换。</figcaption>
 </figure>
 

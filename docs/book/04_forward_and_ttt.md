@@ -23,7 +23,7 @@ final norm → lm_head → logits
 每个箭头都是形状、mask、cache 和梯度的接口。将 MLP′ 放在普通 MLP 前后，得到的算法并不相同；将更新发生在 token 内、chunk 末尾或下一个 chunk，状态语义也不同。
 
 <figure class="book-figure">
-  <img src="../../assets/figures/ttt-timeline.svg" alt="TTT 中 token chunk、fast weights 内循环和 static parameters 外循环的时间关系">
+  <img src="../../assets/figures/ttt-timeline-zh.svg" alt="TTT 中 token chunk、fast weights 内循环和 static parameters 外循环的时间关系">
   <figcaption><strong>图 3　TTT 的两个时间尺度。</strong> 每个 chunk 先用当前快权重预测，再用已观测标签更新 <span class="arithmatex">\(\phi\)</span>；<span class="arithmatex">\(\theta\)</span> 则跨 batch 由外循环更新。</figcaption>
 </figure>
 

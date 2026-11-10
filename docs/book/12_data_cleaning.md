@@ -101,3 +101,18 @@ $$
 `ttt.data` 对字段类型和空白文本做了有限检查，但没有集成上面的完整质量流水线，也不会自动生成语言或 PII 报告。我们把清洗正文写在这里，是为建立可实现的上游规范，而不是声称命令已经包含这些能力。
 
 清洗版本产出的文档应写入新目录。下一章会在这个稳定视图上识别重复；如果每次去重前的规范化都不同，重复率本身就失去了可比性。
+
+## 本章最小检查、预期产物与失败诊断
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/cleaning-sample \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+这条命令只检查“清洗后的文本能否进入 tokenizer”；它不会替代上游的语言、PII、长度或质量报告。成功时应有 <code>outputs/cleaning-sample/manifest.json</code>；若出现空文本、token 越界或数量链断裂，先检查清洗输出和字段 schema，而不是调学习率。
+
+## 本章小结与下一问
+
+清洗规则改变的是训练分布，不是一个抽象的“干净”标签。每条规则都要记录版本、阈值、保留/拒绝计数和抽样审计。下一章将在固定清洗版本上计算 exact 与 near duplicate，避免把规范化差异误认为重复差异。

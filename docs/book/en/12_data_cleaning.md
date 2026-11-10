@@ -92,10 +92,25 @@ For the repository's educational input, the interface is:
 
 ~~~bash
 python -m ttt.data \
-  --input examples/book/clean_corpus.jsonl \
+  --input examples/sample.txt \
   --output data/clean-corpus-v1 \
   --sharded \
   --tokenizer byte
 ~~~
 
 The command assumes the JSONL already contains a `text` field and records an input digest in `manifest.json`. It does not make the preceding cleaning decisions for us. Keep the cleaner version, thresholds, counts, and audit sample beside that manifest. The next chapter uses the same normalized comparison view to identify exact and near duplicates.
+
+## Minimal checkpoint, evidence, and failure diagnosis
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/cleaning-sample \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+This command checks only that the cleaned teaching text can reach the tokenizer. It does not replace language, PII, length, or quality reports upstream. On success, <code>outputs/cleaning-sample/manifest.json</code> should exist. If empty text, out-of-range tokens, or a broken count chain appears, inspect the cleaning output and schema before changing the learning rate.
+
+## Summary and next question
+
+Cleaning rules change the training distribution; “clean” is not a hidden binary label. Save the rule version, thresholds, keep/reject counts, and audit sample for every rule. The next chapter computes exact and near duplicates on this fixed cleaned view, so normalization differences are not mistaken for duplicate differences.

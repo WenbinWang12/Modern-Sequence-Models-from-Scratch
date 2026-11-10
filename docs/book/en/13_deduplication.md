@@ -76,3 +76,20 @@ python -m ttt.data \
 ~~~
 
 Run deduplication before assigning related documents to train and validation. Contamination checks against public benchmarks are a separate comparison and deserve a separate report. The next chapter turns stable duplicate groups into evaluation boundaries.
+
+## Minimal checkpoint, expected report, and failure diagnosis
+
+The production sequence creates a new JSONL and report before tokenization:
+
+~~~bash
+python -m ttt.data \
+  --input <deduped-jsonl> \
+  --output outputs/dedup-v1 \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+<code>&lt;deduped-jsonl&gt;</code> is an upstream artifact that the reader must replace; it is not a repository file. The report should contain additive fields such as <code>kept=890</code>, <code>exact_removed=80</code>, <code>near_removed=30</code>, and <code>near_reviewed=50</code>, plus the input digest and rule version. If the counts do not balance, inspect cluster membership and representative selection. A single <code>removed</code> total cannot diagnose which rule deleted content.
+
+## Summary and next question
+
+Exact hashing answers whether bytes match; MinHash/LSH narrows candidates; a review or explicit merge rule decides what to remove. Freeze duplicate groups before splitting and link them to the token manifest. The next chapter turns groups into train/validation boundaries and checks evaluation contamination separately.

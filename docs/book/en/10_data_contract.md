@@ -18,6 +18,25 @@ This small example shows why file counts do not describe the training distributi
 | Code | 50,000 | 2,000 | about 9% | concentrated syntax and tool-use examples |
 | Books | 10,000 | 10,000 | about 9% | richer long-form structure, fewer documents |
 
+## Overview: trace one short text first
+
+This chapter starts with a short running example rather than a large download. We follow “The cat sits.” from a raw record through cleaning, a token stream, a training window, and one loss term. By the end, you should be able to explain why a token enters the loss denominator and run a tiny sharded dataset with a manifest.
+
+Suppose the raw collection has two records: record \(r_1\) contains “The cat sits.” and record \(r_2\) is a web mirror. If cleaning and deduplication keep only \(r_1\), uniform sampling changes from \(P(r_1)=P(r_2)=1/2\) to \(P(r_1)=1\). The file name did not change; the distribution seen by the model did.
+
+In the byte-tokenizer teaching setup, characters become integer IDs. For illustration, suppose the stream is \(s=(10,11,12,2)\), with 2 as EOS. A length-3 window becomes \(X=(10,11,12)\), \(Y=(11,12,2)\), and \(M=(1,1,1)\). This chain connects data quality to one summand in cross-entropy.
+
+The smallest checkpoint is the command below. It proves that the input object can be read by the loader; it does not prove cleaning quality, contamination safety, or model generalization.
+
+~~~bash
+.venv/bin/python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/book-data-contract \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+On success, <code>outputs/book-data-contract/manifest.json</code> and token/mask shards should exist. On failure, check the input path, vocabulary size, and write permission first. The next sections explain how acquisition, cleaning, deduplication, and splitting change this chain.
+
 Direct concatenation makes web tokens dominate; source-uniform sampling gives a different distribution. Both are implementable, but they optimize different objectives. If 30% of web text is duplicated templates, cleaning lowers its effective token count and automatically increases the relative weight of code and books unless the mixture is recomputed. Later sections turn this example into an explicit, reproducible sampling protocol.
 
 <figure class="book-figure">
@@ -278,7 +297,7 @@ These objects must not share one vague “data version”. A fixed raw file can 
 
 ~~~bash
 .venv/bin/python -m ttt.data \
-  --input examples/book/clean_corpus.jsonl \
+  --input examples/sample.txt \
   --output outputs/book-data \
   --sharded \
   --tokenizer byte \

@@ -97,3 +97,21 @@ For a teaching run, check finite loss, nonzero and bounded gradients, no immedia
 Parameter count is the number of leaves in the model tree, but it is not activation memory. TTT may retain or recompute fast weights, gradients, and chunk state; MoE may have many total parameters while activating only a few experts per token. `ttt/profile.py` reports parameter counts, fast-MLP counts, prefill/decode time, state bytes, peak device memory, and XLA cost analysis. Cost analysis is an estimate; steady throughput requires a real-device run after excluding compilation.
 
 For each later comparison, report data and tokens, total and active parameters, optimizer and inner-loop settings, hardware and precision, compile and steady cost, memory, communication, training and held-out loss, and restore behavior. The next part follows a token through the TTT forward path.
+
+## Minimal run, evidence, and failure diagnosis
+
+Start with the sample tokens and tiny configuration:
+
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/tiny.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/baseline-tiny-001
+~~~
+
+The expected directory contains <code>experiment.json</code>, <code>environment.json</code>, <code>metrics.jsonl</code>, <code>status.json</code>, and a checkpoint. Loss should be finite, and the next input order and step after resume should match the uninterrupted comparison. A falling training loss does not prove generalization; if held-out loss rises, inspect splits, duplicates, and masks first.
+
+## Summary and next question
+
+The dense baseline fixes data identity, budget, configuration, and recovery protocol. Logits, masked loss, gradients, checkpoints, and held-out loss establish an interpretable training system, not a TTT, Loop, or MoE gain. The next part follows the same token through the forward path and identifies when fast weights change.

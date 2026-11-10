@@ -281,4 +281,21 @@ The training script's `tokenizer_metadata.json` records both the requested and a
 
 Changing the tokenizer requires new token shards and a compatible model configuration; changing only vocab_size in a checkpoint is not a conversion.
 
+## Minimal checkpoint, evidence, and failure diagnosis
+
+Use the teaching input to inspect the current byte-tokenizer and sharding behavior:
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/tokenizer-sample \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+The manifest should report <code>vocab_size=259</code>; ordinary text receives EOS, and the sharded path applies the documented BOS mask. If vocabulary, special IDs, or masks disagree, inspect the tokenizer implementation and manifest before editing the model configuration.
+
+## Summary and next question
+
+A tokenizer fixes integer IDs, context coverage, embedding/output-head cost, and special-token semantics. The BPE/Unigram script creates a new tokenizer; <code>ttt.data</code> loads it and creates shards. Replacing a tokenizer requires new shards and a new checkpoint identity. The next chapter turns the token stream into inputs, targets, and loss masks.
+
 The next chapter turns the token stream into fixed windows and handles label shifting, EOS boundaries, and loss masks.

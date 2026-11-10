@@ -58,3 +58,24 @@ hash 切分的稳定性依赖 group ID 稳定。若先用文件遍历序号生�
 教学小语料主要用于管线检查，不值得据其验证 loss 讨论泛化能力。正式语料应建立独立 manifest 和冻结评估输入，再比较模型。
 
 切分固定了模型可以接触哪些文档。下一章讨论同一篇文档如何变成不同长度的整数序列，以及这种变化为什么会改变参数和计算成本。
+
+## 本章最小检查、预期证据与失败诊断
+
+切分后的两个 JSONL 必须分别生成 manifest：
+
+~~~bash
+python -m ttt.data \
+  --input <train-jsonl> \
+  --output outputs/split-train \
+  --sharded --tokenizer byte --shard-tokens 256
+python -m ttt.data \
+  --input <validation-jsonl> \
+  --output outputs/split-validation \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+预期产物是两个独立的 <code>manifest.json</code> 和一份 split/contamination 报告；报告应列出组数、文档数、token 数、来源分布、候选匹配和人工审核结果。若 train 与 validation 的摘要或 group ID 交叉，先停止训练并修复切分；验证 loss 较低不能抵消污染。
+
+## 本章小结与下一问
+
+切分单位必须与评估问题一致：文档簇、项目、时间或任务对象。Exact overlap 为零只排除了最窄的一类重复，不能声称没有近似或语义污染。下一章固定每个 split 的 tokenizer 和词表，进入 token ID 与输出头。

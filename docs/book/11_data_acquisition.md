@@ -58,8 +58,36 @@
 
 ## 仓库中的实践边界
 
-`examples/book/clean_corpus.jsonl` 是人工整理的教学输入，目的是演示数据格式。`ttt.data` 只负责把支持的文本字段编码，并不包含网页抓取、许可证判定或通用正文抽取器。
+仓库内可直接运行的教学输入是 `examples/sample.txt`；JSONL 语料应写成需要读者替换的 `<prepared-jsonl>`，不能伪装成仓库已有文件。`ttt.data` 只负责把支持的文本字段编码，并不包含网页抓取、许可证判定或通用正文抽取器。
 
 因此，替换正式语料时应在 `ttt.data` 之前完成获取、抽取和来源记录。保持训练入口简单是合理的，但上游必须有自己的版本和报告，不能因为训练模块没读那些字段就把它们丢掉。
+
+## 本章最小运行、证据与失败诊断
+
+先用仓库中真实存在的教学文本跑通编码接口：
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/acquisition-sample.npy \
+  --tokenizer byte
+~~~
+
+成功产物是一个一维 token 文件；它只能证明输入可被 tokenizer 读取，不能证明来源许可、正文抽取或数据质量已经通过。若要检查分片和 manifest，再运行：
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/acquisition-shards \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+预期看到 <code>outputs/acquisition-shards/manifest.json</code>，其中有 <code>vocab_size</code>、输入摘要和每个 shard 的 token/mask 文件。若命令失败，先检查路径和 Python 环境；若 manifest 生成但数量不对，回到“列出文件→下载→解析→可用文档”的数量链，不要先修改模型。
+
+正式 JSONL 输入应写成 <code>&lt;prepared-jsonl&gt;</code> 占位符，并在执行前替换为实际路径。报告至少保存 source record、每个文件的字节数和 SHA256、下载/解析/过滤计数、抽取器版本和许可审核链接。当前仓库不会自动生成这些治理证据。
+
+## 本章小结与下一问
+
+本章建立了三个区分：URL 是位置、release 是版本、digest 是字节身份；下载失败、解析失败和内容拒绝是不同损耗；原始文件、文档记录、token 分片和模型权重是不同发布对象。下一章在固定输入版本上定义清洗规则，并把每条规则造成的数量变化写入报告。
 
 下一章进入清洗。我们将从同一份文本为什么可能被不同规则判成不同质量开始，建立一条可解释的规则链。

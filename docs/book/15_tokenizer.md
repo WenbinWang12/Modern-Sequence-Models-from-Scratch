@@ -286,3 +286,20 @@ python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --token
 更换 tokenizer 后必须同步配置中的 vocab_size 与特殊 ID，并重新生成所有 token 分片。旧分片中的整数仍然合法，不代表它们在新词表中具有相同含义。checkpoint 也不能只改一个 JSON 字段继续加载。
 
 下一章从 token 流进入固定窗口，处理 label shift、EOS 边界和 loss mask。
+
+## 本章最小检查、预期证据与失败诊断
+
+先用仓库内样例确认当前 byte tokenizer 的词表和分片行为：
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/tokenizer-sample \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+预期 manifest 中的 <code>vocab_size</code> 为 259，普通文本的 EOS 被追加，分片路径中的 BOS 监督 mask 按当前实现处理。若词表、特殊 ID 或 mask 与文中不一致，先检查 tokenizer 实现和 manifest，不要直接修改模型配置。
+
+## 本章小结与下一问
+
+Tokenizer 同时决定整数序列、上下文覆盖、embedding/输出头参数量和特殊 token 语义。BPE/Unigram 训练脚本是生成新 tokenizer 的入口，<code>ttt.data</code> 负责加载并生成分片；更换 tokenizer 必须重新生成分片和 checkpoint 身份。下一章把 token 流变成输入、目标和 loss mask。

@@ -110,3 +110,7 @@ The command records the manifest itself; it does not replace the loader's per-sh
 Memory mapping reduces host memory pressure but random windows can still be storage-bound. Very small shards increase file and hash overhead; very large shards are harder to copy and recover. The teaching implementation prioritizes explicit validation and resumability. Distributed prefetch, cache policy, and source-aware sampling are later engineering layers.
 
 The next chapter separates file layout from the statistical mixture of data sources.
+
+## Summary and next question
+
+A dataset is a logical token stream plus a sampling protocol; a shard is only a storage fragment; the manifest is the verifiable contract between them. Recovery needs the data digest, sampler position, and window protocol in addition to a seed. The next chapter asks which sources produced those windows and how a sampler realizes a target recipe.

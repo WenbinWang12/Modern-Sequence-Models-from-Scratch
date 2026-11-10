@@ -54,3 +54,18 @@ mask 的含义是“这个 label 是否参与 loss”，不是“这个 token �
 这段代码解决了 token-level mask 和 TTT chunk 的关系，但没有提供按文档边界重置 KV cache 的通用接口。若要加入独立文档 packing，需要在数据和模型状态之间新增契约，而不是只修改 mask。
 
 下一章将 token 分片、mask 分片和 manifest 放进一个可恢复的 Dataset；这样我们可以检查文件内容，而不只是检查 batch shape。
+
+## 本章最小检查、预期证据与失败诊断
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/packing-sample \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+随后用一个固定窗口检查 <code>input_ids</code>、<code>labels</code> 和 <code>loss_mask</code> 的长度是否分别是 \(L\)、\(L\)、\(L\)，并手算第一行的 shift。若最后一列 mask 为 0，它不应改变 loss 或 TTT 状态；若标签没有向前一位，先修复数据路径再看模型。
+
+## 本章小结与下一问
+
+Packing 定义窗口，label shift 定义预测目标，loss mask 定义哪些目标有监督；EOS 只表达边界，不自动决定边界之后的监督。下一章把这些数组写入带 hash 和 offset 的 Dataset manifest。

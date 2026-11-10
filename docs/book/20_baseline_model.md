@@ -140,3 +140,21 @@ loop_mode = none
 如果 TTT 只在更长训练或更多 token 下胜出，应报告预算差异；如果 Loop 每步更慢但质量更好，应同时报告质量-计算曲线。这样 baseline 才是研究参照，而不是一个被快速越过的占位页。
 
 下一部分进入模型内部：先逐层追踪一个 token，再解释 TTT 的快权重究竟在何时改变。
+
+## 本章最小运行、预期证据与失败诊断
+
+先用样例 token 和 tiny 配置启动一个短运行：
+
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/tiny.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/baseline-tiny-001
+~~~
+
+成功目录至少应包含 <code>experiment.json</code>、<code>environment.json</code>、<code>metrics.jsonl</code>、<code>status.json</code> 和 checkpoint；loss 应为有限数，恢复后下一批输入和 step 应与连续运行对齐。loss 下降本身不能证明泛化；若 held-out loss 上升，先检查 split、重复和 mask。
+
+## 本章小结与下一问
+
+Dense baseline 固定数据身份、预算、配置和恢复协议，用 logits、mask loss、梯度、checkpoint 和 held-out loss 证明训练系统至少是可解释的。它不会证明 TTT、Loop 或 MoE 的收益。下一部分沿着同一 token 进入前向路径，明确快权重在哪一刻改变。

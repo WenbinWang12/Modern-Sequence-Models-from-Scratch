@@ -105,3 +105,7 @@ This command checks the loader's implemented invariants; it does not perform spl
 ## The boundary of the claim
 
 Passing preflight establishes input consistency and a recoverable experiment identity. It does not establish useful perplexity, broad generalization, or a fair architecture comparison. Those claims require the dense baseline, independent evaluation data, and recorded cost and state evidence. The next chapter fixes that baseline before we add TTT or other changing state.
+
+## Summary and next question
+
+Preflight must label each check as pass, warning, or fail. Passing establishes consistency of the input objects, not model quality, generalization, or a fair architecture comparison. The next chapter fixes this data identity and establishes a dense baseline before adding TTT or any other changing state.

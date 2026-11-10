@@ -61,3 +61,20 @@ MinHash 和 LSH 用来缩小候选检索成本；候选命中不是最终真值�
 当前 `ttt/data.py` 和 `ttt/dataset.py` 不包含 MinHash 或语义去重器。数据准备命令会保留输入顺序，任何正式去重结果都应由上游显式产出，并和 token manifest 关联。小型教学 clean 文件也不证明生产去重能力。
 
 下一章把这些簇变成评估边界。我们要先定义什么叫“未见”，再用验证 loss 判断模型。
+
+## 本章最小检查、预期报告与失败诊断
+
+正式去重会先生成一个新的 JSONL 和报告，再进入 tokenizer：
+
+~~~bash
+python -m ttt.data \
+  --input <deduped-jsonl> \
+  --output outputs/dedup-v1 \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+<code>&lt;deduped-jsonl&gt;</code> 是需要替换的上游产物，不是仓库中的现成文件。报告至少应给出 <code>kept=890</code>、<code>exact_removed=80</code>、<code>near_removed=30</code>、<code>near_reviewed=50</code> 这类可加总字段，并列出输入摘要和规则版本。若数字不守恒，先检查簇映射和代表选择；若只给一个 <code>removed</code> 总数，不能判断误删来自哪条规则。
+
+## 本章小结与下一问
+
+Exact hash 只回答字节是否相同，MinHash/LSH 只负责缩小候选，人工或明确的合并规则才决定是否删除。去重簇必须在切分前固定，并与 token manifest 关联。下一章把簇变成 train/validation 边界，并单独检查评测污染。

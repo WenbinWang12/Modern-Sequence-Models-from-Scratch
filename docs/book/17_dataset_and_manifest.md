@@ -79,3 +79,21 @@ memory mapping 减少了 Python 堆内存，但不会消除存储带宽和随机
 工程上通常会把逻辑 shard、物理 shard 和训练 batch 分开设计。逻辑上可以按文档簇组织，物理上按顺序写大文件，训练时再按 worker/rank 切分。当前仓库是教学实现，先保证校验与恢复，再谈异步预取、缓存和分布式采样。
 
 下一章讨论多个来源如何混合。只有知道 sampler 读取的是哪个来源，我们才能控制训练配方。
+
+## 本章最小检查、预期产物与失败诊断
+
+先生成一个小分片，再只读检查 manifest：
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/dataset-sample \
+  --sharded --tokenizer byte --shard-tokens 256
+python -c "import json; p='outputs/dataset-sample/manifest.json'; print(json.dumps(json.load(open(p, encoding='utf-8')), ensure_ascii=False, indent=2))"
+~~~
+
+预期产物是 manifest、token/mask shard 和每个 shard 的 digest。若两个 shard 的累计 offset 不连续，或窗口跨 shard 后 token 顺序改变，不能继续训练；先检查 manifest 的 <code>start</code>、<code>end</code>、<code>count</code> 与文件长度。
+
+## 本章小结与下一问
+
+Dataset 是逻辑 token 流和采样协议，shard 只是存储片段，manifest 是两者之间可校验的契约。恢复不仅要有 seed，还要有数据 digest、采样位置和窗口协议。下一章讨论这些窗口来自哪些来源，以及 sampler 如何实现目标配方。

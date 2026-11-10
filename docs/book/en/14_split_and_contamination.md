@@ -74,3 +74,24 @@ python -m ttt.data \
 ~~~
 
 Then pass the training manifest to the training job and use the validation manifest only for evaluation. Keep the split report and contamination report beside both manifests. The next chapter explains how the tokenizer turns each split into integer IDs and why vocabulary choices affect the model's output head.
+
+## Minimal checkpoint, evidence, and failure diagnosis
+
+The two split JSONL files must produce separate manifests:
+
+~~~bash
+python -m ttt.data \
+  --input <train-jsonl> \
+  --output outputs/split-train \
+  --sharded --tokenizer byte --shard-tokens 256
+python -m ttt.data \
+  --input <validation-jsonl> \
+  --output outputs/split-validation \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+The expected artifacts are two independent <code>manifest.json</code> files and one split/contamination report containing group, document, token, source, candidate-match, and review counts. If train and validation digests or group IDs overlap, stop before training and repair the split; a low validation loss cannot cancel contamination.
+
+## Summary and next question
+
+The split unit must match the evaluation question: document cluster, project, time period, or task object. Zero exact overlap rules out only the narrowest duplicate class; it does not prove that near or semantic contamination is absent. The next chapter fixes the tokenizer and vocabulary for each split and follows token IDs into the output head.

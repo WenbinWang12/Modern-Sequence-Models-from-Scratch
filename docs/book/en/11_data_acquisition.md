@@ -64,7 +64,7 @@ Review four questions independently: what terms were declared, whether personal 
 
 The raw archive, extracted text, cleaned JSONL, token shards, preprocessing code, and model weights are different artifacts. A source may permit local training while restricting redistribution of the original text. In that case a public reproduction must publish the recipe and digests, and explain how an authorized user can rebuild the same input.
 
-The repository does not perform web crawling, legal review, general HTML extraction, or an automatic license decision. `examples/book/clean_corpus.jsonl` is an educational input, and `ttt.data` starts after the upstream text has been selected. These boundaries are intentional: the training loader should be small, while the data project keeps the evidence needed to audit it.
+The repository does not perform web crawling, legal review, general HTML extraction, or an automatic license decision. The directly runnable teaching input is `examples/sample.txt`; a JSONL corpus should be written as the replaceable placeholder `<prepared-jsonl>`, never as a file that does not exist. `ttt.data` starts after the upstream text has been selected. These boundaries are intentional: the training loader should be small, while the data project keeps the evidence needed to audit it.
 
 ## Count the acquisition pipeline
 
@@ -102,5 +102,33 @@ python -m ttt.data \
 ~~~
 
 These commands encode already selected text; they do not create the source record above. Before running them on a real corpus, save the upstream release, file digests, extraction configuration, and license review beside the output directory. The resulting manifest contains the input SHA256 and token-shard digests, which connect the training artifact to that upstream record.
+
+## Minimal run, evidence, and failure diagnosis
+
+Start with the teaching text that actually exists in the repository:
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/acquisition-sample.npy \
+  --tokenizer byte
+~~~
+
+The expected artifact is a one-dimensional token file. It proves only that the tokenizer can read the input; it does not prove provenance, licensing, extraction quality, or data quality. To inspect a sharded manifest, run:
+
+~~~bash
+python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/acquisition-shards \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+On success, <code>outputs/acquisition-shards/manifest.json</code> should contain <code>vocab_size</code>, an input digest, and token/mask shard records. If the command fails, check the path and Python environment first. If the manifest has unexpected counts, return to the listed→downloaded→parsed→usable chain before changing the model.
+
+For a real JSONL corpus, use the placeholder <code>&lt;prepared-jsonl&gt;</code> in the documentation and replace it with an actual path before running. Save the source record, file bytes and SHA256, download/parse/rejection counts, extractor version, and licensing review link. The repository does not generate these governance records automatically.
+
+## Summary and next question
+
+This chapter separates a URL (location), a release (version), and a digest (byte identity). It separates download failure, parse failure, and content rejection, and it treats raw files, document records, token shards, and model weights as different artifacts. The next chapter fixes an input version and measures how each cleaning rule changes its counts.
 
 The next chapter defines conservative cleaning rules. We will keep the original text and make each rejection reason measurable instead of treating “clean” as a single hidden label.

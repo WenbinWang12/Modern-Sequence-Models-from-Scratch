@@ -47,3 +47,17 @@
 还要看短期窗口的波动。总体 70/20/10 不代表每个 1,000 token 的小批量都接近这个比例；小来源在短窗口里可能有较大方差。报告可同时给累计比例和滑动窗口区间。
 
 下一章进行训练前验收，把 tokenizer、manifest、mask、混合配方和模型配置放到同一个检查点上。
+
+## 本章最小检查、预期证据与失败诊断
+
+当前仓库没有来源级混合 sampler，因此先把配方保存为 JSON，再检查它是否能被实验读取：
+
+~~~bash
+python -c "import json; p='outputs/recipe.json'; print(json.dumps(json.load(open(p, encoding='utf-8')), ensure_ascii=False, indent=2))"
+~~~
+
+成功输出只能证明 recipe 文件可解析。真正的混合实验还必须记录每个来源的目标 token、实际 token、有效 mask token、sample index 和恢复前后是否重复；如果只有权重而没有消费日志，不能声称模型使用了该配方。
+
+## 本章小结与下一问
+
+混合配方是显式概率分布和 token 预算，不是文件大小的副产品。温度公式必须写明约定，rank 和恢复协议必须从全局 sample index 定义。下一章把 tokenizer、manifest、mask 和 recipe 放进训练前验收。

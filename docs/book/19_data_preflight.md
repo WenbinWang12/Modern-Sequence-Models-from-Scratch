@@ -74,3 +74,17 @@ python -c "from ttt.dataset import TokenDataset; TokenDataset('runs/example_shar
 ## 从本章进入模型
 
 验收通过只说明输入自洽，不说明模型已经学会语言。下一章定义 dense baseline：固定这些输入，测量 loss、梯度、恢复和计算成本，随后才有资格讨论 TTT。
+
+## 本章最小检查、预期报告与失败诊断
+
+当前没有独立的 <code>ttt.preflight</code> 命令，先强制 loader 读取 manifest：
+
+~~~bash
+python -c "from ttt.dataset import TokenDataset; TokenDataset('outputs/dataset-sample/manifest.json', 259); print('manifest and shards: pass')"
+~~~
+
+预期输出是 <code>manifest and shards: pass</code>；这只证明 loader 的范围和 hash 检查通过。若得到 vocabulary mismatch，先比较 <code>vocab_size</code> 三处字段；若得到 shard 或 mask 错误，先检查 manifest 和文件 digest。split、污染、混合比例仍需要报告中的人工或上游检查。
+
+## 本章小结与下一问
+
+Preflight 的输出应明确区分 pass、warning 和 fail。通过只说明输入对象相互一致，不说明模型质量、泛化或架构比较公平。下一章在同一数据身份上建立 dense baseline。

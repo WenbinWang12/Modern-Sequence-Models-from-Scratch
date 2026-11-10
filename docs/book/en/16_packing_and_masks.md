@@ -89,3 +89,7 @@ The command is a data-preparation example, not a claim that a local workstation 
 For a tiny hand-check, print one sampled window and verify four facts: the labels are one position ahead, the mask length equals the label length, masked positions have no contribution, and a window crossing a shard boundary preserves token order. A passing shape check does not prove that document boundaries are semantically correct. That question belongs to the packing policy and its evidence record.
 
 The next chapter turns token files, masks, hashes, and sampler state into a recoverable dataset object.
+
+## Summary and next question
+
+Packing defines the window, label shift defines the prediction target, and the loss mask defines which targets receive supervision. EOS marks a boundary but does not by itself decide whether the following position is supervised. The next chapter stores these arrays with hashes and offsets in a recoverable dataset manifest.

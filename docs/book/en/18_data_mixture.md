@@ -77,3 +77,7 @@ python -c "import json; p='runs/recipe.json'; print(json.dumps(json.load(open(p,
 Treat this as an inspection step until a sampler implementation is added. A recipe file without a sampler and consumption log is documentation, not evidence that the mixture was used.
 
 The next chapter turns these contracts into a preflight gate before compilation and a long training run.
+
+## Summary and next question
+
+A mixture is an explicit probability distribution and token budget, not a side effect of file size. State the temperature convention, derive rank and recovery behavior from a global sample index, and record consumption rather than only weights. The next chapter combines tokenizer, manifest, masks, and recipe into a preflight gate.

@@ -18,6 +18,25 @@
 | 代码 | 50,000 | 2,000 | 约 9% | 语法和工具使用样本较集中 |
 | 书籍 | 10,000 | 10,000 | 约 9% | 长篇结构更丰富，但数量较少 |
 
+## 本章导读：先追踪一条短文本
+
+本章先不讨论大规模下载。我们用短文本“猫坐下。”作为贯穿例子，依次追踪原始记录、清洗后的文档、token 流、训练窗口和 loss。读者读完应能解释一条 token 为什么会进入分母、为什么一个 EOS mask 会改变验证 loss，并能在仓库中生成一个带 manifest 的 tiny 分片。
+
+假设原始记录有两条：记录 \(r_1\) 的正文是“猫坐下。”，记录 \(r_2\) 的正文是“猫坐下。”的网页镜像。若清洗和去重后只保留 \(r_1\)，均匀采样的概率从 \(P(r_1)=P(r_2)=1/2\) 变成 \(P(r_1)=1\)。这不是改变文件名，而是改变模型实际看到的分布。
+
+在 byte tokenizer 的教学配置中，字符会先变成整数流；假设为了说明而得到 \(s=(10,11,12,2)\)，其中 2 是 EOS。长度为 3 的窗口变成 \(X=(10,11,12)\)、\(Y=(11,12,2)\)、\(M=(1,1,1)\)。这条链把“文本质量”和交叉熵中的一个求和项连在了一起。
+
+本章的最小检查是运行下面的命令并读取输出目录中的 manifest。它证明的是输入对象可被 loader 识别，不证明清洗质量、污染检测或模型泛化。
+
+~~~bash
+.venv/bin/python -m ttt.data \
+  --input examples/sample.txt \
+  --output outputs/book-data-contract \
+  --sharded --tokenizer byte --shard-tokens 256
+~~~
+
+成功时应出现 <code>outputs/book-data-contract/manifest.json</code> 以及 token、mask 分片；若失败，先检查输入路径、词表大小和输出目录是否可写。下一节开始分别解释来源、清洗、去重和切分如何改变这条链。
+
 直接拼接会让网页占据大多数训练位置；按来源均匀抽取又会得到另一种分布。两种方案都可以实现，但它们训练的目标不同。若网页中有 30% 是重复模板，清洗后有效 token 下降，代码和书籍的相对权重还会自动上升，除非重新声明并执行混合策略。后文会把这个例子写成可计算、可复现的采样协议。
 
 <figure class="book-figure">
@@ -278,7 +297,7 @@ $$
 
 ~~~bash
 .venv/bin/python -m ttt.data \
-  --input examples/book/clean_corpus.jsonl \
+  --input examples/sample.txt \
   --output outputs/book-data \
   --sharded \
   --tokenizer byte \

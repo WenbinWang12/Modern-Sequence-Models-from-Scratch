@@ -4,11 +4,11 @@
 
 During training, a batch can contain the whole sequence. During generation, a serving process usually receives one new token at a time. Full forward can construct a causal mask over all positions; streaming forward must remember the past without recomputing it at every step.
 
-For a token at position (t), causal attention may read keys and values from positions (1\ldots t), but never from (t+1). A KV cache stores those past keys and values. If the query has shape `[batch, query_heads, 1, head_dim]` and the cache has shape `[batch, kv_heads, cache_length, head_dim]`, grouped-query attention reuses each KV head for the corresponding query-head group. The cache stores history; it is not another set of trainable parameters.
+For a token at position \(t\), causal attention may read keys and values from positions \(1,\ldots,t\), but never from \(t+1\). A KV cache stores those past keys and values. If the query has shape `[batch, query_heads, 1, head_dim]` and the cache has shape `[batch, kv_heads, cache_length, head_dim]`, grouped-query attention reuses each KV head for the corresponding query-head group. The cache stores history; it is not another set of trainable parameters.
 
 ## Prefill and decode in a concrete example
 
-Suppose a request starts with tokens (x_1,x_2,x_3). **Prefill** processes all three, writes their keys and values, and returns the logits for the last position. The next generated token (x_4) is handled by **decode**: read the three cached positions, compute one new query/key/value, predict the next token, and append the new key/value. Recomputing (x_1,x_2,x_3) each time may produce similar logits but measures a much more expensive serving algorithm.
+Suppose a request starts with tokens \(x_1,x_2,x_3\). **Prefill** processes all three, writes their keys and values, and returns the logits for the last position. The next generated token \(x_4\) is handled by **decode**: read the three cached positions, compute one new query/key/value, predict the next token, and append the new key/value. Recomputing \(x_1,x_2,x_3\) each time may produce similar logits but measures a much more expensive serving algorithm.
 
 TTT adds state beyond KV: a Delta/GDN recurrent state and possibly fast weights. A complete session therefore contains:
 
@@ -22,6 +22,11 @@ session
 ~~~
 
 All fields must advance together. Restoring only the cache while leaving fast weights at a later state produces a different model; restoring the weights with the wrong position changes RoPE and masking.
+
+<figure class="book-figure">
+  <img src="../../../assets/figures/attention-kv.svg" alt="Prefill builds the KV cache, while decode reuses history and appends one new key and value">
+  <figcaption><strong>Figure 4. Prefill and decode.</strong> The KV cache stores past keys and values; it is not trainable, but it must be restored together with positions, recurrent state, and TTT fast weights.</figcaption>
+</figure>
 
 ## State lifetimes and memory
 
@@ -38,7 +43,7 @@ $$
 \approx 2\,B\,L\,H_{\mathrm{KV}}\,d_{\mathrm{head}}\,\text{bytes(dtype)},
 $$
 
-where the factor 2 counts keys and values. A sliding window caps (L) at the window size. Cache capacity is not identical to `max_position_embeddings`: the former is storage allocated for a session, while the latter is the maximum legal model position. `grow_cache` must copy valid entries and preserve positions; silently overwriting old entries corrupts causality.
+where the factor 2 counts keys and values. A sliding window caps \(L\) at the window size. Cache capacity is not identical to `max_position_embeddings`: the former is storage allocated for a session, while the latter is the maximum legal model position. `grow_cache` must copy valid entries and preserve positions; silently overwriting old entries corrupts causality.
 
 ## Code path
 

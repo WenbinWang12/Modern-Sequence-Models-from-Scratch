@@ -10,7 +10,7 @@ $$
 R=(S,C,I_{\mathrm{data}},E,K,Q_{\mathrm{budget}},O),
 $$
 
-where (S) is source code, (C) the resolved configuration, (I_{\mathrm{data}}) the data/tokenizer identity, (E) the environment, (K) the random state, (Q_{\mathrm{budget}}) the token and compute budget, and (O) the output protocol. A row in a result table should point to this identity rather than just a model nickname.
+where \(S\) is source code, \(C\) the resolved configuration, \(I_{\mathrm{data}}\) the data/tokenizer identity, \(E\) the environment, \(K\) the random state, \(Q_{\mathrm{budget}}\) the token and compute budget, and \(O\) the output protocol. A row in a result table should point to this identity rather than just a model nickname.
 
 ## What must be held fixed
 

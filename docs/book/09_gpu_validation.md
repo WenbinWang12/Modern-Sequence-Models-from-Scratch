@@ -42,6 +42,12 @@ mesh 定义全局设备轴，sharding 规则决定每个参数和激活在哪个
 
 如果只在 rank 0 打印 loss，可能掩盖另一个 rank 的 shape 或通信错误。
 
+### 一个两卡 shape 例子
+
+设全局 batch 为 \(B=4\)，序列长度 \(L=8\)，hidden size \(d=16\)，两张 GPU 使用 <code>data=2</code> 的 mesh。全局 hidden 的形状是 \([4,8,16]\)，按 batch 轴切分后，每个 rank 的 local shard 应为 \([2,8,16]\)。如果同时使用 <code>expert=2</code>，专家权重还会沿专家轴分布；此时某个 rank 看到的专家矩阵只是全局专家集合的一部分，不能把 local 参数量直接当作模型总参数量。
+
+验证时至少打印 global shape、local shape、rank、process id 和 mesh axes。若某一步本应得到 \([2,8,16]\) 却得到 \([4,8,16]\)，可能是 batch 没有切分；若 expert 轴大小不一致，all-to-all 可能在初始化后才失败。这个小例子也说明“数组能放进 GPU”与“跨卡语义正确”是两个不同问题。
+
 ## 规模级：性能要排除编译污染
 
 JAX 第一次执行通常包含 tracing 和 XLA 编译。报告至少分开：
@@ -58,6 +64,8 @@ $$
 吞吐应使用稳定区间的有效 token 数除以 steady time。若把 checkpoint 和评估混进窗口，结果反映的是作业调度而不是模型 kernel。
 
 还要记录显存峰值。预分配设置、编译缓存和异步执行会让“当前 allocated”与“peak bytes in use”不同；性能报告需要说明测量接口。
+
+例如第 0 步包含 35 秒编译，后续 10 步各处理 2,048 个有效 token、每步执行 1 秒。稳态吞吐是 \(2{,}048\) token/s；如果把编译也算入总时间，则 \(20{,}480/(35+10)\approx455\) token/s。两个数字都可以保存，但必须标明分母，不能把它们放在同一个 <code>tokens_per_second</code> 字段里。
 
 ## 调度层与模型层分离
 

@@ -56,7 +56,7 @@ The carry contains the current fast weights and cache. Metrics include token los
 
 ## Weighted outer loss
 
-Different samples can have different numbers of valid labels. If sample (b) has (n_b) valid tokens and mean loss (mathcal L_b), the batch objective is
+Different samples can have different numbers of valid labels. If sample \(b\) has \(n_b\) valid tokens and mean loss \(\mathcal L_b\), the batch objective is
 
 $$
 \mathcal L_{\mathrm{batch}}=
@@ -80,7 +80,7 @@ With one SGD update, $\phi_1=\phi_0-\eta\nabla_\phi\ell_{\mathrm{inner}}$, so th
 
 ## C/F controls and evidence
 
-The control (C_k) and adaptive run (F_k) must share architecture, initialization seed, tokenizer, manifest, sample order, sequence length, batch, token budget, outer optimizer and schedule, hardware, and precision. (C_k) disables the inner update; (F_k) enables it. If (F_k) adds fast-MLP parameters that (C_k) does not contain, the comparison changes parameter count as well as update behavior and needs a separate structural control.
+The control \(C_k\) and adaptive run \(F_k\) must share architecture, initialization seed, tokenizer, manifest, sample order, sequence length, batch, token budget, outer optimizer and schedule, hardware, and precision. \(C_k\) disables the inner update; \(F_k\) enables it. If \(F_k\) adds fast-MLP parameters that \(C_k\) does not contain, the comparison changes parameter count as well as update behavior and needs a separate structural control.
 
 At minimum, collect pre- and post-update loss, a causality check under changed suffix tokens, stable fast-weight update norms, finite outer gradients, resume continuity, and held-out loss at equal token budget. A changed fast-weight norm alone is evidence that an update occurred, not that it improved prediction.
 

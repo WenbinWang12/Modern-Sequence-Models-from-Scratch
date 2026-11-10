@@ -27,7 +27,7 @@ y_t=\sum_{e\in S_t}g_{t,e}f_e(h_t),\qquad
 \sum_{e\in S_t}g_{t,e}=1.
 $$
 
-The router produces (r_t\in\mathbb R^E) for (E) experts. Top-k chooses (S_t) and the corresponding gate weights (g_{t,e}). A balanced router might send two of the four tokens to each expert, but the model does not guarantee that balance by itself.
+The router produces \(r_t\in\mathbb R^E\) for \(E\) experts. Top-k chooses \(S_t\) and the corresponding gate weights \(g_{t,e}\). A balanced router might send two of the four tokens to each expert, but the model does not guarantee that balance by itself.
 
 ## Capacity, drop, and auxiliary objectives
 

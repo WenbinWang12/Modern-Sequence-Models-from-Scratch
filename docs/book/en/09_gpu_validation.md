@@ -46,7 +46,7 @@ $$
 T_{\mathrm{job}}=T_{\mathrm{setup}}+T_{\mathrm{compile}}+T_{\mathrm{steady}}+T_{\mathrm{eval}}+T_{\mathrm{checkpoint}}.
 $$
 
-Steady throughput is valid tokens divided by (T_{\mathrm{steady}}), after warm-up. Including compilation, evaluation, or checkpoint I/O in that denominator reports the scheduler and filesystem as if they were model kernels. Record the measurement window, asynchronous synchronization point, dtype, preallocation setting, and peak-memory interface.
+Steady throughput is valid tokens divided by \(T_{\mathrm{steady}}\), after warm-up. Including compilation, evaluation, or checkpoint I/O in that denominator reports the scheduler and filesystem as if they were model kernels. Record the measurement window, asynchronous synchronization point, dtype, preallocation setting, and peak-memory interface.
 
 Scale validation also needs failure boundaries: device discovery, driver or dependency mismatch, XLA compilation, shape or sharding, collective timeout, OOM, and checkpoint incompatibility are different problems and should remain distinct labels.
 

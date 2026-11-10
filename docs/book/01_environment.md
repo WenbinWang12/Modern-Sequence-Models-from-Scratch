@@ -86,6 +86,14 @@ step_*.npz        # tiny 配置的检查点
 
 若训练跑完但恢复结果不同，先对比 data fingerprint、采样器状态、optimizer state 和 global step。最后才检查随机浮点差异。把所有失败都归结为“随机性”会让真正的状态错误长期存在。
 
+## CPU、GPU、JAX 和 mesh 各自负责什么
+
+如果你第一次接触训练环境，可以先把它们分成四个角色。CPU 是负责启动程序、准备数据和调度工作的通用处理器；GPU 有大量适合矩阵乘法的并行计算单元，负责模型的大部分张量计算；JAX 是把 Python 函数转换成可自动求导、可编译和可并行执行计算图的库；mesh 是我们给多张 GPU 起的一张“设备坐标表”，告诉 JAX 哪个轴切分 batch、参数或专家。
+
+例如，<code>hidden</code> 的形状是 <code>[B, L, d]</code>，其中 <code>B=2</code>、<code>L=4</code>、<code>d=8</code>。单卡运行时，整个数组可以放在一张 GPU 上。若建立一个有两张卡的 <code>data</code> mesh，常见做法是把 batch 轴切成每卡一行：每张卡看到 <code>[1, 4, 8]</code>，但全局结果仍然表示 <code>[2, 4, 8]</code>。这不是把模型复制两遍后再随意相加；每个 rank 必须按照同一份参数、数据分片和 collective 通信规则推进。
+
+JAX 还会把第一次调用分成 tracing、编译和执行。可以把它想成先把菜谱翻译成某种 GPU 能执行的机器指令，再真正做菜。第一次调用可能花 40 秒编译，后续每步只花 2 秒执行。如果把两者混在一起，短实验的吞吐会被严重低估。因此报告必须同时保存 <code>compile_seconds</code> 和稳态区间的 <code>tokens_per_second</code>。
+
 ## 本章的完成标准
 
 完成环境章需要一个可审计的目录，而不是一条绿色命令：

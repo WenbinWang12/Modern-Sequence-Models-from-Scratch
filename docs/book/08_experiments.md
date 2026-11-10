@@ -56,6 +56,20 @@ evaluation code
 
 `ttt/profile.py` 可以报告参数量、fast MLP 参数量、prefill/decode 时间、状态字节和 XLA cost analysis。XLA 的 cost analysis 是编译器估计，不能代替目标硬件上的稳态计时。
 
+### 一个可手算的质量—成本例子
+
+假设两个 tiny 变体都训练 \(10^6\) 个有效 token。dense 基线有 \(125\)M 参数，TTT 变体多出 \(3\)M 快权重相关参数；两者都在同一张 GPU 上运行。基线记录为 held-out loss \(2.10\)、稳态吞吐 \(20{,}000\) token/s、峰值显存 10 GB；TTT 记录为 loss \(1.98\)、吞吐 \(12{,}000\) token/s、峰值显存 13 GB。
+
+在相同 token 预算下，基线的稳态计算时间约为
+\[
+10^6 / 20{,}000 = 50\ \text{秒},
+\]
+TTT 约为
+\[
+10^6 / 12{,}000 \approx 83.3\ \text{秒}.
+\]
+这组数字支持“在这个预算和硬件上，TTT 的验证损失更低，但计算更慢、显存更多”这一有限结论；它不能单独证明 TTT 在更大模型、更长上下文或不同数据分布上也更好。若把编译 40 秒、checkpoint 10 秒或额外评测时间加入作业总时长，还必须在报告中单列这些成本。
+
 ## 消融矩阵怎样分层
 
 **功能消融**在 tiny 上回答结构是否能运行：关闭 fast MLP、关闭 inner update、换 attention backend、改变 chunk size。

@@ -89,4 +89,20 @@ ttt_chunk_size = 4
 
 再画出 embedding、每层 attention、MLP/MLP′ 和 lm_head 的 shape。只要其中一个数字没有来源，就说明配置还没有成为真正的实验合同。
 
+### 用一个 tiny shape 走完整条路径
+
+取 \(V=259\)、\(d=16\)、\(d_{\mathrm{ff}}=32\)、batch \(B=2\)、序列长度 \(L=4\)。输入是整数张量
+\[
+\texttt{input\_ids}\in\{0,\ldots,258\}^{2\times4}.
+\]
+查 embedding 后得到
+\[
+\texttt{hidden}\in\mathbb R^{2\times4\times16}.
+\]
+普通 SwiGLU 可以先把最后一维从 16 投影到 32，再通过 down projection 回到 16，因此残差相加前后的形状都保持 \([2,4,16]\)。最后的 tied <code>lm_head</code> 使用 \(E^\mathsf T\in\mathbb R^{16\times259}\)，所以 logits 是
+\[
+\texttt{logits}\in\mathbb R^{2\times4\times259}.
+\]
+第一个位置的预测不是一个长度任意的向量，而是 259 个候选 token 的分数；目标标签只是其中一个整数，例如 \(y=42\)。这一步把“词表大小决定分类头最后一维”变成了可手算的 shape 事实。
+
 下一章沿着这张 shape 图追踪一个 token，理解 Attention、MLP′、普通 FFN 和残差的先后顺序。

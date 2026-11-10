@@ -6,22 +6,22 @@ Suppose a model silently chooses the number of heads from a tensor shape inside 
 
 ## Vocabulary fixes the output space
 
-Let (V) be the tokenizer vocabulary size and (d) the hidden width. The input embedding is
+Let \(V\) be the tokenizer vocabulary size and \(d\) the hidden width. The input embedding is
 
 $$
 E\in\mathbb{R}^{V\times d}.
 $$
 
-At each position the residual stream is a vector in (mathbb{R}^{d}). The MLP can temporarily use an intermediate width (d_{\mathrm{ff}}), but its output must return to (d) before the residual addition. The language-model head maps the final hidden state back to the vocabulary:
+At each position the residual stream is a vector in \(\mathbb{R}^{d}\). The MLP can temporarily use an intermediate width \(d_{\mathrm{ff}}\), but its output must return to \(d\) before the residual addition. The language-model head maps the final hidden state back to the vocabulary:
 
 $$
 \mathbf z_{b,t}=\mathbf h_{b,t}W_{\mathrm{out}},\qquad
 W_{\mathrm{out}}\in\mathbb{R}^{d\times V}.
 $$
 
-The current implementation uses `bias=False`. With tied embeddings, (W_{\mathrm{out}}=E^{\mathsf T}); without tying, the model owns a second (d\times V) matrix. Either way, the last logits dimension is (V). This is why choosing a tokenizer also fixes the classification-head output dimension. Enlarging an MLP changes representation capacity, not the number of token classes.
+The current implementation uses `bias=False`. With tied embeddings, \(W_{\mathrm{out}}=E^{\mathsf T}\); without tying, the model owns a second \(d\times V\) matrix. Either way, the last logits dimension is \(V\). This is why choosing a tokenizer also fixes the classification-head output dimension. Enlarging an MLP changes representation capacity, not the number of token classes.
 
-For example, if (V=259) and (d=16), the tied embedding/head has (259\times16=4{,}144) scalar entries. A batch of hidden states with shape `[B, L, 16]` produces logits with shape `[B, L, 259]`. A target token is an integer in `[0,V)`, not a vector of arbitrary length.
+For example, if \(V=259\) and \(d=16\), the tied embedding/head has \(259\times16=4{,}144\) scalar entries. A batch of hidden states with shape `[B, L, 16]` produces logits with shape `[B, L, 259]`. A target token is an integer in \([0,V)\), not a vector of arbitrary length.
 
 ## Four groups of fields
 
@@ -32,7 +32,7 @@ For example, if (V=259) and (d=16), the tied embedding/head has (259\times16=4{,
 | Adaptive state | `use_fast_mlp`, suffix layers, inner steps and learning rate | fast weights and update path |
 | Training/system | batch, sequence length, optimizer, dtype, mesh | cost, memory, and recovery |
 
-The control (C_k) and adaptive variant (F_k) must use the same static architecture. (C_k) disables test-time updates; (F_k) enables them. Changing width or vocabulary creates a different model and is a structural comparison, not a clean update ablation.
+The control \(C_k\) and adaptive variant \(F_k\) must use the same static architecture. \(C_k\) disables test-time updates; \(F_k\) enables them. Changing width or vocabulary creates a different model and is a structural comparison, not a clean update ablation.
 
 Sequence fields such as `max_position_embeddings`, `sliding_window`, and `ttt_chunk_size` are also architectural: they determine legal positions, cache capacity, and where fast-state updates occur. Keep them visible rather than burying them in a training script.
 

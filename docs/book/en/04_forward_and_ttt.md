@@ -97,7 +97,7 @@ The current inner step computes a value and gradient with respect to fast weight
 
 ## A small chunk calculation
 
-Let the sequence length be \(8\) and the chunk size be \(4\). Positions \(0\) through \(7\) form two chunks:
+Let the sequence length be \(8\) and the chunk size be \(4\). The numbers \(0\) through \(7\) below are code array indices; in the book's mathematical notation they correspond to positions \(1\) through \(8\):
 
 ~~~text
 chunk 0: positions 0, 1, 2, 3

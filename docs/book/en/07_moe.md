@@ -16,7 +16,12 @@ h
 → weighted sum + residual
 ~~~
 
-The shape can remain correct even when the order is wrong. That is why routing needs semantic checks, not only a final `shape == expected` assertion.
+The shape can remain correct even when the order is wrong. That is why routing needs semantic checks, not only a final <code>shape == expected</code> assertion.
+
+<figure class="book-figure">
+  <img src="../../../assets/figures/moe-routing.svg" alt="A router selects a small number of experts, applies capacity assignment, and combines their outputs">
+  <figcaption><strong>Figure 5. MoE routing.</strong> The router, capacity rule, and grouped expert computation define the dynamic path for each token; reports must include routing statistics.</figcaption>
+</figure>
 
 ## A four-token example
 

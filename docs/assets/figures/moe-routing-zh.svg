@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">MoE 路由</title>
+  <desc id="desc">路由器把每个 token 发给少数专家，合并输出，并记录容量与负载均衡。</desc>
+  <defs>
+    <linearGradient id="bgzhmoe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffafe"/><stop offset="1" stop-color="#eef5ff"/></linearGradient>
+    <filter id="shadowzhmoe" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#172033" flood-opacity=".14"/></filter>
+    <marker id="arrowzhmoe" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#59708a"/></marker>
+    <style>.eyebrow{font:700 13px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:2px;fill:#59708a}.title{font:700 29px Inter,ui-sans-serif,system-ui,sans-serif;fill:#172033}.copy{font:400 14px Inter,ui-sans-serif,system-ui,sans-serif;fill:#52657b}.label{font:700 16px Inter,ui-sans-serif,system-ui,sans-serif;fill:#172033}.small{font:400 12px Inter,ui-sans-serif,system-ui,sans-serif;fill:#52657b}.tag{font:700 11px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:1px;fill:#59708a}</style>
+  </defs>
+  <rect width="1200" height="520" rx="28" fill="url(#bgzhmoe)"/>
+  <text x="56" y="48" class="eyebrow">第五部分 · 稀疏模型</text><text x="56" y="84" class="title">一个 token 一条路，多个专家并行</text><text x="56" y="112" class="copy">路由器先分配容量，专家再进行分组矩阵乘法。</text><path d="M56 143H1144" stroke="#d9e0ee" stroke-width="2"/>
+  <g filter="url(#shadowzhmoe)"><rect x="56" y="188" width="210" height="126" rx="18" fill="#dceeff"/><rect x="330" y="188" width="210" height="126" rx="18" fill="#ddf7ee"/><rect x="604" y="188" width="210" height="126" rx="18" fill="#fff0c2"/><rect x="878" y="188" width="266" height="126" rx="18" fill="#ffe0e8"/></g>
+  <g fill="none" stroke="#59708a" stroke-width="2" marker-end="url(#arrowzhmoe)"><path d="M275 251H320"/><path d="M549 251H594"/><path d="M823 251H868"/></g>
+  <g><text x="80" y="220" class="tag">01 · TOKENS</text><text x="80" y="252" class="label">h₁、h₂、h₃、h₄</text><text x="80" y="281" class="small">隐藏状态进入路由</text>
+  <text x="354" y="220" class="tag">02 · ROUTER</text><text x="354" y="252" class="label">分数 rₜ ∈ Rᴱ</text><text x="354" y="281" class="small">softmax + top-k</text>
+  <text x="628" y="220" class="tag">03 · CAPACITY</text><text x="628" y="252" class="label">分配槽位</text><text x="628" y="281" class="small">溢出时丢弃或重路由</text>
+  <text x="902" y="220" class="tag">04 · EXPERTS</text><text x="902" y="252" class="label">E₁ … Eᴱ</text><text x="902" y="281" class="small">分组 GEMM → 加权求和</text></g>
+  <g filter="url(#shadowzhmoe)"><rect x="56" y="368" width="1088" height="88" rx="18" fill="#172033"/></g>
+  <text x="82" y="397" class="tag" fill="#ff9fb3">路由证据</text><text x="82" y="425" class="small" fill="#d9e5f1">记录 top-k、capacity、丢 token 数、专家计数和负载均衡项。</text>
+  <text x="788" y="397" class="tag" fill="#8fe0c0">质量</text><text x="788" y="425" class="small" fill="#d9e5f1">只有路由稳定且可比较，稀疏计算才有意义。</text>
+</svg>

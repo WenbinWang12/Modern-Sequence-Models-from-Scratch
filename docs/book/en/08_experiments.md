@@ -2,7 +2,12 @@
 
 ## Write the comparison protocol first
 
-Names such as `A`, `D`, `E-plus`, `C/F`, or `Loop` have no scientific meaning until their structural differences are written down. A fair comparison fixes every input except the declared axis. Otherwise a lower loss may come from more tokens, a different tokenizer, a larger batch, or a faster kernel.
+Names such as A, D, E-plus, C/F, or Loop have no scientific meaning until their structural differences are written down. A fair comparison fixes every input except the declared axis. Otherwise a lower loss may come from more tokens, a different tokenizer, a larger batch, or a faster kernel.
+
+<figure class="book-figure">
+  <img src="../../../assets/figures/experiment-loop.svg" alt="An experiment moves from contract through training, boundary validation, quality-cost comparison, and the next question">
+  <figcaption><strong>Figure 6. The experiment loop.</strong> A loss curve becomes comparable evidence only when data, budget, implementation, recovery, and limits travel with it.</figcaption>
+</figure>
 
 Keep an experiment identity such as
 

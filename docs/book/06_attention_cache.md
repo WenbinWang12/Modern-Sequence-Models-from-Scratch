@@ -17,6 +17,11 @@ session
 
 这些字段必须一起推进或一起回滚。只恢复 KV 而不恢复 fast weights，会得到另一个模型状态；只恢复 fast weights 而位置错位，后续 RoPE 和 mask 也会错。
 
+<figure class="book-figure">
+  <img src="../../assets/figures/attention-kv-zh.svg" alt="Prefill 建立 KV 缓存，decode 复用历史并追加一个新的 key 和 value">
+  <figcaption><strong>图 4　Prefill 与 decode。</strong> KV cache 保存历史的 key/value；它不是可训练参数，但必须和位置、Delta 状态以及 TTT 快权重一起恢复。</figcaption>
+</figure>
+
 ## Attention 到底在算什么
 
 先用两个 token 做一个最小例子。设每个 token 的 query、key、value 维度都是 \(2\)，位置 1 的 query 为

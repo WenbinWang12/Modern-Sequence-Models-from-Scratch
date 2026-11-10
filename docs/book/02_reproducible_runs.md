@@ -27,6 +27,26 @@ $$
 
 `--initialize-from` 表示使用已有参数作为新实验的初始点。新实验应该有新的输出目录和 experiment identity，optimizer、step、数据顺序可以重新建立。用它从 dense baseline 初始化 TTT 是合理的；用它替代断点恢复会破坏训练曲线的解释。
 
+## 一个最小的失败案例
+
+假设训练在 global step 100 保存 checkpoint。这个 checkpoint 中的参数已经看过 100 个 batch，AdamW 也积累了对应的动量。若只复制 params 到新目录，再把 step 写成 100，下一步虽然能够运行，但它已经不是原实验的 continuation：
+
+1. 优化器的一阶、二阶统计被清零，更新方向会突然改变；
+2. 学习率 schedule 可能从 step 0 开始，或从 step 100 开始但使用了不匹配的 optimizer state；
+3. BatchStream 的 RNG 没有恢复，下一批数据可能与原实验不同；
+4. 数据 manifest 或 sequence length 变化后，step 仍然看起来连续，实际消耗的 token 已经不同。
+
+恢复检查不能只问“文件能否打开”。至少要用同一个初始 checkpoint 做一次短实验：一条路径连续运行，另一条路径在中间保存并 resume，然后比较恢复点之后的下一批输入、step、有效 token 和 loss。低精度归约可能有小数差异，但输入顺序和状态字段不能悄悄变化。
+
+相反，从 baseline 初始化 TTT 时，应明确产生新的身份：
+
+~~~text
+baseline: source=S1, data=D1, step=1000, optimizer=O_dense
+TTT init: source=S2, data=D1, step=0, optimizer=O_ttt
+~~~
+
+这两行共享参数文件，但不是同一次运行；报告不能把第二行的 loss 曲线接在第一行后面。
+
 ## 当前 checkpoint 保存什么
 
 `ttt/checkpoint.py` 将 Experiment、TrainState 和数据状态组合起来。实验对象包含模型和训练配置；TrainState 包含 params、opt_state 和 step；数据状态由 BatchStream 保存。恢复时先检查身份，再读取参数，避免在很晚才发现配置不兼容。
@@ -39,6 +59,19 @@ $$
 把 session snapshot 当成训练 checkpoint，会让优化器和数据采样状态缺失；把训练 checkpoint 当成会话 snapshot，又会携带不该暴露给请求的全局状态。两者需要不同的 schema。
 
 ## 运行目录应能自己解释自己
+
+失败目录也要有固定字段，哪怕进程只完成了环境初始化：
+
+| 字段 | 作用 |
+|---|---|
+| status.json | running、failed、completed、resumable 等生命周期状态 |
+| error.json | 异常类型、阶段、最后一条错误和 traceback 摘要 |
+| experiment.json | commit、解析后的配置、数据与 tokenizer 指纹 |
+| environment.json | Python、JAX、设备、驱动、调度作业信息 |
+| metrics.jsonl | 已写入的 step、loss、有效 token 和梯度统计 |
+| checkpoint/ | 最近一次完整状态，以及是否允许 resume |
+
+这样即使编译阶段失败，也能区分“环境不可用”“配置不合法”和“训练运行后发散”。缺少 status.json 的空目录不能证明作业从未启动，只能说明记录协议没有覆盖初始化失败。
 
 一份可审计的输出目录至少能回答：
 

@@ -19,6 +19,11 @@ evaluation code
 
 再列出唯一改变项，例如 use_fast_mlp、inner.enabled、loop_mode、num_experts 或 layer_types。若研究问题本来就是多个变量的组合，则把组合写成明确的因子，而不是事后解释。
 
+<figure class="book-figure">
+  <img src="../../assets/figures/experiment-loop-zh.svg" alt="实验从契约开始，经过训练恢复、边界验证、质量成本比较，最后记录下一项问题">
+  <figcaption><strong>图 6　实验闭环。</strong> 一条 loss 曲线只有和数据、预算、实现、恢复以及证据一起保存，才构成可比较的研究结果。</figcaption>
+</figure>
+
 ## 质量与成本是二维结果
 
 模型质量常用 train loss、held-out loss 和任务指标衡量。系统成本至少包括参数、active 参数、FLOPs、编译、稳态吞吐、峰值显存、通信、checkpoint 大小和推理延迟。

@@ -18,6 +18,11 @@ h
 
 任何一步出错都可能保留相同 shape，却改变模型。比如 token dispatch 后没有正确恢复原顺序，loss 仍然会是一个有限数字，只是每个位置接收了别人的专家输出。
 
+<figure class="book-figure">
+  <img src="../../assets/figures/moe-routing-zh.svg" alt="路由器根据 hidden state 选择少数专家，经过容量分配后合并专家输出">
+  <figcaption><strong>图 5　MoE 路由。</strong> 路由器、容量和专家分组共同决定每个 token 的动态计算路径；实验报告必须记录路由统计。</figcaption>
+</figure>
+
 ## Router 的数学对象
 
 设有 \(E\) 个专家，router 为位置 \(t\) 产生 \(r_t\in\mathbb{R}^{E}\)。softmax 得到所有专家的概率：

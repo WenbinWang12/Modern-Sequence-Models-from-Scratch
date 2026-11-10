@@ -85,7 +85,7 @@ $\theta$ 是静态参数，$\phi$ 是快权重。外循环学习的是“怎样�
 
 ## 一个手算的 chunk 例子
 
-设 sequence length 为 8，chunk size 为 4。输入位置 0–7 被分成两块：
+设 sequence length 为 8，chunk size 为 4。下面的 0–7 是代码数组索引；按全书记号，数学位置对应 \(1\)–\(8\)。代码中的输入索引 0–7 被分成两块：
 
 ~~~text
 chunk 0: positions 0,1,2,3

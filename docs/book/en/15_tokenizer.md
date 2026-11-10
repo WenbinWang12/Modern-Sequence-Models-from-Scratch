@@ -13,6 +13,40 @@ $$
 
 A token need not be a complete word; it may be a byte, character, or subword. The ID is an index, so its numeric value does not express semantic similarity. The tokenizer therefore fixes the sequence length seen by the model, the set of representable strings, and the boundary semantics of special tokens.
 
+## How the tokenizer relates to the vocabulary
+
+The **vocabulary** is one component produced by a tokenizer. It records which tokens are available and which integer ID represents each token. For example:
+
+~~~text
+"low"   -> 1523
+"er"    -> 4987
+"<eos>" -> 2
+~~~
+
+The **tokenizer** is the larger system. It includes:
+
+- a normalizer for Unicode, case, and whitespace;
+- a pre-tokenizer for initial boundaries;
+- the vocabulary and token-to-ID mapping;
+- segmentation rules such as BPE merges or Unigram probabilities;
+- a decoder for reconstructing text;
+- special-token handling.
+
+The vocabulary is therefore not trained separately and then handed to the tokenizer. BPE training usually learns the vocabulary and merge rules together; Unigram training produces a vocabulary and subword probabilities together. A fixed byte tokenizer can skip statistical training because its vocabulary is specified in advance.
+
+Keep tokenizer training separate from language-model training:
+
+~~~text
+text corpus
+→ tokenizer training
+→ vocabulary + segmentation rules
+→ freeze tokenizer
+→ token IDs
+→ Transformer training of embeddings and model parameters
+~~~
+
+Transformer pretraining learns embeddings, attention, MLP, and other neural parameters. It does not automatically change the vocabulary. Changing the vocabulary or segmentation rules changes the model input space, so token shards usually need to be regenerated and embeddings reinitialized or explicitly converted.
+
 ## Vocabulary size and parameter count
 
 With vocabulary \(V\) and hidden size \(d\):
@@ -78,6 +112,109 @@ After training, save at least:
 - the training manifest, code version, and output digest.
 
 Evaluation should measure more than whether a vocabulary file was produced. On independent representative data, measure tokens per byte, tokens per document, language-specific length, code segmentation, unknown or fallback rates, and EOS or special-token frequency. The tokenizer-training corpus should not contain validation or benchmark text; otherwise the segmentation rules themselves can carry contamination.
+
+## How to train a tokenizer in practice
+
+Tokenizer training does not require choosing a Transformer first. The training object is a set of BPE merge rules, Unigram subword probabilities, or WordPiece vocabulary criteria. The Transformer is trained only after the tokenizer is fixed.
+
+### Prepare the corpus
+
+Train on the `train` portion of the pretraining data, using the same Unicode normalization and text-extraction rules as the final pipeline. If the source is JSONL, extract the `text` field into a plain-text file with one document per line. Do not include validation, test, or benchmark text.
+
+Record the corpus manifest and version, document and whitespace boundaries, normalizer, pre-tokenizer, algorithm, target vocabulary size, and special-token strings and IDs.
+
+### Train BPE or Unigram with SentencePiece
+
+SentencePiece can train BPE or Unigram directly from raw text. This command trains BPE; replace `--model_type=bpe` with `unigram` for a Unigram model:
+
+~~~bash
+spm_train \
+  --input=data/tokenizer/train.txt \
+  --model_prefix=outputs/tokenizer-32k \
+  --model_type=bpe \
+  --vocab_size=32000 \
+  --character_coverage=1.0 \
+  --pad_id=0 \
+  --bos_id=1 \
+  --eos_id=2 \
+  --unk_id=3
+~~~
+
+Save the complete command, SentencePiece version, input-manifest hash, and output digest. For multilingual data, report character coverage, whitespace handling, and Unicode rules explicitly.
+
+### Train byte-level BPE with the repository script
+
+The repository now provides a real tokenizer-generation entry point: [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py). It reads plain text or JSONL, trains BPE or Unigram, and uses `PreTrainedTokenizerFast.save_pretrained` to write a directory that `AutoTokenizer.from_pretrained` can load.
+
+Install the tokenizer extra:
+
+~~~bash
+uv sync --extra tokenizer
+~~~
+
+Train a 32K byte-level BPE model from the `text` field of a JSONL corpus:
+
+~~~bash
+uv run python scripts/train_tokenizer.py \
+  --input data/tokenizer/train.jsonl \
+  --output outputs/tokenizer-32k \
+  --algorithm bpe \
+  --vocab-size 32000 \
+  --text-key text
+~~~
+
+Use `--algorithm unigram` for Unigram. Add `--no-byte-level` when the experiment should use whitespace pre-tokenization. The output directory contains `tokenizer.json`, special-token configuration, and `tokenizer_metadata.json` with input hashes, algorithm, vocabulary size, and special tokens.
+
+The script reads JSONL into temporary plain-text training files, constructs `models.BPE` or `models.Unigram`, creates the corresponding trainer, calls `tokenizer.train(...)`, and saves the result through `PreTrainedTokenizerFast`. It produces tokenizer files, not a Transformer checkpoint.
+
+### Use the Hugging Face Tokenizers API directly
+
+The `tokenizers` library lets the experiment define the normalizer, pre-tokenizer, and trainer explicitly:
+
+~~~python
+from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, trainers
+
+tokenizer = Tokenizer(models.BPE(unk_token="<unk>"))
+tokenizer.normalizer = normalizers.NFKC()
+tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+
+trainer = trainers.BpeTrainer(
+    vocab_size=32_000,
+    special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
+)
+tokenizer.train(["data/tokenizer/train.txt"], trainer)
+tokenizer.save("outputs/tokenizer-32k/tokenizer.json")
+~~~
+
+This trains byte-level BPE. Switching to Unigram requires a different model and trainer and a new recorded configuration; changing only the filename or `vocab_size` is not enough.
+
+### Connect the trained tokenizer to the model
+
+Before training the language model, run an independent check:
+
+~~~text
+tokenizer files
+→ encode/decode round trip
+→ token ID range check
+→ special-token check
+→ tokens/byte and length statistics
+→ token shards and manifest
+→ set model vocab_size
+→ train the dense baseline
+~~~
+
+The current repository uses `ttt.data` to load a trained tokenizer and generate token shards; the training entry point is `scripts/train_tokenizer.py`. After training, pass the output directory to `ttt.data` and generate new token shards. Old token IDs cannot be reused with a new vocabulary.
+
+### Where these steps live in the repository
+
+- [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py): train BPE/Unigram from plain text or JSONL and save a Hugging Face tokenizer directory;
+- [`ByteTokenizer` and `HuggingFaceTokenizer`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/data.py#L14-L53): byte-tokenizer implementation, loading of prepared Hugging Face tokenizers, and the shared `encode`/`decode` interface;
+- [`load_tokenizer` and data conversion entry points](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/data.py#L51-L147): select a tokenizer and convert JSONL or text into token files;
+- [`prepare_sharded_data`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/dataset.py#L82-L168): write token shards and a manifest with hashes, vocabulary size, and mask metadata;
+- [`ExperimentConfig.tokenizer`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/config.py#L17-L24): connect the tokenizer name and vocabulary constraint to training configuration;
+- [`generate.py` vocabulary check](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/generate.py#L25-L27): prevent a tokenizer vocabulary from exceeding the model output dimension.
+
+The SentencePiece command and `tokenizers` Python example explain the algorithms; the repository's actual generation entry point is [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py). `ttt.data` loads its output, validates IDs, and creates shards.
 
 ## Byte tokenizer in this repository
 

@@ -15,6 +15,40 @@ $$
 
 这里的 token 不一定是完整单词，也可能是字节、字符或子词；ID 只是索引，数值大小规律不表示语义相似度。Tokenizer 因此同时定义了模型看到的序列长度、可表示的字符串集合和特殊 token 的边界语义。
 
+## Tokenizer 和词表是什么关系
+
+**词表**是 tokenizer 产生的一个组成部分。它记录哪些 token 可以使用，以及每个 token 对应哪个整数 ID。例如，词表可能包含：
+
+~~~text
+"low"  → 1523
+"er"   → 4987
+"<eos>" → 2
+~~~
+
+**Tokenizer** 是更完整的系统，至少包括：
+
+- normalizer：如何处理 Unicode、大小写和空格；
+- pre-tokenizer：如何确定初始切分边界；
+- vocabulary：token 到 ID 的映射；
+- segmentation rules：例如 BPE merge rules 或 Unigram 概率；
+- decoder：如何从 token 恢复文本；
+- special-token 处理规则。
+
+因此，词表不是先独立训练好、再交给 tokenizer 使用的对象。训练 BPE 时，词表和 merge rules 通常一起学习；训练 Unigram 时，词表和子词概率一起产生。只有 Byte tokenizer 这类固定映射，才可以不经过统计训练，直接预先规定词表。
+
+还要区分 tokenizer 训练和语言模型训练：
+
+~~~text
+文本语料
+→ tokenizer 训练
+→ vocabulary + 切分规则
+→ 固定 tokenizer
+→ token IDs
+→ Transformer 训练 embedding 和模型参数
+~~~
+
+Transformer 训练的是 embedding、attention、MLP 等神经网络参数；它不会在预训练过程中自动改变词表。更换词表或切分规则，就等于改变了模型输入空间，通常需要重新生成 token 分片并重新初始化或转换 embedding。
+
 ## 词表大小怎样进入参数量
 
 设词表为 \(V\)，隐藏维度为 \(d\)。输入 embedding 是 \(V\times d\)，参数量为 \(Vd\)。如果不共享输出权重，`lm_head` 还需要一个 \(d\times V\) 的矩阵；如果 tied embedding，则使用 embedding 的转置。
@@ -73,6 +107,116 @@ Tokenizer 训练结束后，至少要保存：
 - 训练语料 manifest、代码版本和输出摘要。
 
 评估不能只看词表是否成功生成。还要在独立的代表性语料上测量 tokens/byte、tokens/document、中文和英文的长度差异、代码片段的切分、unknown 或 fallback 比例，以及 EOS 和其他特殊 token 的频率。Tokenizer 训练语料不应混入验证集或评测集，否则切分规则本身也可能带来污染。
+
+## 实际如何训练一个 tokenizer
+
+实际训练 tokenizer 时，不需要先选择一个 Transformer。训练对象是 BPE 的合并规则、Unigram 的子词概率或 WordPiece 的词表准则。Transformer 只在 tokenizer 固定以后，才使用这些 token 进行预训练。
+
+### 准备训练语料
+
+Tokenizer 训练语料应来自预训练数据的 `train` 部分，并使用与正式数据相同的 Unicode 规范化和文本抽取规则。若原始数据是 JSONL，先抽取 `text` 字段，生成每行一篇文档的纯文本文件；不要把 validation、test 或 benchmark 文本混入 tokenizer 训练。
+
+训练前要写清楚：
+
+- 语料 manifest 和版本；
+- 文档边界以及换行、空格如何保留；
+- normalizer 和 pre-tokenizer；
+- BPE、Unigram 或 WordPiece；
+- 目标词表大小和计数口径；
+- special token 的字符串、ID 和添加位置。
+
+### 用 SentencePiece 训练 BPE 或 Unigram
+
+SentencePiece 可以直接从原始文本训练 BPE 或 Unigram。下面是一个 BPE 示例；将 `--model_type=bpe` 改成 `unigram` 可以训练 Unigram：
+
+~~~bash
+spm_train \
+  --input=data/tokenizer/train.txt \
+  --model_prefix=outputs/tokenizer-32k \
+  --model_type=bpe \
+  --vocab_size=32000 \
+  --character_coverage=1.0 \
+  --pad_id=0 \
+  --bos_id=1 \
+  --eos_id=2 \
+  --unk_id=3
+~~~
+
+命令会生成 tokenizer 模型和词表文件。正式记录还应保存完整命令、SentencePiece 版本、输入 manifest 的 hash 和输出文件摘要。对于多语言语料，`character_coverage`、空格处理和 Unicode 规则尤其需要单独报告。
+
+### 用仓库脚本训练 Byte-level BPE
+
+仓库现在提供了实际生成 tokenizer 文件的入口：[scripts/train_tokenizer.py](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py)。它读取纯文本或 JSONL，训练 BPE/Unigram，并通过 `PreTrainedTokenizerFast.save_pretrained` 保存可以被 `AutoTokenizer.from_pretrained` 加载的目录。
+
+先安装 tokenizer 依赖：
+
+~~~bash
+uv sync --extra tokenizer
+~~~
+
+然后从 JSONL 的 `text` 字段训练一个 32K Byte-level BPE：
+
+~~~bash
+uv run python scripts/train_tokenizer.py \
+  --input data/tokenizer/train.jsonl \
+  --output outputs/tokenizer-32k \
+  --algorithm bpe \
+  --vocab-size 32000 \
+  --text-key text
+~~~
+
+训练 Unigram 时改用 `--algorithm unigram`；如果不希望从 byte 开始，可以加入 `--no-byte-level`。输出目录包含 `tokenizer.json`、special-token 配置和 `tokenizer_metadata.json`，后者记录输入文件 hash、算法、词表大小和 special token。
+
+脚本的主要代码路径是：读取 JSONL 并生成临时纯文本、构造 `models.BPE` 或 `models.Unigram`、创建对应 trainer、调用 `tokenizer.train(...)`，最后用 `PreTrainedTokenizerFast` 保存模型。这个过程生成的是 tokenizer 文件，不是 Transformer checkpoint。
+
+### 直接使用 Hugging Face Tokenizers API
+
+也可以用 `tokenizers` 库在 Python 中显式定义 normalizer、pre-tokenizer 和 trainer：
+
+~~~python
+from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, trainers
+
+tokenizer = Tokenizer(models.BPE(unk_token="<unk>"))
+tokenizer.normalizer = normalizers.NFKC()
+tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+
+trainer = trainers.BpeTrainer(
+    vocab_size=32_000,
+    special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
+)
+tokenizer.train(["data/tokenizer/train.txt"], trainer)
+tokenizer.save("outputs/tokenizer-32k/tokenizer.json")
+~~~
+
+这段代码训练的是 Byte-level BPE。若更换到 Unigram，需要更换 model 和 trainer，同时重新记录 tokenizer 的配置；不能只修改文件名或 `vocab_size`。
+
+### 训练完成后怎样接入模型
+
+训练完成后先做独立检查：
+
+~~~text
+tokenizer files
+→ encode/decode round trip
+→ token ID 范围检查
+→ special token 检查
+→ tokens/byte 和长度分布
+→ 生成 token shards 和 manifest
+→ 设置模型 vocab_size
+→ 训练 dense baseline
+~~~
+
+当前仓库的 `ttt.data` 负责加载训练好的 tokenizer 并生成 token 分片；subword tokenizer 的训练入口是 `scripts/train_tokenizer.py`。训练完成后，可以把输出目录传给 `ttt.data` 的 `--tokenizer`，再生成新的 token 分片。更换 tokenizer 后必须重新生成分片，不能让旧 token ID 直接沿用新词表。
+
+### 这些步骤在仓库中的代码位置
+
+- [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py)：从纯文本或 JSONL 语料训练 BPE/Unigram，并保存 Hugging Face tokenizer 目录；
+- [`ByteTokenizer` 与 `HuggingFaceTokenizer`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/data.py#L14-L53)：定义 byte tokenizer、加载已有 Hugging Face tokenizer，以及统一的 `encode`/`decode` 接口；
+- [`load_tokenizer` 与数据转换入口](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/data.py#L51-L147)：根据配置选择 tokenizer，把 JSONL 或文本转换为 token 文件；
+- [`prepare_sharded_data`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/dataset.py#L82-L168)：把 token 序列写成带 hash、词表大小和 mask 信息的分片 manifest；
+- [`ExperimentConfig.tokenizer`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/config.py#L17-L24)：把 tokenizer 名称和模型词表约束接入训练配置；
+- [`generate.py` 的词表检查](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/generate.py#L25-L27)：防止 tokenizer 词表大于模型输出维度。
+
+本节中的 SentencePiece 命令和 `tokenizers` Python 示例解释算法；仓库实际的生成入口是 [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py)。`ttt.data` 负责加载输出目录、检查 ID 并生成分片。
 
 ## Byte tokenizer 是什么
 

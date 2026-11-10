@@ -18,7 +18,7 @@ python docs/tools/export_figures.py --docs-dir docs
 mkdocs build --site-dir site
 ~~~
 
-不要在未运行 `export_figures.py` 的干净克隆中直接执行 `mkdocs build`：`assets/figures/exports/` 被 Git 忽略，缺少生成资产时图页的下载链接不会成立。发布工作流会按上面的顺序自动生成它们。
+不要在未运行 `export_figures.py` 的干净克隆中直接执行 `mkdocs build`：`assets/figures/exports/` 被 Git 忽略，缺少生成资产时图页的下载链接不会成立。发布工作流会按上面的顺序自动生成它们；本页命令也适用于本轮更新后的六张双语教学图。
 
 本项目的模型与数据 CPU 测试仍使用指定远端节点；不要把本目录的文档发布流程用作替代测试环境。
 

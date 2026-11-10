@@ -1,5 +1,25 @@
 # 1　实验契约：让一次运行成为一个可以解释的实验
 
+## 本章导读：先把“比较”写成一个问题
+
+假设我们训练同一个 tiny 模型两次：第一次关闭 TTT 内循环，第二次打开它。如果第二次的 loss 更低，我们还不能立刻说“TTT 有效”。两次运行可能读了不同的 token、用了不同的学习率，甚至第二次从一个已经训练过的 checkpoint 开始。本章把“我想知道什么”翻译成一份机器可以检查的实验契约。
+
+读完本章，你应该能完成一件具体的事：给一个 control/variant 对照填写研究变量、固定变量、预算和证据文件，并判断一次运行属于“可运行”“可学习”还是“可解释”。本章只讨论实验身份；模型结构和数据处理分别在后面的章节定义。
+
+## 贯穿例子：tiny-contract-001
+
+后文使用 <code>tiny-contract-001</code> 作为示例。它读取 <code>configs/tiny.json</code> 和由 <code>examples/sample.txt</code> 生成的 byte-token 分片，运行 4 个训练 step、batch size 为 1、sequence length 为 16。control 关闭 inner update，variant 只把 <code>inner.enabled</code> 从 <code>false</code> 改为 <code>true</code>，其他字段和输入文件保持不变。
+
+| 字段 | control | variant |
+|---|---|---|
+| 实验身份 | <code>tiny-contract-001-C</code> | <code>tiny-contract-001-F</code> |
+| 唯一改变 | <code>inner.enabled=false</code> | <code>inner.enabled=true</code> |
+| 固定内容 | commit、tokenizer、数据、16-token window、4 steps、seed、dtype | 同左 |
+| 主要指标 | <code>loss</code>、<code>valid_tokens</code>、<code>tokens_per_second</code> | 同左 |
+| 证据目录 | <code>outputs/tiny-contract-001-C/</code> | <code>outputs/tiny-contract-001-F/</code> |
+
+这张表先于任何结果存在。它防止我们在看到结果以后才修改“比较条件”。
+
 ## 先约定我们要证明什么
 
 这本书不把“代码能够执行”当作研究结论。我们要回答的是：在相同的数据、训练预算和系统条件下，一个新的序列模块是否改变了模型保存、更新和使用上下文的方式，并且这种改变是否带来可重复的质量或效率收益。
@@ -48,6 +68,8 @@ $$
 
 一次实验可以改变其中一项，但必须把改变写成研究变量。若同时改变架构、Tokenizer 和训练 token，就应把它称为新的配方，而不是架构消融。
 
+一个常见的不可归因例子是：control 使用 byte tokenizer、sequence length 16，variant 换成子词 tokenizer、sequence length 32，同时 loss 下降。这个结果混合了词表、token 数量和上下文长度三个变化；它可以作为新配方记录，但不能支持“某个 TTT 组件造成下降”的结论。
+
 ## 三层完成标准
 
 每次运行都按三个层次报告。
@@ -76,6 +98,16 @@ report.md         # 面向读者的解释和结论边界
 ~~~
 
 JSON、JSONL 和 checkpoint 是事实来源，Markdown 报告是阅读入口。报告中的数字必须能够回到运行目录中的原始记录；手工抄写的数字不能替代机器生成的证据。
+
+对 <code>tiny-contract-001</code>，读者应能按下面的映射找到证据：
+
+| 论断 | 首要证据 | 成功判据 |
+|---|---|---|
+| 运行使用了预期配置 | <code>experiment.json</code> | 与 <code>configs/tiny.json</code> 解析结果一致 |
+| 运行使用了预期设备 | <code>environment.json</code> | backend、device 数量和 dtype 已记录 |
+| 模型确实更新 | <code>metrics.jsonl</code> | 有限 loss、非零梯度或参数摘要发生变化 |
+| 运行可以恢复 | <code>latest.json</code>、checkpoint、<code>status.json</code> | resume 后 step 和下一批数据连续 |
+| 结论可以比较 | <code>report.md</code>、control/variant 表 | 研究变量只有声明的一项 |
 
 训练 checkpoint、服务 session snapshot 和实验报告不是同一种对象。训练 checkpoint 需要恢复模型、优化器、global step 和数据状态；session snapshot 需要恢复 KV、快权重、位置和请求状态；报告则解释这些状态支持什么结论。
 
@@ -110,3 +142,11 @@ JSON、JSONL 和 checkpoint 是事实来源，Markdown 报告是阅读入口。�
 > 在固定的 tiny 配置和已声明控制变量下，只改变一个研究变量，我们观察到某个指标发生变化。该结果支持一个边界清楚的结论，但不能直接推广到尚未控制或验证的条件。
 
 本书后面的每个章节都遵守这份契约。环境章节回答“在哪里运行”，数据与表示章节回答“模型实际看到了什么”，baseline 章节回答“系统是否真的会学习”，架构章节回答“状态如何改变”，实验章节回答“收益是否来自这个改变”。
+
+## 本章小结
+
+- 一个实验身份至少包含源码、解析配置、数据指纹、环境、随机与优化状态、预算和输出证据；
+- control/variant 必须先写固定项和唯一改变，再启动训练；
+- 可运行、可学习、可解释是三个不同门槛；
+- checkpoint、session snapshot 和报告服务不同的恢复与解释目的；
+- tiny-contract-001 的下一步是先在环境章节生成样例 token，并确认这份契约能被真实输出填满。

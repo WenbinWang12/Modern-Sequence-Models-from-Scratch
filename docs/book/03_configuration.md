@@ -1,5 +1,15 @@
 # 14　配置：用一份架构合同约束所有张量
 
+## 本章导读：让每个数字都有来源
+
+在 <code>tiny-contract-001</code> 中，词表大小是 259、隐藏宽度是 16、attention 有 2 个 query head。读者应该能够从这三个数字一路算到 embedding、每个 head、残差流和 logits 的形状；如果某个数字只能在代码深处找到，配置就还不是实验合同。
+
+读完本章，你应该能加载一份配置，列出解析后的默认值，手算一个 batch 的 shape，并解释为什么 tokenizer 的词表大小会固定分类头最后一维。本章不讨论训练是否有效，下一章才会把这些 shape 接到 loss。
+
+## 预备知识和 tiny 目标
+
+你只需要知道矩阵可以把一组数字映射成另一组数字。贯穿输入为 <code>input_ids</code>，形状是 <code>[B,L]=[2,4]</code>；本章的完成标准是写出它经过 embedding、attention/MLP 和 <code>lm_head</code> 后的每个形状。
+
 ## 为什么模型不应该“猜”参数
 
 如果模型代码在 forward 里根据张量形状猜 head 数、词表或快权重层位置，实验配置就会变成隐藏状态。一个 JSON 看起来写了 hidden_size，实际模型却在别处覆盖它，最后得到的是无法审计的结构。
@@ -106,3 +116,21 @@ ttt_chunk_size = 4
 第一个位置的预测不是一个长度任意的向量，而是 259 个候选 token 的分数；目标标签只是其中一个整数，例如 \(y=42\)。这一步把“词表大小决定分类头最后一维”变成了可手算的 shape 事实。
 
 下一章沿着这张 shape 图追踪一个 token，理解 Attention、MLP′、普通 FFN 和残差的先后顺序。
+
+## 最小配置审计
+
+在远端节点上，先确认配置可以被解析，再启动训练：
+
+~~~bash
+python3 -c "from ttt.config import load_experiment; import json; print(json.dumps(load_experiment('configs/tiny.json').to_dict(), ensure_ascii=False, indent=2))"
+~~~
+
+预期输出中应同时出现 <code>model</code>、<code>inner</code>、<code>training</code> 和 <code>tokenizer</code>，并包含补全后的派生字段。若出现 head 不整除、特殊 token 越界或 sequence length 超过位置上限，先修配置，不要等待 XLA 编译后再查。这个命令只证明配置合同可以解析，不证明 forward 或训练已经正确。
+
+## 本章小结
+
+- 配置合同同时约束参数 shape、状态边界、成本和比较公平性；
+- \(V\) 决定 embedding 和 logits 的词表轴，\(d\) 决定残差流宽度；
+- 默认值必须写入解析后的实验记录；
+- tiny shape walk 把抽象字段连接到真实张量；
+- 下一章在同一份配置上计算 logits、交叉熵和梯度。

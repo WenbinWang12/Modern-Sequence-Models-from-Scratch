@@ -108,3 +108,40 @@ chunk 0 使用 $\phi_0$ 产生 $\mathcal{L}_0$，并更新成 $\phi_1$。chunk 1
 GPU 验证脚本会生成架构和运行时报告，但报告中的数值必须关联到 config 与初始参数。一次通过不说明所有长度和所有 layer_types 都通过。
 
 下一章把前向中的更新写成内循环与外循环，解释损失如何在两个时间尺度之间流动。
+
+## 一个 token 的 shape walk
+
+用 tiny 配置的 \(d=16\)、\(V=259\)、batch \(B=1\) 和位置数 \(L=4\) 走一遍：
+
+| 阶段 | 代码对象 | 形状 | 读者要检查的事实 |
+|---|---|---|---|
+| 输入 | <code>input_ids</code> | \([1,4]\) | 每个整数在 \([0,259)\) |
+| embedding | hidden | \([1,4,16]\) | token ID 变成残差向量 |
+| attention/delta | residual | \([1,4,16]\) | 只读取允许的历史位置 |
+| MLP′ | fast branch | \([1,4,16]\) | 中间宽度可变，输出回到 16 |
+| 输出 | logits | \([1,4,259]\) | 每个位置有 259 个候选分数 |
+
+这张表的最后一列比“shape 能对上”更重要：它说明每个接口为什么需要这个形状。
+
+## 一个可计算的因果性断言
+
+设 prefix 代码索引为 0、1，suffix 为 2、3。用同一初始参数和 mask 跑两次，只把索引 3 的 token 从 18 改为 19。记录 prefix logits 的最大绝对差：
+
+~~~text
+max_abs_diff(logits_a[:, 0:2, :], logits_b[:, 0:2, :]) <= 1e-6
+max_abs_diff(logits_a[:, 2:, :], logits_b[:, 2:, :]) may be > 0
+~~~
+
+第一行失败说明未来信息泄漏到 prefix；第二行允许变化，因为 suffix 看到了不同输入。这个断言比只检查输出 shape 更能验证 causal mask 和 fast-state 更新边界。
+
+## 本章最小验证
+
+在远端 GPU 节点运行 <code>bash scripts/validate_gpu.sh outputs/gpu-validation.json</code>。预期报告至少包含架构摘要、整段与流式 logits 比较、因果性检查、状态 shape 和恢复结果。若失败，先查看报告中的 config、mask 和 initial state；通过一次 tiny 长度只说明该组合通过，不代表所有 layer type 和上下文长度都通过。
+
+## 本章小结
+
+- 前向顺序决定每条残差路径看到的输入和状态；
+- fast weights 是序列/会话状态，不是普通 AdamW 参数；
+- prefix/suffix、chunk 和 mask 必须使用同一位置坐标；
+- 因果性要通过修改未来 token 的数值断言验证；
+- 下一章把这里的状态转移展开为 inner 与 outer 两条梯度路径。

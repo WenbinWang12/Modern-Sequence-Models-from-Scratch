@@ -1,5 +1,25 @@
 # 3. Repositories and reproducible runs
 
+## Overview: interrupt a tiny run and prove that it continues
+
+“The checkpoint opens” is not a recovery experiment. We need to show that an uninterrupted run and an interrupted-then-resumed run read the same next input, use the same step and optimizer state, and produce the same next result within a declared tolerance. We use <code>tiny-contract-001-C</code> from the previous chapter.
+
+After this chapter, you should be able to distinguish <code>--resume</code> from <code>--initialize-from</code>, explain why the random stream is part of experiment state, and decide from <code>status.json</code>, <code>metrics.jsonl</code>, and a checkpoint whether a failure is safely resumable.
+
+## Prerequisites and comparison table
+
+Suppose a tiny run saves at step 2. One path continues to step 4; the other resumes from step 2 and also continues to step 4:
+
+| Check | Uninterrupted | Resumed | Passing condition |
+|---|---:|---:|---|
+| Starting point | step 0 | step 2 | the same checkpoint is loaded |
+| Next batch index | 2→3 | 2→3 | <code>BatchStream</code> state agrees |
+| Optimizer step | 2→3 | 2→3 | it does not return to 0 |
+| Valid-token count | 16 | 16 | it agrees with the uninterrupted path |
+| Loss | \(L_3\) | \(L'_3\) | \(\lvert L_3-L'_3\rvert\leq\epsilon\) |
+
+Recovery is therefore a state comparison, not a file-existence check.
+
 ## A run is an object
 
 A command proves that a program started. It does not explain why the result looks the way it does. A reproducible run has an identity made from source, configuration, data, environment, and state.
@@ -89,3 +109,26 @@ Failures should leave their output directory and error status. A failed compile 
 ## Transition
 
 Two runs are comparable only when tokens, tokenizer, sequence length, effective batch, optimizer, seed, architecture, and data manifest match or are declared as variables. The next chapter makes those architectural constraints explicit through the vocabulary and configuration objects.
+
+## Minimal recovery checkpoint
+
+Generate sample data and start a tiny run that writes intermediate state:
+
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+bash scripts/run_train.sh \
+  --config configs/tiny.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/tiny-contract-001-C \
+  --auto-resume
+~~~
+
+On success, inspect <code>outputs/tiny-contract-001-C/status.json</code>, <code>metrics.jsonl</code>, <code>latest.json</code>, and <code>step_*.npz</code>. Interrupt after step 2 and run the same command again; it should continue from the saved step rather than silently writing step 0. If the next loss or input order differs, compare data state and optimizer state before blaming low-precision reductions.
+
+## Summary
+
+- Resume continues one optimization process; initialize-from creates a new experiment identity.
+- The random stream, sampler position, optimizer state, and global step are part of recovery semantics.
+- An output directory must describe success, failure, and resumability.
+- Recovery compares state and next-step behavior, not only the final checkpoint file.
+- The next chapter connects these identity fields to model shapes and vocabulary dimensions.

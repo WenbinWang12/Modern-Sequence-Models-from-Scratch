@@ -120,3 +120,40 @@ A useful validation set contains at least four checks:
 The GPU validation script writes architecture and runtime reports. Every report must be tied to the configuration, initial parameter state, mask, and software revision. One passing sequence length does not prove that every <code>layer_type</code>, chunk size, or session boundary is correct.
 
 The next chapter turns this forward order into an explicit inner loop and outer loop, and follows the loss through both time scales.
+
+## Shape walk for one token
+
+Use the tiny configuration with \(d=16\), \(V=259\), batch \(B=1\), and \(L=4\) positions:
+
+| Stage | Code object | Shape | Check |
+|---|---|---|---|
+| Input | <code>input_ids</code> | \([1,4]\) | every integer is in \([0,259)\) |
+| Embedding | hidden | \([1,4,16]\) | token IDs become residual vectors |
+| Attention/delta | residual | \([1,4,16]\) | only permitted history is read |
+| MLP-prime | fast branch | \([1,4,16]\) | intermediate width returns to 16 |
+| Output | logits | \([1,4,259]\) | every position has 259 candidate scores |
+
+The last column matters as much as the shape: it explains why each interface has that shape.
+
+## A numerical causality assertion
+
+Let code indices 0 and 1 be the prefix and 2 and 3 be the suffix. Run twice with the same initial parameters and mask, changing only the token at index 3 from 18 to 19. Record the maximum absolute logit difference:
+
+~~~text
+max_abs_diff(logits_a[:, 0:2, :], logits_b[:, 0:2, :]) <= 1e-6
+max_abs_diff(logits_a[:, 2:, :], logits_b[:, 2:, :]) may be > 0
+~~~
+
+The first line failing indicates future information reached the prefix. The second line may change because the suffix saw a different input. This assertion tests the causal mask and fast-state boundary more directly than an output-shape check.
+
+## Minimal validation
+
+On a remote GPU node, run <code>bash scripts/validate_gpu.sh outputs/gpu-validation.json</code>. The report should contain an architecture summary, full-sequence versus streaming logits, a causality check, state shapes, and restore results. If it fails, inspect the configuration, mask, and initial state in the report first. Passing one tiny length does not establish every layer type or context length.
+
+## Summary
+
+- Forward order determines what each residual path and state can observe.
+- Fast weights are sequence or session state, not ordinary AdamW parameters.
+- Prefix/suffix, chunks, and masks must use the same position coordinate.
+- Causality requires a numerical future-token perturbation test.
+- The next chapter expands this state transition into inner and outer gradient paths.

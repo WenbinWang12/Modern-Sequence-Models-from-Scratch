@@ -1,5 +1,15 @@
 # 14. Configuration: one contract for every tensor shape
 
+## Overview: give every number a source
+
+In <code>tiny-contract-001</code>, the vocabulary has 259 entries, the residual width is 16, and attention has two query heads. A reader should be able to follow those numbers through the embedding, each head, the residual stream, and the logits. If a number is only discoverable deep inside the code, the configuration is not yet an experiment contract.
+
+After this chapter, you should be able to load a configuration, list its resolved defaults, hand-calculate a batch shape, and explain why the tokenizer vocabulary fixes the last dimension of the language-model head. Whether the model learns is the next chapter's question.
+
+## Prerequisites and tiny target
+
+You only need the idea that a matrix maps one collection of numbers to another. The running input is <code>input_ids</code> with shape <code>[B,L]=[2,4]</code>. The completion standard is to write down every shape after embedding, attention/MLP, and <code>lm_head</code>.
+
 ## Why configuration must be explicit
 
 Suppose a model silently chooses the number of heads from a tensor shape inside `forward`. The JSON may say `hidden_size=768`, while a later edit changes the actual head layout. Two runs then appear to share a configuration but instantiate different computation graphs. A configuration object should be an architecture contract: it lists every field that changes parameter shapes, state, cost, or comparison fairness, validates it immediately, and saves the completed defaults.
@@ -79,3 +89,20 @@ ttt_chunk_size = 4
 ~~~
 
 Then draw `embedding -> attention -> MLP/MLP-prime -> residual -> lm_head` and annotate each shape. If one number has no source, the configuration is not yet an auditable contract. The next chapter follows the same shapes through a complete forward pass.
+## Minimal configuration audit
+
+On the remote node, parse the resolved configuration before launching training:
+
+~~~bash
+python3 -c "from ttt.config import load_experiment; import json; print(json.dumps(load_experiment('configs/tiny.json').to_dict(), ensure_ascii=False, indent=2))"
+~~~
+
+The output should contain <code>model</code>, <code>inner</code>, <code>training</code>, and <code>tokenizer</code>, including resolved derived fields. If head divisibility, special-token ranges, or sequence-length limits fail, repair the configuration before waiting for XLA compilation. This command proves that the contract parses; it does not prove that the forward pass or training is correct.
+
+## Summary
+
+- The configuration contract fixes parameter shapes, state boundaries, cost, and comparison fairness.
+- \(V\) determines the vocabulary axis of the embedding and logits; \(d\) determines residual width.
+- Resolved defaults must be written into the experiment record.
+- A tiny shape walk connects abstract fields to real tensors.
+- The next chapter computes logits, cross-entropy, and gradients from the same configuration.

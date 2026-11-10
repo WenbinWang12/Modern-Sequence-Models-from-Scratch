@@ -1,5 +1,25 @@
 # 3　可复现实验：把一次运行变成一个有身份的对象
 
+## 本章导读：中断一次 tiny run，再证明它真的接上了
+
+“能打开 checkpoint”不是恢复实验。我们要证明的是：连续运行和中断后恢复运行，在恢复点之后读取相同的输入、使用相同的 step 和 optimizer state，并在数值容忍范围内得到相同的下一步结果。本章使用上一章的 <code>tiny-contract-001-C</code>，把这个问题变成一条可以检查的路径。
+
+读完本章，你应该能区分 <code>--resume</code> 与 <code>--initialize-from</code>，解释 RNG 为什么是实验状态，并从 <code>status.json</code>、<code>metrics.jsonl</code> 和 checkpoint 判断一次失败是否可恢复。
+
+## 预备知识和结果表
+
+假设 tiny run 在 step 2 保存 checkpoint，连续路径继续到 step 4，中断路径从 step 2 恢复后也继续到 step 4：
+
+| 检查项 | 连续路径 | 恢复路径 | 成功判据 |
+|---|---:|---:|---|
+| 起点 | step 0 | step 2 | 恢复路径加载同一 checkpoint |
+| 下一批索引 | 2→3 | 2→3 | <code>BatchStream</code> 状态一致 |
+| optimizer step | 2→3 | 2→3 | 不回到 0 |
+| valid token 数 | 16 | 16 | 与连续路径一致 |
+| loss | \(L_3\) | \(L'_3\) | \(\lvert L_3-L'_3\rvert\leq\epsilon\) |
+
+这张表说明“恢复成功”是一个状态比较，而不是文件存在检查。
+
 ## “同样的命令”并不代表同样的实验
 
 两台机器执行同一条命令，可能读取不同的数据文件、使用不同默认值、从不同 checkpoint 开始，甚至在不同 step 记录第一条 loss。命令是入口，不是实验身份。
@@ -146,3 +166,26 @@ bash scripts/run_train.sh \
 随后检查 step、metrics 和 latest checkpoint。对一个中断实验，先用 resume 继续；对一个新架构实验，复制输入记录并使用 initialize-from。书后面的每个架构消融都应遵循这个区分。
 
 下一章进入配置。我们要把词表、隐藏维度、MLP、快权重和训练选项写成一份能被代码校验的架构合同。
+
+## 本章的最小恢复 checkpoint
+
+先生成样例数据并启动一个会保存中间状态的 tiny 运行：
+
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+bash scripts/run_train.sh \
+  --config configs/tiny.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/tiny-contract-001-C \
+  --auto-resume
+~~~
+
+成功时，检查 <code>outputs/tiny-contract-001-C/status.json</code>、<code>metrics.jsonl</code>、<code>latest.json</code> 和 <code>step_*.npz</code>。把作业在 step 2 后中断，再用同一个命令重启；预期是从已有 step 继续，而不是重新写 step 0。若恢复后 loss 或下一批输入不同，先比较数据状态和 optimizer state，再比较低精度归约。
+
+## 本章小结
+
+- resume 恢复同一个优化过程，initialize-from 创建新的实验身份；
+- RNG、采样位置、optimizer state 和 global step 都是恢复语义的一部分；
+- 运行目录要能描述成功、失败和是否可恢复；
+- 恢复实验比较的是状态和下一步行为，不只是最终 checkpoint 文件；
+- 下一章把这些身份字段连接到具体的模型形状和词表维度。

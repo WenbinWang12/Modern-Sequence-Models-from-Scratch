@@ -1,5 +1,25 @@
 # 1. The Experiment Contract: Making a Run Interpretable
 
+## Overview: turn a comparison into a question
+
+Suppose we train the same tiny model twice: once with the TTT inner loop disabled and once with it enabled. A lower loss in the second run does not yet show that TTT helped. The runs may have consumed different tokens, used different learning-rate schedules, or started from different checkpoints. This chapter turns the question “what changed?” into a contract that a machine can inspect.
+
+After this chapter, you should be able to fill in the research variable, fixed variables, budget, and evidence files for a control/treatment pair. You should also be able to classify a run as runnable, learnable, or interpretable. Model construction and data processing are defined in later chapters; this chapter defines experiment identity.
+
+## Running example: tiny-contract-001
+
+We use <code>tiny-contract-001</code> throughout. It reads <code>configs/tiny.json</code> and byte-token shards made from <code>examples/sample.txt</code>, then runs 4 steps with batch size 1 and sequence length 16. The control disables the inner update; the treatment changes only <code>inner.enabled</code> from <code>false</code> to <code>true</code>.
+
+| Field | Control | Treatment |
+|---|---|---|
+| Run identity | <code>tiny-contract-001-C</code> | <code>tiny-contract-001-F</code> |
+| Only change | <code>inner.enabled=false</code> | <code>inner.enabled=true</code> |
+| Fixed inputs | commit, tokenizer, data, 16-token window, 4 steps, seed, dtype | same |
+| Main metrics | <code>loss</code>, <code>valid_tokens</code>, <code>tokens_per_second</code> | same |
+| Evidence directory | <code>outputs/tiny-contract-001-C/</code> | <code>outputs/tiny-contract-001-F/</code> |
+
+Write this table before looking at a result. It prevents the comparison rule from changing after the numbers are known.
+
 ## Decide what the experiment is meant to prove
 
 This book does not treat “the code ran” as a research conclusion. The question is whether, under the same data, training budget, and system conditions, a new sequence module changes how a model stores, updates, or uses context, and whether that change produces a reproducible quality or efficiency benefit.
@@ -44,6 +64,8 @@ Reproduction does not always mean bitwise identical floating-point values. It me
 
 A comparison may change one of these categories, but the changed item must be named as the research variable. If architecture, tokenizer, and training tokens all change, call it a new recipe rather than an architecture ablation.
 
+A non-attributable example is a control with a byte tokenizer and sequence length 16, compared with a treatment that uses a subword tokenizer and sequence length 32 while also reporting lower loss. The result mixes vocabulary, token count, and context length. It may be a useful new recipe, but it cannot establish that a TTT component caused the change.
+
 ## Three levels of evidence
 
 Report every run at three levels.
@@ -72,6 +94,16 @@ report.md         # interpretation and conclusion boundary
 ~~~
 
 JSON, JSONL, and checkpoints are the factual source. The Markdown report is the reading interface; every number in it must point back to the machine-generated record.
+
+For <code>tiny-contract-001</code>, the reader should be able to trace each claim to one artifact:
+
+| Claim | Primary artifact | Passing condition |
+|---|---|---|
+| The intended configuration ran | <code>experiment.json</code> | resolved values match <code>configs/tiny.json</code> |
+| The intended device ran | <code>environment.json</code> | backend, device count, and dtype are present |
+| The model updated | <code>metrics.jsonl</code> | finite loss and nonzero update or parameter summary change |
+| The run can resume | <code>latest.json</code>, checkpoint, <code>status.json</code> | step and next input order continue |
+| The comparison is attributable | <code>report.md</code> and control/treatment table | only the declared variable differs |
 
 ## Resume is different from initialize-from
 
@@ -102,3 +134,11 @@ Use the following form when needed:
 > In the tiny setting, holding \(A\), \(B\), and \(C\) fixed, changing \(D\) produced \(E\). This supports \(F\), but does not establish \(G\) because \(H\) has not been controlled or tested.
 
 The environment chapter answers where a run executes; the data and representation chapters answer what the model sees; the baseline chapter answers whether the system learns; architecture chapters answer how state changes; and the experiment chapters answer whether the gain comes from that change.
+
+## Summary
+
+- A run identity contains source, resolved configuration, data fingerprints, environment, random and optimizer state, budget, and evidence.
+- A control/treatment comparison must name its fixed inputs and its one declared change before training.
+- Runnable, learnable, and interpretable are separate thresholds.
+- A training checkpoint, a session snapshot, and a report serve different recovery and interpretation purposes.
+- The next step for <code>tiny-contract-001</code> is to create sample tokens in the environment chapter and fill this contract with real output.

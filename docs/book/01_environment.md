@@ -1,5 +1,15 @@
 # 2　环境：第一次训练之前先固定什么
 
+## 本章导读：先证明机器能运行
+
+本章不追求一次把大模型训练起来。我们先用 <code>tiny-contract-001</code> 做一件更小但更可靠的事：让机器报告自己是谁，生成一份短 token 文件，启动一次 tiny 训练，并留下可以解释的输出目录。这样，后面 loss 异常时，我们知道问题来自环境、数据还是模型。
+
+读完本章，你应该能在目标 Linux 节点完成三项检查：看到 JAX backend 和设备列表，看到样例 token 的长度与词表范围，看到 tiny 训练的 <code>experiment.json</code>、<code>environment.json</code>、<code>metrics.jsonl</code> 和 checkpoint。CPU 只承担功能检查，GPU 才用于吞吐和规模结论。
+
+## 预备知识与贯穿输入
+
+你只需要会打开终端、运行 shell 命令，并理解“文件夹中的 JSON 是机器写出的记录”。本章使用 <code>examples/sample.txt</code>；它不是质量足够高的预训练语料，而是用于验证路径的最小输入。
+
 ## 环境不是安装步骤的附录
 
 从 scratch 项目经常出现一个奇怪现象：代码在作者机器上运行，换一台机器后不是依赖找不到，就是 loss 曲线完全不同。问题未必来自模型，可能来自 Python 小版本、默认 dtype、JAX 后端、CPU/GPU 设备发现、随机数、文件系统或输出目录。
@@ -42,6 +52,8 @@ python3 scripts/check_environment.py \
   --output outputs/environment-check.json
 ~~~
 
+成功时，JSON 至少应包含 Python 版本、JAX 版本、backend、可见设备数量和设备名称。失败时先看 backend 与设备列表：若 CPU 节点被要求 <code>--require-gpu</code>，这是环境条件不满足，不是模型代码错误。若需要 CPU 功能检查，将 <code>TTT_INSTALL_CUDA=0</code> 并去掉 <code>--require-gpu</code>。
+
 没有 GPU 的 CPU 节点使用 `TTT_INSTALL_CUDA=0`。本项目约定 CPU 只用于功能与数据路径验证，GPU 吞吐不能用 CPU 结果代替。
 
 ## 为什么先生成样例数据
@@ -55,6 +67,8 @@ python3 scripts/check_environment.py \
 - checkpoint 是否包含正确的数据指纹。
 
 它不能证明语言能力，也不能证明清洗策略。它的作用类似电路板上的通断测试：先确认接口连接，再接入复杂输入。
+
+样例输入的第一条检查结果应能回答三个问题：token 数是否至少为 <code>sequence_length + 1 = 17</code>，所有 ID 是否位于 <code>[0, 259)</code>，以及 shift 后是否仍有有效 loss mask。任一问题失败，都先修数据入口，不要修改模型。
 
 ## 第一次训练的四个阶段
 
@@ -107,3 +121,27 @@ JAX 还会把第一次调用分成 tracing、编译和执行。可以把它想�
 - 首步编译没有被误报成稳态吞吐。
 
 下一章把这些文件组织成实验身份。环境解决“在哪里跑”，可复现运行解决“这一次跑的是什么”。
+
+## 本章的最小 checkpoint 与证据
+
+在已安装依赖的目标节点上，按顺序执行：
+
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/tiny.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/tiny-contract-001-C
+~~~
+
+如果目标节点有 GPU，把第二条命令换成 <code>bash scripts/run_gpu_train.sh</code>，并先完成 GPU 检查。成功目录应有 <code>experiment.json</code>、<code>environment.json</code>、<code>metrics.jsonl</code>、<code>status.json</code> 和至少一个 checkpoint。<code>metrics.jsonl</code> 中的 loss 应为有限数；第一步可能包含编译时间，不能直接当作稳态吞吐。
+
+若命令失败，先检查：<code>outputs/sample-tokens.npy</code> 是否存在、<code>configs/tiny.json</code> 是否能解析、<code>environment.json</code> 的 backend 是否符合节点条件。这个 checkpoint 只证明路径连通和 tiny 优化能启动，不证明模型已经学会语言。
+
+## 本章小结
+
+- 系统层、Python 层和实验层必须分别记录；
+- 样例 token 先验证词表范围、长度、shift 和 mask；
+- tracing、编译和稳态执行是不同阶段；
+- 预期输出和失败诊断与命令同样重要；
+- 下一章将检查这些文件能否组成唯一的实验身份并支持恢复。

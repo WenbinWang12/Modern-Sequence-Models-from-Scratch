@@ -1,5 +1,15 @@
 # 2. Environment: the first trusted training run
 
+## Overview: prove that the machine can run
+
+This chapter does not try to train a large model in one command. We first make a smaller claim for <code>tiny-contract-001</code>: the machine can describe itself, produce a short token file, start a tiny run, and leave an interpretable output directory. When a later loss curve is wrong, we can then separate an environment problem from a data or model problem.
+
+After this chapter, you should be able to read the JAX backend and device list, inspect the length and vocabulary range of sample tokens, and find <code>experiment.json</code>, <code>environment.json</code>, <code>metrics.jsonl</code>, and a checkpoint in a tiny run directory. CPU is for functional checks; GPU is required for throughput and scale claims.
+
+## Prerequisites and running input
+
+You only need a terminal, basic shell commands, and the idea that JSON files in an output directory are machine-written records. We use <code>examples/sample.txt</code>. It is deliberately not a pretraining corpus; it is a minimal path check.
+
 ## Why the environment belongs to the experiment
 
 The first failure in a from-scratch project is often not a wrong equation. It is a Python version, a missing CUDA wheel, a different random seed, a data path, or a resume rule that was never written down. If the run cannot say which machine, code revision, and input data it used, its loss curve cannot be reproduced.
@@ -31,6 +41,8 @@ The shell scripts are thin entry points; Python owns the experiment semantics so
 
 The sample file is a wiring test, not a language benchmark. It can reveal an out-of-range token, an impossible sequence length, a broken mask, or a checkpoint path. It cannot show that the cleaning policy is good or that the model has learned useful language.
 
+For the tiny configuration, the first sample-data check should answer three questions: are there at least <code>sequence_length + 1 = 17</code> tokens, are all IDs in <code>[0, 259)</code>, and does the shifted window contain valid loss positions? If one answer is no, repair the data entry point before changing the model.
+
 ## A minimal first run
 
 Run the following on the target Linux machine or inside a GPU allocation. For a published result, replace `main` with an exact commit hash.
@@ -50,6 +62,8 @@ bash scripts/run_gpu_train.sh \
   --data outputs/sample-tokens.npy \
   --output outputs/tiny-gpu
 ~~~
+
+On success, the environment JSON should contain Python and JAX versions, the backend, visible device count, and device names. If this check fails, inspect the backend and device list first. Asking a CPU node to satisfy <code>--require-gpu</code> is an unmet environment condition, not a model bug. For a CPU functional check, set <code>TTT_INSTALL_CUDA=0</code> and omit <code>--require-gpu</code>.
 
 On a CPU-only validation node, use `TTT_INSTALL_CUDA=0` and omit `--require-gpu`. CPU runs validate data paths and function semantics; their throughput is not a GPU performance result.
 
@@ -86,3 +100,27 @@ If `check_environment.py` cannot find a GPU, inspect the backend and device list
 If a resumed run diverges, compare the data fingerprint, sampler position, optimizer state, and global step before blaming floating-point noise. A machine contract narrows the search from “the model is random” to a concrete layer and artifact.
 
 The next chapter turns this directory into a formal experiment identity: the environment answers **where** the run happened; the contract answers **what** happened.
+
+## Minimal checkpoint and expected evidence
+
+On a node with the dependencies installed, the shortest CPU path is:
+
+~~~bash
+bash scripts/prepare_sample.sh outputs/sample-tokens.npy
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/tiny.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/tiny-contract-001-C
+~~~
+
+On a GPU node, use <code>bash scripts/run_gpu_train.sh</code> after the device check. A passing directory contains <code>experiment.json</code>, <code>environment.json</code>, <code>metrics.jsonl</code>, <code>status.json</code>, and at least one checkpoint. Loss values should be finite. The first step may include compilation and must not be reported as steady-state throughput.
+
+If the command fails, inspect the sample-token path, the parsed <code>configs/tiny.json</code>, and the backend in <code>environment.json</code>. This checkpoint proves that the path and tiny optimization can start; it does not prove that the model has learned language.
+
+## Summary
+
+- System, Python, and experiment layers need separate records.
+- Sample tokens first validate vocabulary range, length, shift, and masks.
+- Tracing, compilation, and steady execution are different phases.
+- Expected output and failure diagnosis belong next to the command.
+- The next chapter checks whether these records form one identity and support recovery.

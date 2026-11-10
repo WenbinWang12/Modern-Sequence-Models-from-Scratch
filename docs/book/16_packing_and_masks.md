@@ -4,6 +4,8 @@
 
 训练循环看到的是代码字段 `input_ids`、`labels` 和 `loss_mask`，不是“这是一篇文章”。一个简单的 next-token 样本可以写成：
 
+先用四个可读的符号代替 token：原序列 `[A, B, C, D]` 的输入是 `[A, B, C]`，标签是向左错开一位的 `[B, C, D]`。模型在看到 `A` 后预测 `B`，看到 `A,B` 后预测 `C`，看到 `A,B,C` 后预测 `D`；这就是“下一个 token”而不是复制当前 token。
+
 \[
 \begin{aligned}
 \text{tokens}&=(x_1,x_2,x_3,x_4),\\
@@ -16,6 +18,8 @@ M&=(1,1,1).
 输入位置 \(i\) 的预测目标是原序列的 \(i+1\)。如果把 input 和 label 取成相同序列，模型就不再执行标准的 next-token 任务；如果 shift 多一位，模型会学习错位目标，却可能仍然产生有限 loss。
 
 在当前实现中，`TokenDataset.rows(starts, length)` 返回长度为 `length` 的 token 窗口，并返回去掉第一列后的 mask。`BatchStream.next_batch_with_masks()` 再把窗口交给训练器。阅读数据代码时，先确认这一处 shift，再看模型的 loss。
+
+如果 `[A,B,C,D]` 中的 `D` 是 padding，第三个预测位置的 mask 应为 0；如果 `B` 来自 prompt，prompt 的 mask 也可以为 0，但它仍然可以作为上下文被模型看到。mask 控制“是否计入损失”，不等于“是否从输入中删除”。
 
 ## 独立文档与连续流
 

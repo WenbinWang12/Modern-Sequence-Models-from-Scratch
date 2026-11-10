@@ -1,5 +1,15 @@
 # 15. Dense causal-language-model baseline
 
+## From logits to loss
+
+Logits are scores, not probabilities. If a vocabulary contains `cat`, `sat`, and `dog`, scores $(2,1,0)$ become probabilities only after softmax:
+
+$$
+p_v=\frac{\exp z_v}{\sum_u\exp z_u}.
+$$
+
+If the correct token is `sat`, this example gives probability about $0.245$ and negative log-likelihood about $1.407$. Raising the correct probability to $0.8$ lowers the contribution to $-\log(0.8)\approx0.223$. Cross-entropy therefore measures how much probability the model placed on the observed next token.
+
 The dense baseline is the control for TTT, Loop, and MoE. It fixes tokenizer, manifests, sequence length, effective token budget, initialization, optimizer, schedule, seed, precision, hardware, and checkpoint format before adding dynamic state or routing.
 
 For logits \(z\) at position \(t\) and target \(y_t\):
@@ -14,6 +24,26 @@ The repository can compute cross-entropy in token and vocabulary blocks, preserv
 The baseline disables experts, fast MLP, inner updates, and loop mode. It can still choose sliding or full attention, but attention type must be recorded as a separate variable.
 
 Each training step samples a window, runs sequence_loss, computes outer gradients, applies Optax, records loss and state statistics, and periodically checkpoints. A finite decreasing loss is a health signal, not evidence of broad capability; tiny data can simply be memorized.
+
+The gradient with respect to one logit has a simple form:
+
+$$
+\frac{\partial\ell_t}{\partial z_{t,v}}
+=p_{t,v}-\mathbf{1}[v=y_t].
+$$
+
+The correct token receives $p_{t,y_t}-1$, which pushes its score up; every other token receives its current probability, which pushes its score down. Backpropagation carries this local error through the embedding, attention, and MLP computation graph. AdamW then turns the gradients into a parameter update.
+
+We can derive it by expanding the loss:
+
+$$
+\ell_t=-z_{t,y_t}+\log\left(\sum_u\exp z_{t,u}\right),
+\qquad
+\frac{\partial\ell_t}{\partial z_{t,v}}
+=-\mathbf{1}[v=y_t]+\frac{\exp z_{t,v}}{\sum_u\exp z_{t,u}}.
+$$
+
+The second term is exactly the softmax probability, which gives the form $p_{t,v}-\mathbf{1}[v=y_t]$.
 
 ## What the baseline disables
 

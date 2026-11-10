@@ -8,6 +8,14 @@
 
 ## 从 logits 到 loss
 
+`logits` 先不要理解成概率，它只是模型给每个候选 token 的分数。例如词表只有 `cat`、`sat`、`dog`，某个位置的分数是 $(2,1,0)$，softmax 才会把它们变成和为 1 的概率：
+
+$$
+p_v=\frac{\exp z_v}{\sum_u\exp z_u}.
+$$
+
+如果正确答案是 `sat`，这个分数对应的概率约为 $0.245$，负对数似然约为 $1.407$。模型把正确答案的概率提高到 $0.8$ 时，损失降为 $-\log(0.8)\approx0.223$。因此交叉熵不是一个抽象的“训练分数”：它直接惩罚模型没有把概率放到正确 token 上。
+
 模型产生 \(z_{t,v}\)，其中 \(t\) 是位置、\(v\) 是词表 ID。交叉熵为：
 
 $$
@@ -25,6 +33,26 @@ $$
 $$
 
 其中 \(m_t\) 是 mask。最后的 max 防止全零 mask 时除零，但全零样本本身应该被 preflight 拒绝。
+
+对 logits 的梯度有一个很有用的形式：
+
+$$
+\frac{\partial\ell_t}{\partial z_{t,v}}
+=p_{t,v}-\mathbf{1}[v=y_t].
+$$
+
+正确 token 的梯度是 $p_{t,y_t}-1$，会推动它的分数上升；其他 token 的梯度是它们当前的概率，会推动它们的分数下降。反向传播只是把这个局部误差信号沿模型的计算图继续传回 embedding、attention 和 MLP；后面的 AdamW 再决定怎样用这些梯度更新参数。
+
+这个结果可以直接从损失展开得到：
+
+$$
+\ell_t=-z_{t,y_t}+\log\left(\sum_u\exp z_{t,u}\right),
+\qquad
+\frac{\partial\ell_t}{\partial z_{t,v}}
+=-\mathbf{1}[v=y_t]+\frac{\exp z_{t,v}}{\sum_u\exp z_{t,u}}.
+$$
+
+第二项正是 softmax 概率，所以才得到上面的 $p_{t,v}-\mathbf{1}[v=y_t]$。
 
 ## 基线配置到底关闭了什么
 

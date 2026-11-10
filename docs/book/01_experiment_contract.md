@@ -4,21 +4,23 @@
 
 假设我们训练同一个 tiny 模型两次：第一次关闭 TTT 内循环，第二次打开它。如果第二次的 loss 更低，我们还不能立刻说“TTT 有效”。两次运行可能读了不同的 token、用了不同的学习率，甚至第二次从一个已经训练过的 checkpoint 开始。本章把“我想知道什么”翻译成一份机器可以检查的实验契约。
 
-读完本章，你应该能完成一件具体的事：给一个 control/variant 对照填写研究变量、固定变量、预算和证据文件，并判断一次运行属于“可运行”“可学习”还是“可解释”。本章只讨论实验身份；模型结构和数据处理分别在后面的章节定义。
+读完本章，你应该能完成一件具体的事：给一个 control/variant 对照填写研究变量、固定变量、预算和证据文件，并判断一次运行属于“可运行”“训练路径可更新、可恢复”还是“可解释”。本章只讨论实验身份；模型结构和数据处理分别在后面的章节定义。
+
+在读配置表前，先区分几类数。**参数**是模型会学习的数，例如 embedding 矩阵的元素。**优化器**依据梯度修改这些数；AdamW 还保存历史梯度及其平方的移动平均，作为下次更新的参考，这些历史记录称为优化器状态。**dtype** 是数字的存储格式，例如 float32 的一个元素占 4 字节；改变它会影响数值精度和内存。**seed** 用来初始化伪随机数序列，运行到一半时的随机状态则说明已经走到了哪里。后面的恢复章会展示两者的区别。
 
 ## 贯穿例子：tiny-contract-001
 
-后文使用 <code>tiny-contract-001</code> 作为示例。它读取 <code>configs/tiny.json</code> 和由 <code>examples/sample.txt</code> 生成的 byte-token 分片，运行 4 个训练 step、batch size 为 1、sequence length 为 16。control 关闭 inner update，variant 只把 <code>inner.enabled</code> 从 <code>false</code> 改为 <code>true</code>，其他字段和输入文件保持不变。
+后文使用 <code>tiny-contract-001</code> 作为示例。control 读取 <code>configs/book/tiny_control.json</code>，variant 读取 <code>configs/tiny.json</code>；两者都使用从 <code>examples/sample.txt</code> 生成的普通 NPY token 文件，运行 4 个训练 step，batch size 为 1，sequence length 为 16。两份配置只在 <code>inner.enabled</code> 上不同：control 为 <code>false</code>，variant 为 <code>true</code>。两者均保留快权重 MLP 的结构；没有这个模块的 dense 基线属于另一项结构对照。
 
 | 字段 | control | variant |
 |---|---|---|
 | 实验身份 | <code>tiny-contract-001-C</code> | <code>tiny-contract-001-F</code> |
 | 唯一改变 | <code>inner.enabled=false</code> | <code>inner.enabled=true</code> |
 | 固定内容 | commit、tokenizer、数据、16-token window、4 steps、seed、dtype | 同左 |
-| 主要指标 | <code>loss</code>、<code>valid_tokens</code>、<code>tokens_per_second</code> | 同左 |
+| 自动记录指标 | <code>loss</code>、<code>grad_norm</code>、<code>tokens_per_second</code> | 同左 |
 | 证据目录 | <code>outputs/tiny-contract-001-C/</code> | <code>outputs/tiny-contract-001-F/</code> |
 
-这张表先于任何结果存在。它防止我们在看到结果以后才修改“比较条件”。
+这张表先于任何结果存在。它防止我们在看到结果以后才修改“比较条件”。当前 <code>tokens_per_second</code> 按 batch size × sequence length 计数，是输入位置吞吐；若数据含有被 mask 的目标，它不等于有效监督 token 吞吐。训练器没有单独输出 <code>valid_tokens</code>，正式实验需要另外统计 mask 的和。
 
 ## 先约定我们要证明什么
 
@@ -76,7 +78,7 @@ $$
 
 **可运行**：依赖、设备、配置和数据入口成立，程序可以启动并产生输出。
 
-**可学习**：loss 和梯度是有限值，训练状态能够更新，checkpoint 可以读取，恢复后的下一步与连续运行一致或在预先定义的容忍范围内一致。
+**训练路径可更新、可恢复**：loss 和梯度是有限值，训练状态能够更新，checkpoint 可以读取，恢复后的下一步与连续运行在预先定义的容忍范围内一致。这些是优化与状态检查；要证明模型从数据学到了规律，还需要受控训练与独立评估。
 
 **可解释**：对照组和实验组只有声明的变量不同，评测使用独立且可信的 manifest，结果包含质量、成本和状态证据，能够支持一个边界清楚的结论。
 
@@ -84,16 +86,16 @@ $$
 
 ## 运行目录必须自己解释自己
 
-正式运行至少保存：
+正式实验还应保存源码身份、数据身份与结论。下面是建议的归档布局，其中 <code>source.json</code>、<code>data.json</code> 和 <code>report.md</code> 需要实验者或上游脚本创建，并非训练器自动输出：
 
 ~~~text
-experiment.json   # 输入、解析后的配置和预算
+experiment.json   # 训练器保存的解析后配置和预算
 source.json       # commit 和工作区状态
-environment.json  # Python、JAX、设备、驱动和 dtype
+environment.json  # Python、包版本、设备、驱动和源码摘要
 data.json         # manifest、tokenizer 和数据指纹
 metrics.jsonl     # 每步 loss、梯度、速度和状态统计
-status.json       # 成功、中断或失败的阶段
-checkpoint/       # 模型、优化器和可恢复状态
+status.json       # running、failed、complete 或 stopped
+step_*.npz        # tiny 的模型、优化器和数据采样状态
 report.md         # 面向读者的解释和结论边界
 ~~~
 
@@ -103,9 +105,9 @@ JSON、JSONL 和 checkpoint 是事实来源，Markdown 报告是阅读入口。�
 
 | 论断 | 首要证据 | 成功判据 |
 |---|---|---|
-| 运行使用了预期配置 | <code>experiment.json</code> | 与 <code>configs/tiny.json</code> 解析结果一致 |
-| 运行使用了预期设备 | <code>environment.json</code> | backend、device 数量和 dtype 已记录 |
-| 模型确实更新 | <code>metrics.jsonl</code> | 有限 loss、非零梯度或参数摘要发生变化 |
+| 运行使用了预期配置 | <code>experiment.json</code> | C 对应 <code>tiny_control.json</code>，F 对应 <code>tiny.json</code> |
+| 设备与精度有记录 | <code>environment.json</code>、<code>experiment.json</code> | 前者有 <code>device_count</code>、<code>devices</code>，后者有模型 dtype 配置 |
+| 模型确实更新 | checkpoint 参数比较，辅以 <code>metrics.jsonl</code> | 参数发生有限变化；非零梯度本身不保证学习率非零或参数已改变 |
 | 运行可以恢复 | <code>latest.json</code>、checkpoint、<code>status.json</code> | resume 后 step 和下一批数据连续 |
 | 结论可以比较 | <code>report.md</code>、control/variant 表 | 研究变量只有声明的一项 |
 

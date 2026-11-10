@@ -105,8 +105,8 @@ $$
 ## 本章最小检查、预期产物与失败诊断
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/cleaning-sample \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~

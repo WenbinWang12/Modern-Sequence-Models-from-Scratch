@@ -32,7 +32,7 @@ $$
 =p_{t,v}-\mathbf{1}[v=y_t].
 $$
 
-The correct token receives $p_{t,y_t}-1$, which pushes its score up; every other token receives its current probability, which pushes its score down. Backpropagation carries this local error through the embedding, attention, and MLP computation graph. AdamW then turns the gradients into a parameter update.
+The correct token has local derivative \(p_{t,y_t}-1\), while other tokens have derivative \(p_{t,v}\). If logits were independent parameters updated directly by SGD, the correct score would rise and the others would fall. A real network shares parameters: backpropagation combines error signals across positions before AdamW updates those parameters. Each example's correct logit is therefore not guaranteed to rise monotonically.
 
 We can derive it by expanding the loss:
 
@@ -80,7 +80,7 @@ inner.enabled = false
 loop_mode = none
 ~~~
 
-These switches remove routing, extra fast state, and depth recurrence. Attention may still be full or sliding, but attention type must be reported as its own variable. The `tiny` configuration is a pipeline check; the 125M and 760M directories contain recipe and ablation candidates, and their names do not guarantee an exact final parameter count after vocabulary or optional modules are changed.
+This chapter uses <code>configs/book/tiny_dense.json</code>, which removes MLP-prime, sets suffix length to zero, and disables inner updates. <code>configs/book/tiny_control.json</code> instead retains MLP-prime while disabling its update, making it the C control paired with F in <code>configs/tiny.json</code>. Dense and C have different parameter trees. Attention may still be full or sliding; its type remains a separate experimental variable.
 
 ## One training step and one recovery step
 
@@ -94,7 +94,7 @@ For a teaching run, check finite loss, nonzero and bounded gradients, no immedia
 
 ## Parameters, activation memory, and measured cost
 
-Parameter count is the number of leaves in the model tree, but it is not activation memory. TTT may retain or recompute fast weights, gradients, and chunk state; MoE may have many total parameters while activating only a few experts per token. `ttt/profile.py` reports parameter counts, fast-MLP counts, prefill/decode time, state bytes, peak device memory, and XLA cost analysis. Cost analysis is an estimate; steady throughput requires a real-device run after excluding compilation.
+Parameter count is the sum of the numbers of scalar elements in the parameter-tree leaves, not the number of leaves. For example, one \(16\times32\) matrix is one leaf containing 512 parameters. Parameters are also distinct from activation memory. TTT may retain or recompute fast weights, gradients, and chunk state; MoE may have many total parameters while activating only a few experts per token. The fields produced by <code>ttt/profile.py</code> should be read separately: parameter counts, runtime state sizes, timing, and compiler cost estimates answer different questions. Steady throughput requires a real-device run after excluding compilation.
 
 For each later comparison, report data and tokens, total and active parameters, optimizer and inner-loop settings, hardware and precision, compile and steady cost, memory, communication, training and held-out loss, and restore behavior. The next part follows a token through the TTT forward path.
 
@@ -105,13 +105,13 @@ Start with the sample tokens and tiny configuration:
 ~~~bash
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
 JAX_PLATFORMS=cpu bash scripts/run_train.sh \
-  --config configs/tiny.json \
+  --config configs/book/tiny_dense.json \
   --data outputs/sample-tokens.npy \
   --output outputs/baseline-tiny-001
 ~~~
 
-The expected directory contains <code>experiment.json</code>, <code>environment.json</code>, <code>metrics.jsonl</code>, <code>status.json</code>, and a checkpoint. Loss should be finite, and the next input order and step after resume should match the uninterrupted comparison. A falling training loss does not prove generalization; if held-out loss rises, inspect splits, duplicates, and masks first.
+The expected directory contains <code>experiment.json</code>, <code>environment.json</code>, <code>metrics.jsonl</code>, <code>status.json</code>, and a checkpoint, with finite loss. This four-step command does not perform a restoration comparison or compute held-out loss. Apply the same-configuration protocol in [Reproducible runs](02_reproducible_runs.md) separately; held-out loss requires independent data and an evaluation procedure and cannot be inferred from the training log.
 
 ## Summary and next question
 
-The dense baseline fixes data identity, budget, configuration, and recovery protocol. Logits, masked loss, gradients, checkpoints, and held-out loss establish an interpretable training system, not a TTT, Loop, or MoE gain. The next part follows the same token through the forward path and identifies when fast weights change.
+This minimal run connects logits, masked loss, gradients, and checkpoints to an explicit ordinary-model configuration. A complete research baseline still requires independent evaluation and a restoration comparison; four sample steps establish a functional starting point. The next part follows the same token through the forward path and identifies when fast weights change.

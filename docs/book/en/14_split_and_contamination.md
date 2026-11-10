@@ -2,7 +2,13 @@
 
 ## Why random records can produce an easy validation set
 
-Imagine ten mirrors of one tutorial. If each record is assigned independently, some copies almost certainly enter training and others enter validation. Their file names differ, but their text does not. A low validation loss then tells us that the model can continue a familiar tutorial; it does not tell us how it handles an unseen source.
+Imagine ten mirrors of one tutorial, each independently assigned to validation with probability \(p\). The probability that all ten enter training is \((1-p)^{10}\); the probability that all ten enter validation is \(p^{10}\). Removing these two cases gives the probability that the duplicate cluster spans both sets:
+
+$$
+P(\text{cross-split cluster})=1-(1-p)^{10}-p^{10}.
+$$
+
+It is about \(9.56\%\) at \(p=0.01\), and \(65.13\%\) at \(p=0.1\). Leakage is possible, rather than almost certain regardless of the split ratio. Many duplicate clusters can still produce substantial contamination. Different file names do not establish independent content, and low loss on a familiar tutorial does not measure prediction on an unseen source.
 
 The split unit must follow the evaluation question. Use a document cluster to test new documents of known sources, a project or repository to test unseen code projects, and a time window to test future news. “Validation is 2%” is only a ratio; a reproducible protocol also states the unit, source, time range, grouping rule, and contamination check.
 
@@ -60,13 +66,13 @@ A split report should include document and token counts per group and split, lan
 The repository's sample data is for pipeline checks, not for a claim about generalization. After producing independent JSONL files, build separate manifests:
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input data/train-v1.jsonl \
   --output data/tokens-train-v1 \
   --sharded \
   --tokenizer byte
 
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input data/validation-v1.jsonl \
   --output data/tokens-validation-v1 \
   --sharded \
@@ -80,17 +86,17 @@ Then pass the training manifest to the training job and use the validation manif
 The two split JSONL files must produce separate manifests:
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input <train-jsonl> \
   --output outputs/split-train \
   --sharded --tokenizer byte --shard-tokens 256
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input <validation-jsonl> \
   --output outputs/split-validation \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~
 
-The expected artifacts are two independent <code>manifest.json</code> files and one split/contamination report containing group, document, token, source, candidate-match, and review counts. If train and validation digests or group IDs overlap, stop before training and repair the split; a low validation loss cannot cancel contamination.
+The encoding commands produce two separate <code>manifest.json</code> files, not a split or contamination report. The upstream split process must separately record group, document, token, source, candidate-match, and review counts. Check document digests and group IDs for overlap between sets; comparing the two manifest digests alone is insufficient. Low validation loss cannot cancel contamination.
 
 ## Summary and next question
 

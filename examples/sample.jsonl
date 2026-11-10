@@ -1,0 +1,4 @@
+{"id":"book-001","source":"teaching","text":"The cat sits by the window. A language model predicts the next token from the tokens it has already seen. This short record is an original teaching example, not an evaluation benchmark."}
+{"id":"book-002","source":"teaching","text":"A dataset stores the tokens that are available. A sampler chooses the next window. Saving the sampler state allows an interrupted experiment to continue from the same random stream."}
+{"id":"book-003","source":"teaching","text":"猫坐在窗边。分词器把文字变成整数，模型根据已经看到的整数预测下一个整数。这个句子用于说明数据接口，不用于证明模型能力。"}
+{"id":"book-004","source":"teaching","text":"An end-of-sequence token marks a document boundary. A loss mask selects which targets contribute to the objective. It does not by itself prevent attention from reading an earlier document."}

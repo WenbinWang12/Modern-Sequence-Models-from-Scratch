@@ -2,7 +2,7 @@
 
 ## The model does not receive a document
 
-People say that a language model “reads a document”, but the training loop receives arrays. The important contract is usually three arrays: <code>input_ids</code>, <code>labels</code>, and <code>loss_mask</code>. Packing is the step that turns a stream of token IDs into those arrays. If this step is wrong, the model can train, produce finite numbers, and still learn the wrong task.
+The model receives integer arrays. We use teaching names <code>input_ids</code>, <code>labels</code>, and <code>loss_mask</code> for the mathematical objects \(X,Y,M\). The actual repository loader returns <code>(tokens, masks)</code>; <code>sequence_loss</code> shifts tokens into inputs and targets. It does not receive a dictionary with those three teaching names.
 
 ### A four-token example
 
@@ -12,13 +12,13 @@ $$
 X=(A,B,C), \qquad Y=(B,C,D).
 $$
 
-The first row asks “after <code>A</code>, what comes next?”; the second asks “after <code>A,B</code>, what comes next?”; the third asks “after <code>A,B,C</code>, what comes next?”. With the book notation, for a token sequence $(x_1,x_2,x_3,x_4)$,
+The first row asks “after <code>A</code>, what comes next?”; the second asks “after <code>A,B</code>, what comes next?”; the third asks “after <code>A,B,C</code>, what comes next?”. With the book notation, for a token sequence $(s_1,s_2,s_3,s_4)$,
 
 $$
-X=(x_1,x_2,x_3),\qquad Y=(x_2,x_3,x_4).
+X=(s_1,s_2,s_3),\qquad Y=(s_2,s_3,s_4).
 $$
 
-The target at position $i$ is therefore $y_i=x_{i+1}$. If we accidentally set $Y=X$, we train copying rather than next-token prediction. If we shift twice, the loss is still a number, but it describes a different prediction problem.
+The target at position $i$ is therefore $y_i=s_{i+1}$. If we accidentally set $Y=X$, we train copying rather than next-token prediction. If we shift twice, the loss is still a number, but it describes a different prediction problem.
 
 The current loader requests a window of <code>length + 1</code> tokens. <code>TokenDataset.rows(starts, length)</code> returns the window and a mask with its first column removed, so that the mask has the same positions as the shifted labels. <code>BatchStream.next_batch_with_masks()</code> passes those arrays to the training code. When auditing a new data path, inspect this shift before inspecting the model.
 
@@ -31,10 +31,10 @@ For example, a prompt can be visible to the model while its targets are masked o
 Consider the integer stream
 
 $$
-z=(10,11,12,2,20),
+s=(10,11,12,2,20),
 $$
 
-where <code>2</code> is EOS. A length-four window has $X=(10,11,12,2)$ and $Y=(11,12,2,20)$. If <code>20</code> begins a different document, an isolated-document policy could use
+where <code>2</code> is EOS and the other IDs are invented for illustration. A length-four window has \(X=(10,11,12,2)\) and \(Y=(11,12,2,20)\). If 20 begins another document, a policy masking the boundary target could use
 
 $$
 M=(1,1,1,0),
@@ -56,10 +56,43 @@ The implementation replaces masked target IDs with a safe in-range ID before ind
 
 There are two legitimate packing contracts:
 
-- **Independent-document packing** appends EOS and prevents supervision or attention from crossing the boundary. This is easy to reason about, but it may leave some positions unused.
+- **Independent-document packing** prevents attention and carried model state from reading earlier documents, and handles next-token targets at boundaries explicitly. A zero loss mask alone cannot provide this isolation: it removes a loss term but does not erase context. Such packing needs document-aware attention or separate calls with state reset.
 - **Continuous-stream packing** concatenates documents into one stream. It uses storage efficiently and may deliberately learn statistics around EOS, but it must state whether cross-document attention and loss are allowed.
 
 The current <code>prepare_data</code> and <code>prepare_sharded_data</code> functions encode each document, append EOS when the tokenizer provides one, and write tokens in order. <code>TokenDataset.rows</code> selects a window by global offset. A window can therefore cross EOS and a physical shard boundary. The current model path does not create a block attention mask that resets at EOS. Describe it as continuous-stream behavior unless a future implementation adds that boundary state.
+
+## Inspect a boundary with actual byte IDs
+
+Run this example from the repository root on the target machine. It follows the ordinary sharded path's encoding rules for two one-character documents. Constructing each array explicitly makes the shift visible.
+
+~~~bash
+.venv/bin/python - <<'PY'
+from ttt.data import ByteTokenizer
+
+tokenizer = ByteTokenizer()
+tokens, stored_mask = [], []
+for text in ("A", "B"):
+    document = tokenizer.encode(text) + [tokenizer.eos_token_id]
+    tokens.extend(document)
+    stored_mask.extend([0] + [1] * (len(document) - 1))
+print("tokens:", tokens)
+print("X:", tokens[:-1])
+print("Y:", tokens[1:])
+print("M:", stored_mask[1:])
+PY
+~~~
+
+ByteTokenizer maps bytes 65 and 66 to IDs 68 and 69, with BOS 1 and EOS 2. The expected stream is therefore <code>[1,68,2,1,69,2]</code>. After shifting:
+
+| Code index | Input \(X\) | Target \(Y\) | \(M\) | Meaning |
+|---|---:|---:|---:|---|
+| 0 | 1 | 68 | 1 | Predict A after BOS |
+| 1 | 68 | 2 | 1 | Predict EOS after A |
+| 2 | 2 | 1 | 0 | Do not charge loss for the next BOS |
+| 3 | 1 | 69 | 1 | Predict B after the second BOS |
+| 4 | 69 | 2 | 1 | Predict EOS after B |
+
+The third row has no direct loss, but the fourth can still attend to the earlier A. Boundary supervision and access to earlier context are two separate properties; the loss mask controls only the first.
 
 ## Code path and a remote smoke command
 
@@ -74,19 +107,19 @@ The relevant path is:
 On a machine with the repository and Python environment already prepared, a small data conversion is:
 
 ~~~
-python -m ttt.data \
-  --input data/example.jsonl \
-  --output runs/example_shards \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
+  --output outputs/packing-sample \
   --tokenizer byte \
   --sharded \
-  --shard-tokens 100000
+  --shard-tokens 256
 ~~~
 
 The command is a data-preparation example, not a claim that a local workstation has the required dependencies. The resulting manifest is the input to the next chapter. Record its digest before a long run.
 
 ## Checks and limits
 
-For a tiny hand-check, print one sampled window and verify four facts: the labels are one position ahead, the mask length equals the label length, masked positions have no contribution, and a window crossing a shard boundary preserves token order. A passing shape check does not prove that document boundaries are semantically correct. That question belongs to the packing policy and its evidence record.
+Check that inputs, targets, and masks each have \(L\) positions, as in the short example. A stricter masked-target check fixes every input, mask, and initial state, changing only the final masked target ID; that ID should not affect the result through the loss term. Do not generalize this to arbitrary masked tokens, which may also be inputs for later predictions. A shape check alone cannot establish document isolation.
 
 The next chapter turns token files, masks, hashes, and sampler state into a recoverable dataset object.
 

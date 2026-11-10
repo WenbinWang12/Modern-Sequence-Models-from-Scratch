@@ -1,95 +1,112 @@
-# 21　GPU、多卡与检查点：从能运行到可扩展
+# 21　GPU、多卡与检查点：什么时候可以扩大训练
 
-## 三个“通过”不是同一个通过
+## 三种成功，对应三种证据
 
-一个 tiny 模型在 GPU 上得到 loss，说明 Python、JAX 和基本计算图能运行。它没有证明多卡 sharding 正确，也没有证明 125M 模型能放进目标显存，更没有证明长时间训练可以恢复。
+一个 tiny 模型在 GPU 上得到有限 loss，只说明这条小计算图可以运行。它没有证明参数按预期分片，没有证明中断后能接着训练，也没有证明目标长度和 batch 能装进显存。扩大实验前，必须先知道自己已经跨过了哪一道门槛。
 
-因此把 GPU 验证拆成三级：
+本章沿用前几章的 tiny 模型与双卡专家例子，把证据分成数值正确性、分布式状态正确性、目标配置的运行能力三个层次。读者需要理解张量形状、内外循环和 checkpoint 的用途；这里会从两张 GPU 的形状表开始，而不假定你已经熟悉设备 mesh。
 
-| 级别 | 回答的问题 | 典型证据 |
+| 层次 | 要回答的问题 | 当前主要入口 |
 |---|---|---|
-| 功能级 | 单设备计算是否正确 | finite loss、causality、forward/streaming |
-| 系统级 | mesh、通信、shard、恢复是否正确 | global/local shape、all-to-all、restore |
-| 规模级 | 目标配置是否可运行 | compile、稳态吞吐、显存、稳定性 |
+| 小配置功能 | 梯度有限、预测因果、批量与流式一致吗 | <code>scripts/validate_gpu.sh</code> |
+| 分布式状态 | 分片训练与保存恢复的下一步一致吗 | <code>scripts/validate_mesh.sh</code> 的 tiny 模式 |
+| 正式作业准入 | 目标配置有足够显存、稳定吞吐和恢复能力吗 | 需要目标配置试跑及独立证据，前两项不能代替 |
 
-任何一级失败，都不应被另一级的成功覆盖。
+最后一行是一套实验准入要求，不是仓库已经自动实现的“一键认证”。本章会明确列出哪些字段已存在、哪些测量仍需在目标硬件补齐。
 
-## 功能级：先验证语义
+## 先完成单 GPU 功能验证
 
-`scripts/validate_gpu.sh` 运行架构扩展、因果性和运行时一致性检查。它应比较整段和流式输出，并记录状态 shape、初始参数和误差阈值。
+在完成环境安装、已经分配 GPU 的远程节点，进入仓库根目录运行：
 
-对 TTT，功能级还要检查：
+~~~bash
+bash scripts/validate_gpu.sh outputs/ch21/gpu-validation.json
+~~~
 
-- inner update 确实改变了快权重；
-- 关闭 inner update 时 C 路径稳定；
-- 修改未来 token 不改变过去 logits；
-- 尾 chunk 的 padding 不改变 fast state；
-- session snapshot 之后恢复同样的状态。
+脚本显式要求 CUDA 后端，先写 <code>outputs/ch21/environment.json</code>，再运行 <code>ttt.validate</code>。成功报告顶层包含 <code>passed: true</code>、<code>environment</code>、<code>cases</code>。case 名称包括 dense、gdn、MoE 适应变体、重复计算变体和默认长度 64、512 的 context case。这里的 dense 名称表示该 case 不使用 MoE，并不表示它关闭了快 MLP 或 TTT 更新。
 
-这些检查可以使用小 shape，但必须覆盖真实的 layer_types、cache 和 adaptation target。
+每个 case 主要检查三件事。第一，序列 loss 与所有梯度叶子均为有限值；第二，流式 logits 与分块训练参照的最大绝对误差不大于 \(10^{-3}\)；第三，改变后半段输入后，前半段 logits 在 <code>atol=1e-5, rtol=1e-4</code> 下保持一致。第三项通过断言执行，不单独输出一个 causality 布尔字段。
 
-## 系统级：JAX mesh 不是“把数组复制到多卡”
+这些门槛是当前 float32 tiny case 的实现标准，不能直接套到所有精度和规模。若检查失败，报告会写 <code>passed: false</code>、<code>error_type</code>、<code>error</code> 与环境信息。GPU 未识别先查 JAX/CUDA 环境；有限性失败先查数值精度、学习率和裁剪；流式或因果性失败先查目标偏移、更新边界与 cache。保留完整 stderr，因为 JSON 错误摘要不包含完整堆栈。
 
-mesh 定义全局设备轴，sharding 规则决定每个参数和激活在哪个设备。data parallel 复制或切 batch，expert parallel 分布专家，二者组合后通信路径改变。
+通过不代表 32K 或 128K 已验证：默认 context 长度只是 64 和 512。它也不执行 session 快照恢复、真实数据清洗检查或验证集质量评估。把这份报告写进实验记录时，要同时写清 case、长度与 dtype。
 
-系统验证应输出：
+## 编译时间和执行时间不能混成一个吞吐
 
-- global shape 和 local shard shape；
-- 每个 rank 的设备、进程和 coordinator；
-- 参数、optimizer state 和 checkpoint 的 sharding；
-- route token counts 和 all-to-all 时间；
-- 失败 rank 和恢复后的下一步。
+JAX 的第一次执行可能需要把 Python 表达的计算图编译成设备程序。之后同样的形状和类型通常复用该程序。若改变形状触发重编译，又会出现额外成本。因此至少应区分编译、稳定执行和包含输入输出的端到端时间。
 
-如果只在 rank 0 打印 loss，可能掩盖另一个 rank 的 shape 或通信错误。
+单卡验证明确调用 <code>lower(...).compile()</code>，把这段时间写入 <code>compilation_seconds</code>；随后执行一次已编译的 loss 与梯度计算，等待结果，再写入 <code>training_seconds</code>。后者是**一次**计算图执行，不是经过多次采样的稳态训练均值，也不包含完整优化器更新和数据读取。
 
-### 一个两卡 shape 例子
+做一个教学计算：假设编译 35 秒，随后 10 步每步 1 秒，每步有 2048 个有效目标。若只看执行阶段，吞吐为 \(20{,}480/10=2048\) token/s；若计入编译，则这次短作业平均只有 \(20{,}480/45\approx455.1\) token/s。两者都可以报告，但必须标注计时边界，不能用后者评价稳定 kernel 效率，也不能用前者掩盖短任务的启动成本。
 
-设全局 batch 为 \(B=4\)，序列长度 \(L=8\)，hidden size \(d=16\)，两张 GPU 使用 <code>data=2</code> 的 mesh。全局 hidden 的形状是 \([4,8,16]\)，按 batch 轴切分后，每个 rank 的 local shard 应为 \([2,8,16]\)。如果同时使用 <code>expert=2</code>，专家权重还会沿专家轴分布；此时某个 rank 看到的专家矩阵只是全局专家集合的一部分，不能把 local 参数量直接当作模型总参数量。
+正式测量应先让目标形状完成预热，再计时多个连续训练步；每段计时都必须等待异步设备执行完成。同时记录有效 token 数、步时间分布、是否含数据等待与 checkpoint、设备数和 peak memory。若不同步，测到的可能只是主机提交任务的速度。当前验证脚本尚未产出这样完整的稳态分布，不能把单个字段改个名字当作已有测量。
 
-验证时至少打印 global shape、local shape、rank、process id 和 mesh axes。若某一步本应得到 \([2,8,16]\) 却得到 \([4,8,16]\)，可能是 batch 没有切分；若 expert 轴大小不一致，all-to-all 可能在初始化后才失败。这个小例子也说明“数组能放进 GPU”与“跨卡语义正确”是两个不同问题。
+## 两张 GPU 只能组成相应大小的 mesh
 
-## 规模级：性能要排除编译污染
-
-JAX 第一次执行通常包含 tracing 和 XLA 编译。报告至少分开：
+Mesh 是把设备排成带名字的轴，例如 data 轴和 expert 轴。<code>create_mesh</code> 将全局设备数组变成 <code>[data, expert]</code>，因此
 
 $$
-T_{\mathrm{job}}=
-T_{\mathrm{setup}}+
-T_{\mathrm{compile}}+
-T_{\mathrm{steady}}+
-T_{\mathrm{eval}}+
-T_{\mathrm{checkpoint}}.
+n_{\rm devices}=n_{\rm data}\,n_{\rm expert}.
 $$
 
-吞吐应使用稳定区间的有效 token 数除以 steady time。若把 checkpoint 和评估混进窗口，结果反映的是作业调度而不是模型 kernel。
+两张 GPU 可以是 \((2,1)\)，也可以是 \((1,2)\)；\((2,2)\) 需要四张，不能在两张卡的报告里同时写两路数据并行和两路专家并行。
 
-还要记录显存峰值。预分配设置、编译缓存和异步执行会让“当前 allocated”与“peak bytes in use”不同；性能报告需要说明测量接口。
+| 两 GPU 拓扑 | data | expert | 全局 hidden \([8,16,16]\) 的概念输入分布 | 四专家权重 \([4,16,16]\) 的实际参数分片 |
+|---|---:|---:|---|---|
+| 沿 data 轴分配样本 | 2 | 1 | 每卡 \([4,16,16]\) | 默认参数分片时每卡 \([4,8,16]\) |
+| 沿 expert 轴分配专家 | 1 | 2 | 每卡保留输入 \([8,16,16]\) | 每卡 \([2,16,16]\) |
 
-例如第 0 步包含 35 秒编译，后续 10 步各处理 2,048 个有效 token、每步执行 1 秒。稳态吞吐是 \(2{,}048\) token/s；如果把编译也算入总时间，则 \(20{,}480/(35+10)\approx455\) token/s。两个数字都可以保存，但必须标明分母，不能把它们放在同一个 <code>tokens_per_second</code> 字段里。
+第一行尤其值得注意：本仓库默认 <code>shard_parameters=True</code>，专家矩阵第二维还可沿 data 轴切分；它并非“data 轴上所有参数一律复制”的纯数据并行。非专家矩阵也可能沿 data 轴切分第一维。hidden 一栏只是样本输入分布示意，不是对每个中间激活布局的保证。读取 <code>tree_shardings</code> 和实际 shard 形状，才能确认具体参数怎么放。
 
-## 调度层与模型层分离
+对 \(n_{\rm data}=2\) 的输入，全局 batch 必须能被 2 整除；对 \(n_{\rm expert}=2\) 的专家参数，专家数必须能被 2 整除。先把这些整数关系核对清楚，通常比在通信报错后盲目修改 batch 更有效。
 
-`scripts/sutd_*.pbs` 负责申请资源、设置进程和共享目录；`ttt/validate.py` 与 `ttt/validate_mesh.py` 负责模型验证。换到另一个集群时，调度参数会改变，验证语义不应改变。
+## 双卡验证检查了哪一次恢复
 
-多机启动需要 coordinator address、process count、process id 和共享路径。它们必须来自作业分配，而不是写死在 Python 模块中。每个 rank 都应知道自己的全局 step 和数据分片规则。
+在恰好有两张可见 GPU 的远程作业中运行；每次复核使用新的输出目录，保留旧报告和检查点。默认 mesh 会使用所有可见设备，八张卡会产生 data=4、expert=2，与内置 batch=2 不兼容。应申请两卡作业，或在调度器已分配的设备映射内选取两卡，不要覆盖调度器映射去指定机器的全局 GPU 编号。
 
-## 检查点恢复的边界
+~~~bash
+bash scripts/validate_mesh.sh \
+  outputs/ch21/mesh-validation.json \
+  outputs/ch21/mesh-checkpoints
+~~~
 
-规模训练最常见的事故是“文件保存成功，但不能在下一台作业恢复”。恢复测试要覆盖：
+默认 <code>expert_parallel_size=2</code>。正好两张卡时，预期 <code>mesh</code> 为 data=1、expert=2；<code>expert_shards</code> 显示全局专家第一维 4、本地第一维 2。报告还应包含两个 <code>step_seconds</code>、对应 <code>metrics</code>、<code>device_memory</code>，以及 tiny 模式下的 <code>checkpoint_roundtrip: true</code>。
 
-1. 同设备、同 mesh 的正常 resume；
-2. 进程重启后的 resume；
-3. 同拓扑但不同 batch 的拒绝；
-4. 数据 manifest 变化时的拒绝；
-5. 目标设备布局变化时的显式转换或拒绝；
-6. session snapshot 与训练 checkpoint 不混用。
+它先训练两步，保存 <code>mesh-step-2.orbax</code>，恢复模型、优化器和 step，逐个比较本地数组，再分别从原状态和恢复状态各执行下一步，比较参数、优化器状态与 loss。只比较“文件能打开”远弱于这项检查，因为漏掉 Adam 的动量也可能得到可加载文件，却无法接上同一训练轨迹。
 
-恢复成功的定义是下一步状态和指标符合预期，而不是仅仅能够打开一个文件。
+此处 batch 是脚本中固定的两条短序列，恢复检查不覆盖真实数据流游标、中途进程被杀、文件系统故障或改变设备拓扑。<code>ttt/train.py</code> 的训练恢复还要加载数据采样状态；session 恢复则属于上一章的另一种状态。三者不能混为同一项“checkpoint 已通过”。
 
-## 什么时候进入正式实验
+若设备数、专家数或 batch 不可整除，先检查 mesh 与形状；若写入失败，检查目录是否已包含同名检查点、空间与访问权限；若下一步不一致，查优化器状态、step 与精度，保留差异而不要只放宽相等条件。双卡报告第一步时间包含编译，第二步只有一次执行；它们不能证明持续训练的稳态分布。
 
-只有功能级和系统级通过，才提交长时间的规模级作业。只有规模级报告有 compile、steady、memory、checkpoint 和失败记录，才把某个变体放入正式质量比较。
+## 参数规模试跑也有明确边界
 
-官方权重、长上下文和 RULER 还需要额外数据与硬件条件。前沿实验可以先用 tiny 验证方向，但结论必须标记为 hypothesis、reproduced、partially reproduced 或 unresolved。
+<code>ttt.validate_mesh</code> 另有 <code>--scale 1b</code>。下面的双卡示例仍保持恰好两张可见 GPU；内置 batch=2 也约束其他拓扑，例如四卡 data=2 可以整除，八卡 data=4 则不行。只有在目标机器有足够显存、并已通过 tiny 检查后，才考虑这项更大参数试跑；它不是本章的最小必跑步骤：
 
-下一部分回到 Frontier Lab：主线已经固定数据、状态和成本协议，热点研究才能在同一坐标系中比较。
+~~~bash
+JAX_PLATFORMS=cuda .venv/bin/python -m ttt.validate_mesh \
+  --scale 1b \
+  --expert-parallel-size 2 \
+  --require-gpu \
+  --output outputs/ch21/mesh-1b.json
+~~~
+
+预期 JSON 的 <code>scale</code> 为 <code>1b</code>，<code>parameters</code> 给出真实参数数量，两个训练步的指标有限。此模式为避免额外写入大型检查点，**跳过恢复检查**，所以 <code>checkpoint_roundtrip</code> 应为 false。名称是配方档位，不能替代参数计数。
+
+该配置的位置上限只有 16，训练序列长度为 4；它探测较大参数和分片计算的可运行性，不是 1B 长上下文预训练复现。若 OOM，先确认实际参数、precision、设备分片与当前显存占用，不能把序列已经很短这一事实忽略。即使成功，目标长度、目标 batch、数据吞吐和大检查点恢复仍需独立验证。
+
+## 正式训练前的准入表
+
+下面是应随实验保留的人工审查表。它不是当前脚本自动输出的额外字段；缺少证据的格子应写“未验证”，不能从 tiny 的 passed 推断。
+
+| 准入项 | 需要的证据 | 缺少证据时为什么不能扩大 |
+|---|---|---|
+| 数据与任务一致 | manifest、tokenizer 哈希、mask 与有效目标统计 | 可能训练了不同任务或污染了评估 |
+| 因果与数值正确 | 对应实现的有限梯度、流式和未来扰动检查 | 小错误会被更大算力放大 |
+| 目标配置可容纳 | 目标长度、batch、精度下的显存实测及余量 | tiny 不能预测激活峰值 |
+| 持续运行稳定 | 预热后多步时间分布、loss/梯度趋势、有效 token/s | 单次执行不能揭示间歇性抖动与发散 |
+| 训练可恢复 | 模型、优化器、step、数据游标恢复及下一步对照 | 可能恢复到另一条数据或优化轨迹 |
+| 成本可核算 | 编译、训练、数据等待、保存开销和设备小时 | 无法进行同预算比较 |
+| 来源可追踪 | commit、环境、命令、配置、日志和失败记录 | 其他机器无法判断差异来自哪里 |
+
+准入阈值应在作业前设定，例如可接受的显存余量、允许的数值误差和稳态测量步数；本书不为所有设备虚构一个通用数值。出现失败时，把原始错误、触发配置和对应报告放在一起：脚本已提供的错误 JSON 是起点，阶段归因与修复记录仍需要实验者补充。
+
+到这里，“可以扩大训练”成为一组可检查的条件，而不是一次运行没有报错。下一阶段才应把数据章节构建的真实语料接入训练，用前一章的质量—成本协议回答模型是否值得继续扩大。

@@ -2,15 +2,15 @@
 
 ## 模型真正训练的不是文档
 
-训练循环看到的是代码字段 `input_ids`、`labels` 和 `loss_mask`，不是“这是一篇文章”。一个简单的 next-token 样本可以写成：
+模型接收整数数组。为解释 next-token 任务，先把输入、目标和监督位置分别记为 \(X,Y,M\)，示例变量名使用 <code>input_ids</code>、<code>labels</code> 和 <code>loss_mask</code>。当前仓库的 loader 实际返回 <code>(tokens, masks)</code>，由 <code>sequence_loss</code> 再移位构造输入和目标；并不是返回这三个 key 的字典。
 
 先用四个可读的符号代替 token：原序列 `[A, B, C, D]` 的输入是 `[A, B, C]`，标签是向左错开一位的 `[B, C, D]`。模型在看到 `A` 后预测 `B`，看到 `A,B` 后预测 `C`，看到 `A,B,C` 后预测 `D`；这就是“下一个 token”而不是复制当前 token。
 
 \[
 \begin{aligned}
-\text{tokens}&=(x_1,x_2,x_3,x_4),\\
-X&=(x_1,x_2,x_3),\\
-Y&=(x_2,x_3,x_4),\\
+\text{tokens}&=(s_1,s_2,s_3,s_4),\\
+X&=(s_1,s_2,s_3),\\
+Y&=(s_2,s_3,s_4),\\
 M&=(1,1,1).
 \end{aligned}
 \]
@@ -25,7 +25,7 @@ M&=(1,1,1).
 
 有两种常见 packing 语义。
 
-**独立文档 packing** 在每篇文档后添加 EOS，并保证注意力或 loss 不跨越边界。它容易解释：文档结束后，模型不会把下一篇文档当成上一篇的自然延续。
+**独立文档 packing** 要阻止注意力和携带的模型状态读取前一篇文档，并明确处理边界处的 next-token 目标。仅把一个 loss mask 置零不能实现这种隔离：它删除一个损失项，却不会删除上下文。实现时需要文档感知的 attention 边界，或分开调用模型并重置状态。
 
 **连续流 packing** 将多个文档连接成一个 token 流，训练效率高，但必须定义 EOS 和边界。若只加入 EOS 而仍允许 attention 跨越它，模型可以学习跨文档的统计关系；这可能是有意的，也可能泄漏文档组织信息。
 
@@ -41,11 +41,44 @@ mask 的含义是“这个 label 是否参与 loss”，不是“这个 token �
 
 ## 一个可以手算的例子
 
-设 token 序列为 \(z=(10,11,12,2,20)\)，其中 2 是 EOS。长度为 4 的训练窗口是 \(X=(10,11,12,2)\)、\(Y=(11,12,2,20)\)。
+设教学用 token 序列为 \(s=(10,11,12,2,20)\)，其中 2 是 EOS；这些 ID 不是一条真实文本的编码。长度为 4 的训练窗口是 \(X=(10,11,12,2)\)、\(Y=(11,12,2,20)\)。
 
 如果我们把 EOS 后的 20 视为下一篇文档的第一个 token，最后一项是否训练取决于 packing 约定。若希望文档之间不互相监督，mask 可以是 \(M=(1,1,1,0)\)；若把整个 token 流当作连续语料，则是 \(M=(1,1,1,1)\)。两种设置训练的是不同条件分布。
 
 这就是为什么“加了 EOS”还不足以说明边界语义。必须同时写出 input、label、mask 和 attention mask。
+
+## 用真实的 byte ID 看一次边界
+
+在目标机器的仓库根目录运行下面的小例子。它按当前普通分片路径的规则，分别编码两篇单字符文档，再拼接；这里显式构造数组，是为了让每一步都能看见。
+
+~~~bash
+.venv/bin/python - <<'PY'
+from ttt.data import ByteTokenizer
+
+tokenizer = ByteTokenizer()
+tokens, stored_mask = [], []
+for text in ("A", "B"):
+    document = tokenizer.encode(text) + [tokenizer.eos_token_id]
+    tokens.extend(document)
+    stored_mask.extend([0] + [1] * (len(document) - 1))
+print("tokens:", tokens)
+print("X:", tokens[:-1])
+print("Y:", tokens[1:])
+print("M:", stored_mask[1:])
+PY
+~~~
+
+按 ByteTokenizer 的定义，字节 65、66 分别映射为 ID 68、69，BOS 为 1、EOS 为 2。因此预期的 token 流为 <code>[1,68,2,1,69,2]</code>，移位后为：
+
+| 代码索引 | 输入 \(X\) | 目标 \(Y\) | \(M\) | 含义 |
+|---|---:|---:|---:|---|
+| 0 | 1 | 68 | 1 | BOS 后预测 A |
+| 1 | 68 | 2 | 1 | A 后预测 EOS |
+| 2 | 2 | 1 | 0 | 不为下一篇的 BOS 计损失 |
+| 3 | 1 | 69 | 1 | 第二篇 BOS 后预测 B |
+| 4 | 69 | 2 | 1 | B 后预测 EOS |
+
+第三行没有直接损失，但第四行仍可以通过因果注意力读取之前的 A。由此可以看见两个不同问题：边界目标是否被监督，以及后文是否能访问前文。mask 只回答第一个问题。
 
 ## 当前训练路径
 
@@ -58,13 +91,13 @@ mask 的含义是“这个 label 是否参与 loss”，不是“这个 token �
 ## 本章最小检查、预期证据与失败诊断
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/packing-sample \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~
 
-随后用一个固定窗口检查 <code>input_ids</code>、<code>labels</code> 和 <code>loss_mask</code> 的长度是否分别是 \(L\)、\(L\)、\(L\)，并手算第一行的 shift。若最后一列 mask 为 0，它不应改变 loss 或 TTT 状态；若标签没有向前一位，先修复数据路径再看模型。
+随后可按上面的短例检查输入、目标和 mask 是否分别有 \(L\) 个位置。一个更严格的屏蔽目标检查是：保持全部输入、mask 和初始状态不变，只改变最后一个被屏蔽的目标 ID；它不应通过损失项影响结果。不能把这句话推广为“任意被屏蔽 token 都不影响状态”，因为同一个 token 还可能是后续预测的输入。
 
 ## 本章小结与下一问
 

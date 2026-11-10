@@ -1,111 +1,109 @@
-# 13. Data preflight
+# 13. Preflight: inspect inputs before starting a long run
 
-## Why check before a long run?
+## An openable file is not enough
 
-A four-step tiny run can expose an import error quickly. A multi-day job can spend hours downloading data and compiling kernels before discovering that the tokenizer and model vocabulary disagree. **Preflight** is a short, explicit acceptance step that checks whether the inputs form one coherent experiment before a long GPU allocation.
+Suppose training immediately fails with an out-of-vocabulary target. The GPU, compiler, and model have already started, but the cause may be simple: the data uses a 32K tokenizer while the model has only 259 output positions. We do not need thousands of training steps to discover this. Checking data, tokenizer, model, and run configuration together is preflight.
 
-Preflight is not a quality score. It does not prove that the model will learn useful language. It proves that the selected data, tokenizer, model configuration, sampler, and output directory agree on the objects they refer to.
+Preflight looks for contradictions among inputs. It differs from evaluation: intact files and valid labels do not establish representative data, and a finite tiny-model loss does not establish language ability. First ask whether the declared experiment can execute, then whether its results are useful.
 
-## Eight checks, with the reason for each
+## Follow one target through the checks
 
-### 1. Vocabulary alignment
+A target ID must belong to the intended tokenizer vocabulary. Even an in-range integer can mean different text under another tokenizer. Checking \(0\le y<V\) is therefore insufficient; tokenizer files, normalization rules, and special-token semantics also need fixed identities.
 
-The manifest vocabulary size, tokenizer vocabulary size, and model configuration must agree:
+The model must then be able to assign probability to that target. The current sharded loader requires the manifest vocabulary size to equal the model vocabulary size passed to it. This is a repository interface constraint, not a theorem about every language model: a larger output vocabulary can be mathematically valid, but does not bypass this version check. Editing the manifest number also cannot make data from another tokenizer compatible.
 
-$$
-V_{\mathrm{manifest}}=V_{\mathrm{tokenizer}}=V_{\mathrm{model}}.
-$$
+Third, the target must come from the right position. A length-\(L\) next-token prediction requires \(L+1\) consecutive tokens. Targets are shifted by one, and the loss mask must align with those targets. An all-zero mask may produce a numerically safe zero loss, but that means no supervision rather than perfect prediction.
 
-Special-token IDs must lie in $[0,V)$, and the BOS/EOS/PAD insertion rules used to create the shards must match the tokenizer metadata. A legal integer from the wrong tokenizer is still a semantic error.
+Finally, the available context must match the declared protocol. Current continuous-stream windows can cross EOS; loss masking does not automatically reset attention or fast weights. Independent-document experiments need implemented and checked state isolation, not just a report asserting independence.
 
-### 2. File completeness and integrity
+## Which checks already exist?
 
-Every token and mask shard must exist. Recomputed SHA256 digests must equal the manifest, <code>count</code> must equal array length, arrays must be one-dimensional integers, and mask shape must equal token shape. A missing or changed file is a hard failure.
+| Object | Existing code checks | Upstream or manual checks still needed |
+|---|---|---|
+| Shard files | Paths, SHA256, nonempty one-dimensional integers, count | Provenance, licensing, extraction quality |
+| Tokens and masks | ID range, matching shapes, finite mask values in \([0,1]\) | Special-token semantics, correct target selection |
+| Manifest | Format version, vocabulary size, shard list | Tokenizer file identity, document lookup, split contamination |
+| Windows | Length and index bounds | Source proportions, supervision distribution across many windows |
+| Restoration | Data fingerprint and sampling configuration | Actual next-step comparison against uninterrupted execution |
 
-### 3. Trainable windows
+The first three rows primarily correspond to <code>TokenDataset</code> in <code>ttt/dataset.py</code>; sampling state belongs to <code>BatchStream</code> in <code>ttt/data.py</code>. There is no single <code>ttt.preflight</code> command implementing this entire table. Keeping the missing analyses explicit prevents loader success from being mistaken for complete acceptance.
 
-For sequence length $L$, the dataset must provide at least $L+1$ tokens. Tokens must be in range, the returned mask must have length $L$, and at least one target must have a nonzero mask. A batch whose mask is all zero has no learning signal and should be rejected even if the numerical code avoids division by zero.
+## Generate a small report from an existing example
 
-### 4. Boundary semantics
+Use the repository's four JSONL teaching records on the target Linux node, from the repository root after environment setup. Generate shards once. The generator refuses to overwrite an existing manifest; for repeated inspection, run only the second block, and use a new directory when changing data.
 
-The report must state whether packing is independent-document or continuous-stream, whether windows can cross EOS, and whether the attention mask resets at document boundaries. The current loader can cross EOS and shard boundaries; preflight must not describe it as document-isolated.
-
-### 5. Split and contamination evidence
-
-Training and validation document groups must be disjoint according to the split policy. Record duplicate or near-duplicate findings, source and language counts, length statistics, and any blocked contamination decisions. A validation loss is not an independent estimate if the same document appears in training under another formatting or shard.
-
-### 6. Sampling and resume semantics
-
-Record seed, recipe version, shuffle or sampling protocol, rank assignment, initial position, and checkpoint resume rule. For the current <code>BatchStream</code>, also record the data fingerprint, sequence length, batch size, and generator state. A matching seed alone does not identify the next batch.
-
-### 7. Model and data interface
-
-Check <code>sequence_length &lt;= max_position_embeddings</code>, valid <code>ttt_chunk_size</code>, compatible sliding-window settings, and matching C/F architecture. If padding is used, verify that its mask is passed through the same shift as labels. These checks prevent a data shape that is legal for NumPy but invalid for the model's causal computation.
-
-### 8. Output safety
-
-The output directory must be empty, or the run must explicitly declare resume or initialization from a checkpoint. A checkpoint may resume only when its data digest, tokenizer identity, resolved configuration, and sampler settings match the current inputs. Otherwise the run should stop rather than silently continue on new data.
-
-## A report a human can audit
-
-Each item should contain its inputs, observations, status, and reason:
-
+~~~bash
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
+  --output outputs/preflight-example \
+  --sharded --tokenizer byte --shard-tokens 256
 ~~~
-{
-  "name": "vocab_alignment",
-  "status": "pass",
-  "inputs": {
-    "manifest_sha256": "<sha256>",
-    "config_sha256": "<sha256>"
-  },
-  "observed": {
-    "manifest_vocab_size": 259,
-    "tokenizer_vocab_size": 259,
-    "config_vocab_size": 259
-  },
-  "message": "all values agree"
+
+Now inspect the manifest and take the first 17-token window, yielding 16 prediction targets. A fixed start makes the example easy to check; it does not measure sampling coverage.
+
+~~~bash
+.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+from ttt.dataset import TokenDataset
+
+dataset = TokenDataset("outputs/preflight-example/manifest.json", 259)
+if dataset.size < 17:
+    raise ValueError("The stream must contain at least 17 tokens.")
+tokens, mask = dataset.rows([0], 17)
+if tokens.shape != (1, 17) or mask.shape != (1, 16):
+    raise ValueError("Unexpected token or target-mask shape.")
+valid_weight = float(mask.sum())
+if valid_weight <= 0:
+    raise ValueError("The inspected window has no supervised target.")
+report = {
+    "scope": "loader_invariants_and_one_window",
+    "manifest_sha256": dataset.fingerprint,
+    "stream_tokens": dataset.size,
+    "window_tokens": tokens.tolist(),
+    "target_mask": mask.tolist(),
+    "valid_weight": valid_weight,
+    "passed": True,
 }
+path = Path("outputs/preflight-example/window-check.json")
+path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+print(json.dumps(report, indent=2))
+PY
 ~~~
 
-Use <code>pass</code>, <code>warning</code>, and <code>fail</code> deliberately. A warning states the human decision and its scope; a fail blocks a long job. Save the report under the run directory and reference it from <code>experiment.json</code>, so a later reader can see what was checked before training.
+The code implies that a successful report contains one row of 17 integers in <code>window_tokens</code>, one row of 16 weights in <code>target_mask</code>, and a positive <code>valid_weight</code>. No invented hash or token count is presented as a measurement; the generated JSON records the actual data version. An exception prevents a new success report from being written. On repeated runs, also inspect the old report's time and digest rather than mistaking an existing file for current success.
 
-## A complete pass, warning, and fail example
+This example checks the loader's invariants and one window. It does not inspect every window, contamination, source mixtures, tokenizer file identity, or model training. The report's <code>scope</code> field makes that boundary explicit.
 
-Here is a shortened report for a tiny run. File and window checks pass, continuous windows across EOS receive a warning, and a vocabulary mismatch fails the run:
+## Deliberately create one mismatch
 
-~~~
-{
-  "checks": [
-    {"name": "file_integrity", "status": "pass", "message": "2 shards and masks match their hashes"},
-    {"name": "boundary_semantics", "status": "warning", "message": "windows may cross EOS; document isolation is not claimed"},
-    {"name": "vocab_alignment", "status": "fail", "observed": {"manifest": 259, "tokenizer": 259, "model": 32000}, "message": "model vocab_size differs"}
-  ],
-  "ready_for_long_run": false
-}
-~~~
+After the successful inspection above, keep the manifest unchanged and pass a model vocabulary size of 32,000:
 
-The fail should be repaired before submitting a long job. Either the model must use the 259 positions required by the byte tokenizer, or the experiment must train a new 32K tokenizer, regenerate token shards, update the manifest and experiment identity, and run preflight again. The warning also needs a recorded human decision. The current repository has no standalone preflight command, but a remote operator can force the loader checks before requesting a GPU:
+~~~bash
+.venv/bin/python - <<'PY'
+from ttt.dataset import TokenDataset
 
-~~~
-python -c "from ttt.dataset import TokenDataset; TokenDataset('runs/example_shards/manifest.json', 259); print('manifest and shards: pass')"
+try:
+    TokenDataset("outputs/preflight-example/manifest.json", 32000)
+except ValueError as error:
+    print(type(error).__name__, str(error))
+else:
+    raise RuntimeError("Expected the vocabulary mismatch to be rejected.")
+PY
 ~~~
 
-This command checks implemented file and range invariants. It does not replace split, contamination, or distribution checks.
+The current implementation should raise <code>ValueError</code> with the message “数据清单版本或词表大小不匹配。” (manifest version or vocabulary size mismatch). This expectation comes from that source branch; execution confirms the machine's behavior. Since the same manifest was just read successfully with 259, the changed vocabulary argument isolates the failed interface. The example modifies no source data and does not label the failed check as success.
 
-## What the repository provides today
+## Connect each error to the right object
 
-There is not yet a standalone <code>ttt.preflight</code> command. The current minimum gate is the validation performed by <code>TokenDataset</code>, a sampled window check through <code>BatchStream</code>, and a tiny training or validation run. On the remote experiment machine, an operator can at least force the loader to read the manifest before requesting a GPU:
+For a manifest-version or vocabulary mismatch, compare the manifest, model configuration, and tokenizer's actual vocabulary size first. Changing learning rate or layer count cannot fix it. For a shard checksum failure, check transfer completeness and whether the manifest belongs to another version. Recomputing the hash and replacing it in the manifest would hide the substitution rather than recover the intended file.
 
-~~~
-python -c "from ttt.dataset import TokenDataset; TokenDataset('runs/example_shards/manifest.json', 259); print('manifest and shards: pass')"
-~~~
+If tokens and masks are individually valid but training repeatedly reports zero loss, inspect valid mask weights and print a short document's inputs, targets, and masks together. If loss is finite but validation is suspiciously easy, return to split and near-duplicate checks. Different failures concern different objects; one range check cannot answer them all.
 
-This command checks the loader's implemented invariants; it does not perform split contamination analysis, source-mixture accounting, or model-quality evaluation. Those remain explicit inputs to the preflight report. A future <code>ttt.preflight</code> module should expose the eight checks without requiring a GPU.
+## Evidence still needed before a long run
 
-## The boundary of the claim
+Complete acceptance also needs source and cleaning records, grouped split and contamination analysis, tokenizer identity, declared packing semantics, and a restoration comparison. Record pass, warning, fail, or not_checked for each item, together with scope and evidence. Unperformed checks must not default to pass.
 
-Passing preflight establishes input consistency and a recoverable experiment identity. It does not establish useful perplexity, broad generalization, or a fair architecture comparison. Those claims require the dense baseline, independent evaluation data, and recorded cost and state evidence. The next chapter fixes that baseline before we add TTT or other changing state.
+Use <code>warning</code> for known and accepted limitations, such as an experiment deliberately allowing continuous cross-document context, and explain the effect on interpretation. Use <code>fail</code> for contradictions preventing the declared experiment, such as incompatible vocabularies. <code>not_checked</code> means evidence is absent; it does not disappear because the program raised no exception.
 
-## Summary and next question
-
-Preflight must label each check as pass, warning, or fail. Passing establishes consistency of the input objects, not model quality, generalization, or a fair architecture comparison. The next chapter fixes this data identity and establishes a dense baseline before adding TTT or any other changing state.
+Keep these records in separate reports alongside the run. The current trainer's <code>experiment.json</code> stores experiment configuration and does not automatically collect upstream reports, so their paths and digests must be recorded explicitly. The next chapter uses these inputs in an ordinary dense language model to inspect gradients, optimization, and restoration before adding more complex structures.

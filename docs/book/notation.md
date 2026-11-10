@@ -53,7 +53,7 @@ $$
 M=(1,1,0)
 $$
 
-可以屏蔽跨文档的最后一个目标；而连续语料训练可能使用 \(M=(1,1,1)\)。mask 不是装饰字段，它定义哪些预测真正进入优化目标。
+在这个三位置例子中屏蔽的是 EOS，不能把它称为跨文档监督。真正的跨文档例子需要把第二篇文档的首个 token 加进来。设拼接流为 \(s=(17,42,31,2,55)\)，其中 55 是下一篇文档的首个 token，则 \(X=(17,42,31,2)\)、\(Y=(42,31,2,55)\)。使用 \(M=(1,1,1,0)\) 才会排除“EOS 预测 55”的那一项。loss mask 只改变监督位置；它不会阻止之后的位置通过注意力读取前一篇文档。文档隔离还需要 attention mask 或状态重置，这会在 packing 章节展开。
 
 ## 索引、形状和 batch
 
@@ -66,10 +66,16 @@ $$
 | Transformer 层 | \(\ell\) | \(\ell\in\{0,\ldots,n_\ell-1\}\) |
 | chunk | \(c\) | 连续 token 窗口的一段 |
 | 外循环训练步 | \(k\) | 静态参数被优化器更新一次 |
-| expert | \(e\) | \(e\in\{1,\ldots,E\}\) |
+| expert | \(e\) | \(e\in\{0,\ldots,n_{\mathrm{exp}}-1\}\)，与代码专家 ID 一致 |
 | batch 大小 | \(B\) | 一个训练步中的样本数 |
 | 序列长度 | \(L\) | 一个窗口中的 token 数 |
 | 词表大小 | \(V\) | tokenizer 可以产生的 token ID 数量 |
+| 隐藏宽度 | \(d\) | 残差向量的分量数，配置 <code>hidden_size</code> |
+| MLP 中间宽度 | \(d_{\mathrm{ff}}\) | 配置 <code>intermediate_size</code> |
+| query / KV 头数 | \(n_h,n_{\mathrm{kv}}\) | 配置 <code>num_attention_heads</code>、<code>num_key_value_heads</code> |
+| 每个头的宽度 | \(d_h\) | 配置 <code>head_dim</code>；默认 \(d/n_h\) |
+| 专家总数 / 选择数 | \(n_{\mathrm{exp}},k_{\mathrm{sel}}\) | 不用 embedding 矩阵的 \(E\) 表示专家数 |
+| 字节数 | \(N_{\mathrm{bytes}}\) | 与 batch 大小 \(B\) 区分 |
 
 一个 batch 的输入张量写成：
 
@@ -81,7 +87,7 @@ $$
 
 ## embedding、hidden、logits 和概率
 
-四个词容易混在一起：
+下面五个对象需要区分：
 
 1. **token ID** 是词表中的整数坐标，例如 17；
 2. **embedding** 是查表得到的 \(d\) 维向量；
@@ -138,7 +144,7 @@ $$
 =p_j-\mathbf{1}[j=y].
 $$
 
-正确类别的梯度为负，梯度下降会提高它的分数；错误类别的梯度为正，梯度下降会降低它们的分数。这个局部推导会在 baseline 和 TTT 内循环中再次使用。
+如果直接把这组 logits 当作独立变量更新，正确类别的负梯度会提高其分数，其他类别的正梯度会降低其分数。真实训练更新的是共享参数 \(\theta\)，还要通过链式法则计算 \(\nabla_\theta\mathcal L\)；有限步长、其他样本和优化器状态使一次参数更新不保证每个位置的正确概率都上升。这个局部推导会在 baseline 和 TTT 内循环中再次使用。
 
 静态参数跨训练 step 更新：
 
@@ -149,20 +155,20 @@ $$
 \left(\theta_k,\nabla_\theta\mathcal{L}_{\mathrm{outer}}\right).
 $$
 
-TTT 的快权重在序列或 chunk 内更新：
+TTT 的快权重按 chunk 更新。以下是不考虑梯度裁剪时的一步 SGD：
 
 $$
-\phi_{t+1}
+\phi_{c+1}
 =
-\phi_t-\eta_{\mathrm{inner}}
+\phi_c-\eta_{\mathrm{inner}}
 \nabla_\phi\mathcal{L}_{\mathrm{inner}}.
 $$
 
-\(k\) 和 \(t\) 不能混为同一个下标：前者描述训练过程的长期状态，后者描述当前序列的短期适应。
+\(k\) 表示外循环训练步，\(c\) 表示当前序列内的 chunk 更新编号，\(t\) 仍表示 token 位置；三者不能混为同一个时间轴。
 
 ## 数据集、分布和状态 owner
 
-数据集 \(\mathcal{D}\) 是可以检查文件、manifest 和 hash 的对象；分布 \(D\) 是采样器实际让模型看到的概率分布。例如两个文件各有 100 个 token，按文件数均匀采样得到的分布不一定按 token 均匀；长文件会贡献更多窗口。数据章节会明确采样单位和权重。
+数据集 \(\mathcal{D}\) 是可以检查文件、manifest 和 hash 的对象；分布 \(D\) 是采样器实际让模型看到的概率分布。例如两篇文档分别有 100 和 900 个 token：先以各 \(1/2\) 的概率选文档、再在其中选一个 token，短文档的每个 token 被抽到的概率是 \(1/200\)，长文档的是 \(1/1800\)。若在合并后的 1000 个 token 中均匀抽样，每个 token 的概率都是 \(1/1000\)。数据没变，抽样规则改变了模型看到的分布。这个例子只抽一个 token；窗口抽样还需考虑长度和边界。
 
 状态也必须有 owner 和 lifetime：
 
@@ -172,7 +178,7 @@ $$
 | 优化器状态 | \(O_k\) | trainer/checkpoint | 训练 step |
 | sampler/RNG | \(R_k\) | data stream/checkpoint | 训练恢复 |
 | KV cache | \(\mathbf c_t\) | request session | 一次推理请求 |
-| TTT fast weights | \(\phi_t\) | chunk/session | 由协议决定 |
+| TTT fast weights | \(\phi_c\) | chunk/session | 由协议决定 |
 
 “模型状态”不是一个足够精确的词。只恢复参数而不恢复 optimizer 和 sampler，可能加载成功，却不能称为同一个训练过程的 resume。
 
@@ -182,7 +188,7 @@ $$
 
 ~~~bash
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
-python3 -m ttt.data --input examples/sample.txt --output outputs/sample-shards --tokenizer byte --sharded --shard-tokens 256
+.venv/bin/python -m ttt.data --input examples/sample.jsonl --output outputs/sample-shards --tokenizer byte --sharded --shard-tokens 256
 ~~~
 
 成功时应看到 token 文件、分片文件和 <code>manifest.json</code>；检查 <code>vocab_size</code>、shard token 数和输入摘要是否存在。这个检查只能证明数据对象和字段能生成，不能证明模型已经学会语言，也不能证明 GPU 训练吞吐。
@@ -193,4 +199,4 @@ python3 -m ttt.data --input examples/sample.txt --output outputs/sample-shards -
 
 ## 书写规则
 
-标量使用斜体小写或大写字母，向量使用粗体小写，矩阵使用粗体大写，集合或损失使用花体。<code>d_model</code>、<code>num_heads</code>、<code>vocab_size</code> 分别对应 \(d\)、\(n_h\)、\(V\)；<code>input_ids</code>、<code>labels</code>、<code>loss_mask</code> 分别对应 \(X\)、\(Y\)、\(M\)。数学变量和概率必须使用 LaTeX，反引号只用于真实代码名称。
+标量使用斜体字母，向量使用粗体小写，矩阵使用粗体大写，集合或损失使用花体。实际配置字段 <code>hidden_size</code>、<code>num_attention_heads</code>、<code>vocab_size</code> 分别对应 \(d\)、\(n_h\)、\(V\)。本书的教学数组名 <code>input_ids</code>、<code>labels</code> 对应 \(X\)、\(Y\)；实际 <code>sequence_loss</code> 接收未 shift 的 <code>tokens</code>，在函数内部构造输入和目标。不能把教学数组名误认成 loader 的返回字典字段。数学变量和概率使用 LaTeX，反引号只用于代码名称。

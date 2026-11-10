@@ -146,16 +146,16 @@ Save the complete command, SentencePiece version, input-manifest hash, and outpu
 
 The repository now provides a real tokenizer-generation entry point: [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py). It reads plain text or JSONL, trains BPE or Unigram, and uses `PreTrainedTokenizerFast.save_pretrained` to write a directory that `AutoTokenizer.from_pretrained` can load.
 
-Install the tokenizer extra:
+Use the interpreter and repository-local uv prepared in the environment chapter. The <code>--frozen</code> flag uses the lockfile; <code>--inexact</code> retains other installed extras so this step does not unexpectedly remove CUDA or checkpoint dependencies. See the [uv synchronization documentation](https://docs.astral.sh/uv/concepts/projects/sync/).
 
 ~~~bash
-uv sync --extra tokenizer
+.tools/uv sync --frozen --inexact --python .venv/bin/python --extra tokenizer
 ~~~
 
 Train a 32K byte-level BPE model from the `text` field of a JSONL corpus:
 
 ~~~bash
-uv run python scripts/train_tokenizer.py \
+.venv/bin/python scripts/train_tokenizer.py \
   --input data/tokenizer/train.jsonl \
   --output outputs/tokenizer-32k \
   --algorithm bpe \
@@ -169,17 +169,19 @@ The script reads JSONL into temporary plain-text training files, constructs `mod
 
 ### Use the Hugging Face Tokenizers API directly
 
-The `tokenizers` library lets the experiment define the normalizer, pre-tokenizer, and trainer explicitly:
+The <code>tokenizers</code> library exposes the normalizer, pre-tokenizer, trainer, and decoder. This standalone API example requires a prepared <code>data/tokenizer/train.txt</code> and an existing output directory. It is an alternative to the repository script above.
 
 ~~~python
-from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, trainers
+from tokenizers import Tokenizer, decoders, models, normalizers, pre_tokenizers, trainers
 
 tokenizer = Tokenizer(models.BPE(unk_token="<unk>"))
 tokenizer.normalizer = normalizers.NFKC()
 tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+tokenizer.decoder = decoders.ByteLevel()
 
 trainer = trainers.BpeTrainer(
     vocab_size=32_000,
+    initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
     special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
 )
 tokenizer.train(["data/tokenizer/train.txt"], trainer)
@@ -194,7 +196,7 @@ Before training the language model, run an independent check:
 
 ~~~text
 tokenizer files
-→ encode/decode round trip
+→ decode(encode(text)) == normalize(text)
 → token ID range check
 → special-token check
 → tokens/byte and length statistics
@@ -215,6 +217,12 @@ The current repository uses `ttt.data` to load a trained tokenizer and generate 
 - [`generate.py` vocabulary check](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/generate.py#L25-L27): prevent a tokenizer vocabulary from exceeding the model output dimension.
 
 The SentencePiece command and `tokenizers` Python example explain the algorithms; the repository's actual generation entry point is [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py). `ttt.data` loads its output, validates IDs, and creates shards.
+
+### Which text should decoding recover?
+
+The example uses NFKC normalization. For instance, full-width <code>Ａ</code> becomes <code>A</code>, and <code>①</code> becomes <code>1</code>. This transformation is not invertible. The appropriate round-trip target is therefore the normalized text, not unconditionally the original text. If those distinctions matter to the experiment, choose a suitable normalization policy before training; a decoder cannot reconstruct information already discarded.
+
+Byte-level BPE also distinguishes converting text to a byte representation from covering every byte. The API example supplies the complete byte alphabet through <code>initial_alphabet</code> and reconstructs the representation with a ByteLevel decoder. The current repository script supplies the decoder but does not explicitly initialize the trainer with that complete alphabet; unseen byte characters may become UNK. Its output should therefore not be described as unconditional lossless byte fallback. Acceptance examples should include unseen Chinese text, symbols, and whitespace, and compare decoding with normalized text.
 
 ## Byte tokenizer in this repository
 
@@ -239,7 +247,7 @@ The special-token strings, IDs, insertion positions, and loss behavior must ther
 
 ## Measure efficiency by source
 
-Let $B$ be the UTF-8 byte count of a text and $T$ its token count. The ratio $T/B$ measures encoding density. It is not a quality score, but it predicts how much character context fits into a fixed sequence length and how many token positions a data budget buys.
+Let \(N_{\mathrm{bytes}}\) be the UTF-8 byte count and \(T\) the token count. The ratio \(T/N_{\mathrm{bytes}}\) measures encoding density, keeping byte count distinct from batch size \(B\). It is not a quality score, but helps describe text coverage at a fixed token length.
 
 At minimum, report:
 
@@ -258,11 +266,11 @@ A tokenizer can make English more compact while expanding Chinese or code. Overa
 
 The repository exposes `ByteTokenizer` and a Hugging Face path through the tokenizer extra. `HuggingFaceTokenizer` calls `AutoTokenizer.from_pretrained`; the current command line accepts a model name but does not expose a revision argument, and remote tokenizer files are not committed to Git. A production run must record the name, revision, local-cache digest, and file hashes outside the current manifest.
 
-Prepare data with:
+The following are alternative experiments. Replace <code>corpus.jsonl</code> with cleaned and split records containing a <code>text</code> field on each line. The second command also requires the local <code>outputs/tokenizer-32k</code> directory produced by the tokenizer training step above. Use separate new output directories:
 
 ~~~bash
-python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --tokenizer byte
-python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --tokenizer meta-llama/Meta-Llama-3-8B
+.venv/bin/python -m ttt.data --input corpus.jsonl --output data/pretrain-byte --sharded --tokenizer byte
+.venv/bin/python -m ttt.data --input corpus.jsonl --output data/pretrain-bpe --sharded --tokenizer outputs/tokenizer-32k
 ~~~
 
 The three implemented paths have these boundaries:
@@ -286,8 +294,8 @@ Changing the tokenizer requires new token shards and a compatible model configur
 Use the teaching input to inspect the current byte-tokenizer and sharding behavior:
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/tokenizer-sample \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~

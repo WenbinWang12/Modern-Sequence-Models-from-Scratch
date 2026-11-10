@@ -45,7 +45,7 @@ labels = [42, 31, 2]
 loss_mask = [1, 1, 1]
 ~~~
 
-The code field <code>input_ids</code> is mathematical \(X\), <code>labels</code> is \(Y\), and <code>loss_mask</code> is \(M\). If two documents are packed together, whether the last token of one document may predict the first token of the next is a protocol choice. For example, \(M=(1,1,0)\) masks a cross-document target, while a continuous-corpus protocol may use \(M=(1,1,1)\). The mask defines which predictions enter the objective.
+In this teaching example, <code>input_ids</code> denotes \(X\), <code>labels</code> denotes \(Y\), and <code>loss_mask</code> denotes \(M\). Setting \(M=(1,1,0)\) here would suppress EOS, not a cross-document target. To show a real boundary, append token 55 from a second document: \(s=(17,42,31,2,55)\). Now \(X=(17,42,31,2)\), \(Y=(42,31,2,55)\), and \(M=(1,1,1,0)\) excludes the prediction of 55 after EOS. A loss mask selects supervised targets; it does not stop later positions from attending to the earlier document. Context isolation requires a separate attention mask or state reset.
 
 ## Indices, shapes, and batches
 
@@ -56,10 +56,16 @@ The code field <code>input_ids</code> is mathematical \(X\), <code>labels</code>
 | Transformer layer | \(\ell\) | \(\ell\in\{0,\ldots,n_\ell-1\}\) |
 | chunk | \(c\) | a consecutive part of a token window |
 | outer training step | \(k\) | one optimizer update of static parameters |
-| expert | \(e\) | \(e\in\{1,\ldots,E\}\) |
+| expert | \(e\) | \(e\in\{0,\ldots,n_{\mathrm{exp}}-1\}\), matching code expert IDs |
 | batch size | \(B\) | samples in one training step |
 | sequence length | \(L\) | tokens in one window |
 | vocabulary size | \(V\) | number of token IDs |
+| hidden width | \(d\) | residual-vector size; <code>hidden_size</code> |
+| MLP intermediate width | \(d_{\mathrm{ff}}\) | <code>intermediate_size</code> |
+| query / KV head counts | \(n_h,n_{\mathrm{kv}}\) | <code>num_attention_heads</code>, <code>num_key_value_heads</code> |
+| width per head | \(d_h\) | <code>head_dim</code>; defaults to \(d/n_h\) |
+| expert count / selection count | \(n_{\mathrm{exp}},k_{\mathrm{sel}}\) | distinct from embedding matrix \(E\) |
+| byte count | \(N_{\mathrm{bytes}}\) | distinct from batch size \(B\) |
 
 A batch of inputs is
 
@@ -132,7 +138,7 @@ $$
 p_j-\mathbf{1}[j=y].
 $$
 
-The correct class receives a negative gradient, so gradient descent raises its score; incorrect classes receive positive gradients and are lowered. This local derivation reappears in the dense baseline and the TTT inner loop.
+If these logits were independent optimization variables, gradient descent would raise the correct score and lower the others. Real training updates shared parameters \(\theta\) through the chain rule. A finite step, other examples, and optimizer state mean that one parameter update need not improve the correct probability at every position. This local derivative reappears in the baseline and TTT chapters.
 
 Static parameters are updated across training steps:
 
@@ -143,20 +149,20 @@ $$
 \left(\theta_k,\nabla_\theta\mathcal{L}_{\mathrm{outer}}\right).
 $$
 
-TTT fast weights can change within a sequence or chunk:
+TTT fast weights update by chunk. Without gradient clipping, one SGD step is:
 
 $$
-\phi_{t+1}
+\phi_{c+1}
 =
-\phi_t-\eta_{\mathrm{inner}}
+\phi_c-\eta_{\mathrm{inner}}
 \nabla_\phi\mathcal{L}_{\mathrm{inner}}.
 $$
 
-The indices are different clocks: \(k\) describes long-lived training state, while \(t\) describes short-lived adaptation.
+The indices describe different clocks: \(k\) is an outer training step, \(c\) is a chunk update within the current sequence, and \(t\) remains a token position.
 
 ## Datasets, distributions, and state owners
 
-A dataset \(\mathcal{D}\) is a checkable object with files, manifests, and hashes. A distribution \(D\) is what the sampler actually shows to the model. Two files may contain the same number of documents but different numbers of tokens, so document-uniform sampling is not token-uniform sampling.
+A dataset \(\mathcal{D}\) is a checkable object with files, manifests, and hashes. A distribution \(D\) describes the sampler. Suppose two documents have 100 and 900 tokens. Choose a document with probability \(1/2\), then choose a token uniformly within it: a short-document token has probability \(1/200\), while a long-document token has probability \(1/1800\). Sampling uniformly from the combined 1000 tokens instead gives every token probability \(1/1000\). The files are unchanged; the distribution has changed. This example samples individual tokens; windows also require a length and boundary policy.
 
 State also needs an owner and lifetime:
 
@@ -166,7 +172,7 @@ State also needs an owner and lifetime:
 | optimizer state | \(O_k\) | trainer/checkpoint | training steps |
 | sampler/RNG | \(R_k\) | data stream/checkpoint | resume protocol |
 | KV cache | \(\mathbf c_t\) | request session | one request |
-| TTT fast weights | \(\phi_t\) | chunk/session | protocol-defined |
+| TTT fast weights | \(\phi_c\) | chunk/session | protocol-defined |
 
 “Model state” is too broad to audit. Loading parameters without optimizer and sampler state may succeed as a file operation, but it is not the same training process.
 
@@ -176,7 +182,7 @@ Notation itself does not require a GPU. On the remote CPU machine, generate a ti
 
 ~~~bash
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
-python3 -m ttt.data --input examples/sample.txt --output outputs/sample-shards --tokenizer byte --sharded --shard-tokens 256
+.venv/bin/python -m ttt.data --input examples/sample.jsonl --output outputs/sample-shards --tokenizer byte --sharded --shard-tokens 256
 ~~~
 
 Success should produce a token file, shard files, and <code>manifest.json</code>. Inspect <code>vocab_size</code>, shard token counts, and the input digest. This proves that the data object and fields can be produced; it does not prove that the model has learned language or that GPU throughput is adequate.
@@ -187,4 +193,4 @@ This chapter fixed positions, shapes, \(X/Y/M\), embeddings, hidden states, logi
 
 ## Writing rules
 
-Scalars use italic letters, vectors bold lowercase, matrices bold uppercase, and sets or losses calligraphic letters. Code fields <code>d_model</code>, <code>num_heads</code>, and <code>vocab_size</code> correspond to \(d\), \(n_h\), and \(V\); <code>input_ids</code>, <code>labels</code>, and <code>loss_mask</code> correspond to \(X\), \(Y\), and \(M\). Mathematical variables and probabilities use LaTeX; backticks are reserved for real code names.
+Scalars use italic letters, vectors bold lowercase, matrices bold uppercase, and sets or losses calligraphic letters. The actual configuration fields <code>hidden_size</code>, <code>num_attention_heads</code>, and <code>vocab_size</code> correspond to \(d\), \(n_h\), and \(V\). The teaching array names <code>input_ids</code> and <code>labels</code> denote \(X\) and \(Y\); the actual <code>sequence_loss</code> receives unshifted <code>tokens</code> and constructs the input and target internally. These teaching names are not a dictionary returned by the loader. Mathematical objects use LaTeX; backticks mark code names.

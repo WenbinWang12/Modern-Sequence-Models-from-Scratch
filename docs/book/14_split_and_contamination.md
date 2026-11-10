@@ -2,7 +2,13 @@
 
 ## 随机切分为什么不总是足够
 
-若一套语料包含同一教程的十个镜像，把每个文档独立随机分到训练和验证，几乎可以肯定两边都会出现相关文本。文件名不重叠，不等于内容没有重叠。
+若一套语料包含同一教程的十个镜像，把每个文档独立随机分到训练和验证，就可能让两边都出现相关文本。这个风险取决于切分比例，不能笼统地说“几乎必然”。设每条记录进入验证集的概率为 \(p\)，十条全部进训练的概率为 \((1-p)^{10}\)，全部进验证的概率为 \(p^{10}\)。排除这两种情况，重复簇横跨两边的概率为
+
+$$
+P(\text{跨集合})=1-(1-p)^{10}-p^{10}.
+$$
+
+当 \(p=0.01\) 时，它约为 \(9.56\%\)；当 \(p=0.1\) 时，约为 \(65.13\%\)。即使单个簇的风险不高，大量重复簇仍可能造成污染。文件名不重叠，并不保证内容没有重叠。
 
 先问评估目标。如果我们希望预测同类来源的新文档，可以按文档簇切分；如果希望检验未来新闻，按时间切分更有意义；如果希望检验未见代码项目，则需要项目级边界。没有一种切分能同时回答所有问题。
 
@@ -64,17 +70,17 @@ hash 切分的稳定性依赖 group ID 稳定。若先用文件遍历序号生�
 切分后的两个 JSONL 必须分别生成 manifest：
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input <train-jsonl> \
   --output outputs/split-train \
   --sharded --tokenizer byte --shard-tokens 256
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input <validation-jsonl> \
   --output outputs/split-validation \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~
 
-预期产物是两个独立的 <code>manifest.json</code> 和一份 split/contamination 报告；报告应列出组数、文档数、token 数、来源分布、候选匹配和人工审核结果。若 train 与 validation 的摘要或 group ID 交叉，先停止训练并修复切分；验证 loss 较低不能抵消污染。
+上述编码命令生成两个独立的 <code>manifest.json</code>，不会生成切分或污染报告。上游切分过程还需另外保存组数、文档数、token 数、来源分布、候选匹配和人工审核结果。检查的是两个集合中的文档摘要或 group ID 是否重叠，而不是只比较两个 manifest 是否相同；验证 loss 较低不能抵消污染。
 
 ## 本章小结与下一问
 

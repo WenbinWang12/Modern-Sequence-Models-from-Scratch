@@ -33,22 +33,37 @@ You need only basic arrays, functions, and command-line usage. Linear algebra, p
 
 ## What a base model learns
 
-For tokenizer outputs \(x_1,\ldots,x_L\), an autoregressive model factorizes the sequence probability:
+First consider prediction after observing information. A common word may become implausible in a particular context. Conditional probability \(p(b\mid a)\) assigns probability to \(b\) after \(a\) is known. Its definition, \(p(b\mid a)=p(a,b)/p(a)\) for \(p(a)>0\), gives \(p(a,b)=p(a)p(b\mid a)\). Applying the same identity to three events,
 
 $$
-p_\theta(x_{1:L})
+p(a,b,c)=p(a,b)p(c\mid a,b)
+=p(a)p(b\mid a)p(c\mid a,b).
+$$
+
+This does not assume independence; dependencies remain in the conditions. Replacing events with tokens at successive positions gives a language model's factorization. Let an already supplied BOS be \(s_0\), followed by the \(L\) tokens \(s_1,\ldots,s_L\) to predict, possibly including EOS. BOS itself is not one of these targets. Then
+
+$$
+p_\theta(s_{1:L}\mid s_0)
 =
-\prod_{t=1}^{L}p_\theta(x_t\mid x_{<t}).
+\prod_{t=1}^{L}p_\theta(s_t\mid s_{0:t-1}).
 $$
 
-Here \(x_{<t}\) is the context before position \(t\), and \(\theta\) denotes model parameters. Training minimizes average negative log likelihood:
+Here \(s_{0:t-1}\) contains BOS and the preceding tokens, and \(\theta\) denotes model parameters. If three observed targets receive conditional probabilities \(0.5,0.8,0.25\), their sequence probability is \(0.5\times0.8\times0.25=0.1\). Many probabilities below one produce a very small product in a long sequence. The natural logarithm converts multiplication into addition:
+
+$$
+\log p_\theta(s_{1:L}\mid s_0)
+=\log\prod_{t=1}^{L}p_\theta(s_t\mid s_{0:t-1})
+=\sum_{t=1}^{L}\log p_\theta(s_t\mid s_{0:t-1}).
+$$
+
+Throughout the book, \(\log\) denotes the natural logarithm, with base \(e\approx2.718\). It is increasing, so maximizing probability also maximizes its logarithm. Negating it turns maximization into minimization; dividing by the number of targets \(L\) gives average negative log likelihood:
 
 $$
 \mathcal{L}(\theta)
 =
 -\frac{1}{L}
 \sum_{t=1}^{L}
-\log p_\theta(x_t\mid x_{<t}).
+\log p_\theta(s_t\mid s_{0:t-1}).
 $$
 
 The task is local, but useful prediction may require syntax, code dependencies, discourse, or facts from far earlier in the context. Lower local prediction error can therefore encourage the model to represent those structures.
@@ -95,7 +110,7 @@ $$
 p_j-\mathbf{1}[j=y].
 $$
 
-The correct class has a negative gradient, so gradient descent raises its score. Incorrect classes have positive gradients and are lowered. This calculation links the dense baseline to inner SGD and meta-gradients.
+The indicator \(\mathbf{1}[j=y]\) equals 1 for the correct class and 0 otherwise. If logits were independent parameters, gradient descent would raise the correct score and lower the others. This is a local analysis: shared network parameters affect many predictions at once, so an actual update need not move every example in that direction. The baseline chapter connects this derivative to the chain rule for model parameters.
 
 With padding or prompt masks, only \(m_t=1\) positions contribute:
 
@@ -155,8 +170,8 @@ On the designated remote CPU machine, create the tiny data artifacts:
 
 ~~~bash
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
-python3 -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/sample-shards \
   --tokenizer byte \
   --sharded \

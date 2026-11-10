@@ -67,13 +67,13 @@ MinHash 和 LSH 用来缩小候选检索成本；候选命中不是最终真值�
 正式去重会先生成一个新的 JSONL 和报告，再进入 tokenizer：
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input <deduped-jsonl> \
   --output outputs/dedup-v1 \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~
 
-<code>&lt;deduped-jsonl&gt;</code> 是需要替换的上游产物，不是仓库中的现成文件。报告至少应给出 <code>kept=890</code>、<code>exact_removed=80</code>、<code>near_removed=30</code>、<code>near_reviewed=50</code> 这类可加总字段，并列出输入摘要和规则版本。若数字不守恒，先检查簇映射和代表选择；若只给一个 <code>removed</code> 总数，不能判断误删来自哪条规则。
+<code>&lt;deduped-jsonl&gt;</code> 是需要替换的上游产物，不是仓库中的现成文件。用一个假设的千条记录例子，守恒关系是 <code>kept=890</code>、<code>exact_removed=80</code>、<code>near_removed=30</code> 三项相加为 1,000。<code>near_reviewed=50</code> 表示复核活动数量，其中可能有 30 条被删、20 条保留，与前面的统计重叠，不能再次加到总数里。报告还应列出输入摘要和规则版本；若删除数不守恒，先查簇映射与代表选择。
 
 ## 本章小结与下一问
 

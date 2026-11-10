@@ -67,7 +67,7 @@
 先用仓库中真实存在的教学文本跑通编码接口：
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input examples/sample.txt \
   --output outputs/acquisition-sample.npy \
   --tokenizer byte
@@ -76,8 +76,8 @@ python -m ttt.data \
 成功产物是一个一维 token 文件；它只能证明输入可被 tokenizer 读取，不能证明来源许可、正文抽取或数据质量已经通过。若要检查分片和 manifest，再运行：
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/acquisition-shards \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~

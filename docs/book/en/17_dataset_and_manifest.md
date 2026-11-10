@@ -52,7 +52,7 @@ Use two tiny shards:
 | <code>v-00000.npy</code> | <code>[10, 11, 12, 13]</code> | 4 | 4 |
 | <code>v-00001.npy</code> | <code>[20, 21, 22, 23, 24]</code> | 5 | 9 |
 
-These ends use half-open code-index intervals: shard 0 covers global positions [0,4), and shard 1 covers [4,9). For <code>start=2</code> and <code>length=5</code>, the requested global positions are 2, 3, 4, 5, 6. <code>searchsorted([4,9], 2)</code> selects shard 0, so the loader reads local offsets 2 and 3 (<code>[12,13]</code>), then continues at local offsets 0, 1, and 2 in shard 1 (<code>[20,21,22]</code>):
+These ends use half-open code-index intervals: shard 0 covers global positions [0,4), and shard 1 covers [4,9). For <code>start=2</code> and <code>length=5</code>, the requested global positions are 2, 3, 4, 5, 6. <code>searchsorted([4,9], 2, side='right')</code> selects shard 0, so the loader reads local offsets 2 and 3 (<code>[12,13]</code>), then continues at local offsets 0, 1, and 2 in shard 1 (<code>[20,21,22]</code>):
 
 ~~~text
 global positions: 2, 3 | 4, 5, 6
@@ -60,6 +60,8 @@ physical shard:   v-0   | v-1
 local offsets:       2, 3 | 0, 1, 2
 tokens:            12,13 | 20,21,22
 ~~~
+
+The endpoint shows why <code>side='right'</code> matters. Global position 4 belongs to the second shard at local offset \(4-4=0\). <code>searchsorted([4,9], 4, side='right')</code> returns shard index 1; the default left search would return 0 and assign the position to the already ended first shard.
 
 For a next-token window of length 5, the training path reads one additional token before shifting labels. A shard boundary does not insert EOS and does not reset attention; it is only a storage boundary. Document isolation comes from tokenization and packing policy, not from the fact that two arrays have different filenames.
 
@@ -97,13 +99,64 @@ Restoring only the seed is insufficient. A pseudo-random generator has an intern
 
 ## Remote inspection example
 
-After preparing a sharded dataset on the experiment machine, inspect the manifest and digest before requesting a long GPU job:
+Run this single snippet from the repository root on the prepared remote CPU node. It uses the repository JSONL fixture. If <code>outputs/dataset-sample/manifest.json</code> is absent, it generates shards with at most 256 tokens each. If it exists, the snippet checks the input digest and byte-encoding mode before reading it, without overwriting the manifest. Use a new output directory for another data version; do not edit the old manifest to bypass a mismatch. This command was not executed during the manuscript review.
 
-~~~
-python -c "import json,hashlib,pathlib; p=pathlib.Path('runs/example_shards/manifest.json'); print(json.dumps(json.loads(p.read_text()), indent=2)); print(hashlib.sha256(p.read_bytes()).hexdigest())"
+We read two raw windows of five tokens. The first starts two positions before the first shard ends and crosses into the second; the second begins exactly at that boundary. Each produces four inputs, four targets, and four target-mask values. The <code>rows</code> method has already removed the first mask column, so the returned mask must not be shifted again.
+
+~~~bash
+.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+import numpy as np
+from ttt.data import ByteTokenizer
+from ttt.dataset import TokenDataset, file_sha256, prepare_sharded_data
+
+source = Path("examples/sample.jsonl")
+output = Path("outputs/dataset-sample")
+manifest_path = output / "manifest.json"
+if not manifest_path.exists():
+    prepare_sharded_data(source, output, ByteTokenizer(), shard_tokens=256)
+
+manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+if (manifest["input_sha256"] != file_sha256(source)
+        or manifest["tokenizer"] != "byte"
+        or manifest["supervised"] is not False):
+    raise ValueError("Existing data differs from this recipe; use a new output directory.")
+
+dataset = TokenDataset(manifest_path, ByteTokenizer.vocab_size)
+if len(dataset.shards) < 2 or dataset.shards[0].size < 2 or dataset.shards[1].size < 5:
+    raise ValueError("This example needs two shards with at least 2 and 5 tokens.")
+boundary = int(dataset.ends[0])
+starts = [boundary - 2, boundary]
+tokens, masks = dataset.rows(starts, 5)
+expected = np.stack([
+    np.concatenate([dataset.shards[0][-2:], dataset.shards[1][:3]]),
+    dataset.shards[1][:5],
+])
+np.testing.assert_array_equal(tokens, expected)
+if tokens.shape != (2, 5) or masks.shape != (2, 4):
+    raise ValueError("Unexpected window or target-mask shape.")
+
+report = {
+    "scope": "two_windows_at_first_shard_boundary",
+    "manifest_sha256": dataset.fingerprint,
+    "cumulative_ends": dataset.ends.tolist(),
+    "starts": starts,
+    "tokens": tokens.tolist(),
+    "X": tokens[:, :-1].tolist(),
+    "Y": tokens[:, 1:].tolist(),
+    "M": masks.tolist(),
+    "matches_direct_shard_read": True,
+}
+path = output / "rows-check.json"
+path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+print(json.dumps(report, indent=2))
+PY
 ~~~
 
-The command records the manifest itself; it does not replace the loader's per-shard checks. Save its output with the run metadata.
+Initial generation produces the manifest, token/mask shards, and their digests. A successful inspection also writes <code>outputs/dataset-sample/rows-check.json</code>, containing actual cumulative ends, starts, raw tokens, \(X,Y,M\), and the manifest digest. The <code>tokens</code> shape should be <code>[2,5]</code>; the three derived arrays have shape <code>[2,4]</code>. Comparing against direct reads of the two shard arrays checks token order for these two windows. Printing their masks helps inspection; it does not validate every window or document-boundary semantics.
+
+The manifest stores each shard's <code>count</code>, not <code>start</code> or <code>end</code>. The report's <code>cumulative_ends</code> is computed by the loader. On disagreement, inspect shard order, counts, array lengths, <code>side='right'</code>, and local offsets. A digest or vocabulary failure requires recovering the intended data version, not merely replacing recorded digests. A later successful inspection updates the report; an exception writes no new report, so an old file does not establish success for the current attempt.
 
 ## Limits
 

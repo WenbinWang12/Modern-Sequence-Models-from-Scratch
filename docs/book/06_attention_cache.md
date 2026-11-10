@@ -1,145 +1,130 @@
 # 18　Attention、Cache 与流式推理
 
-## 先区分训练时的矩阵和推理时的状态
+## 为什么生成一句话需要保存状态
 
-训练时，模型通常一次看到长度为 \(L\) 的整段序列。它可以为所有位置构造 causal mask：位置 \(t\) 只能读取 \(1,\ldots,t\)，不能读取未来位置。生成时，模型往往已经处理过很长的前缀，现在只收到一个新 token。如果每次都重新计算全部历史，结果可以正确，但会反复计算同样的 key 和 value；KV cache 保存这些历史结果，让新 token 直接复用它们。
+上一章已经回答了快权重何时更新。现在把运行方式从“一次处理整段文本”换成“逐个接收 token”。假设模型已读到“今天的天气”，正在预测下一个词；得到新 token 后，它需要结合整个已知前缀继续预测。如果每来一个 token 都从头计算，历史词语的 key 和 value 会被反复计算。KV cache 把这些中间结果保存下来，换取较少的重复计算。
 
-TTT 又增加了一层状态。过去的上下文不仅保存在 KV 或 Delta 矩阵中，还可能改变 fast weights。因此一次推理请求的状态是一个有边界的集合：
-
-~~~text
-session
-├── position
-├── KV cache or Delta state
-├── TTT fast weights
-├── incomplete chunk
-└── random state
-~~~
-
-这些字段必须一起推进或一起回滚。只恢复 KV 而不恢复 fast weights，会得到另一个模型状态；只恢复 fast weights 而位置错位，后续 RoPE 和 mask 也会错。
+本章继续使用隐藏宽度 \(d=16\)、TTT chunk 长度 \(C=4\) 的 tiny 案例。我们先用更小的二维向量手算 attention，再追踪一个 session 从 \(x_1\) 到 \(x_6\) 的变化。读者需要知道矩阵乘法和 softmax；下面会把它们在 attention 中的作用连起来。目标不是记住“prefill 快、decode 慢”，而是能够说明每一步读哪些历史、写哪些状态、为什么不能读取未来。
 
 <figure class="book-figure">
-  <img src="../../assets/figures/attention-kv-zh.svg" alt="Prefill 建立 KV 缓存，decode 复用历史并追加一个新的 key 和 value">
-  <figcaption><strong>图 4　Prefill 与 decode。</strong> KV cache 保存历史的 key/value；它不是可训练参数，但必须和位置、Delta 状态以及 TTT 快权重一起恢复。</figcaption>
+  <img src="../../assets/figures/attention-kv-zh.svg" alt="Prefill 处理已知前缀并建立历史 key/value，decode 处理一个新 token 并继续使用历史">
+  <figcaption><strong>图 4　从整段计算到逐 token 计算。</strong> 沿着新 token 的箭头追踪查询，再沿历史箭头找它可读取的 key/value。图展示缓存的用途；真实 TTT session 还必须保存快权重、位置和未完成的 chunk。</figcaption>
 </figure>
 
-## Attention 到底在算什么
+## 从“找相关内容”到两个位置的手算
 
-先用两个 token 做一个最小例子。设每个 token 的 query、key、value 维度都是 \(2\)，位置 1 的 query 为
-\(q_1=(1,0)\)，两个 key 为
-\(k_1=(1,0)\)、\(k_2=(0,1)\)，两个 value 为
-\(v_1=(10,0)\)、\(v_2=(0,10)\)。缩放点积为
+Attention 可以理解为一次带权检索。当前位置先生成一个 query，表示“我需要什么”；历史位置生成 key，表示“这里有什么”；value 是检索后真正传递的信息。三者都由可学习的线性变换得到，而不是人为填写的语义标签：
 
 $$
-s_{t,j}=\frac{q_t k_j^\mathsf{T}}{\sqrt{d_h}}.
+Q=HW_Q,\qquad K=HW_K,\qquad V=HW_V.
 $$
 
-在位置 1，因果规则只允许读取位置 1，所以分数向量只有 \((1/\sqrt{2})\)，softmax 后权重为 \(1\)，输出就是 \(v_1=(10,0)\)。
+这里 \(H\in\mathbb R^{L\times d}\) 是一条序列的 hidden states，\(L\) 是长度；在一个 attention head 中，\(Q,K\in\mathbb R^{L\times d_h}\)。内积 \(q_t^\top k_s\) 衡量查询与候选 key 在当前表示空间中的匹配程度。除以 \(\sqrt{d_h}\) 是为了控制内积随维度增长的尺度：若各分量独立、零均值且方差为 1，则内积方差为 \(d_h\)，除后方差为 1。这是尺度分析，不是训练后的 query/key 必然服从该分布的承诺。
 
-假设位置 2 的 query 也是 \(q_2=(1,0)\)。它可以读取两个 key，分数为
-
-$$
-\left(\frac{1}{\sqrt{2}},0\right)\approx(0.707,0).
-$$
-
-softmax 后约为 \((0.67,0.33)\)，所以输出约为
+取 \(L=d_h=2\)，并给出已经投影好的矩阵：
 
 $$
-0.67v_1+0.33v_2\approx(6.7,3.3).
+Q=\begin{bmatrix}1&0\\1&0\end{bmatrix},\quad
+K=\begin{bmatrix}1&0\\0&1\end{bmatrix},\quad
+V=\begin{bmatrix}10&0\\0&10\end{bmatrix}.
 $$
 
-这个例子说明三件事：query 决定“我在找什么”，key 决定“每个历史位置和我有多匹配”，value 承载“真正要取回的内容”；causal mask 决定哪些 key 根本不能参与 softmax。实现中通常把它们堆成形状 \([B,H,L,d_h]\) 的张量，而不是逐个 Python 向量循环。
-
-## KV cache 的形状与显存
-
-对 GQA，query heads 可以多于 key/value heads。例如 \(H_q=4\)、\(H_{kv}=2\) 时，每个 KV head 服务两个 query head。cache 保存的是 KV heads 的历史表示：
-
-| 对象 | 形状 | 含义 |
-|---|---|---|
-| query | \([B,H_q,L_{\mathrm{new}},d_h]\) | 当前要计算的位置 |
-| key cache | \([B,H_{kv},L_{\mathrm{past}},d_h]\) | 已保存的历史匹配向量 |
-| value cache | \([B,H_{kv},L_{\mathrm{past}},d_h]\) | 已保存的历史内容 |
-| position | \([B,L_{\mathrm{past}}]\) 或计数器 | RoPE 与 mask 的位置依据 |
-
-单层 KV cache 的近似字节数是
+尚未加 mask 的分数是
 
 $$
-\mathrm{bytes}
-=2\cdot B\cdot H_{kv}\cdot L_{\mathrm{past}}\cdot d_h\cdot s,
+S=\frac{QK^\top}{\sqrt2}
+=\begin{bmatrix}0.7071&0\\0.7071&0\end{bmatrix}.
 $$
 
-其中第一个 \(2\) 表示 key 和 value 两份，\(s\) 是每个元素的字节数。若 \(B=1\)、\(H_{kv}=2\)、\(L_{\mathrm{past}}=4096\)、\(d_h=64\)、dtype 为 bfloat16（\(s=2\)），单层约占
+语言模型中的位置 1 不能读取位置 2。否则模型在预测下一个 token 时，可能直接从未来输入中看到答案。因果 mask 是加在分数上的矩阵；对合法位置加 0，对不合法位置加负无穷：
+
+| 查询位置 \ 历史位置 | \(s=1\) | \(s=2\) |
+|---|---:|---:|
+| \(t=1\) | \(0\)：可读取 | \(-\infty\)：未来 |
+| \(t=2\) | \(0\)：可读取 | \(0\)：可读取 |
+
+用 \(\mathcal M\) 表示这里的 attention 加性 mask，以区别数据章节的 loss mask。逐行做 softmax，得到权重 \(A\) 和输出 \(O\)：
 
 $$
-2\cdot1\cdot2\cdot4096\cdot64\cdot2
-=2{,}097{,}152\text{ bytes}\approx2\text{ MiB}.
+\mathcal M=\begin{bmatrix}0&-\infty\\0&0\end{bmatrix},\qquad
+A=\operatorname{softmax}_{\rm row}(S+\mathcal M)
+=\begin{bmatrix}1&0\\0.6698&0.3302\end{bmatrix},
 $$
 
-12 层都保存时约为 24 MiB，还没有计入激活、fast weights、分配碎片和其他状态。这个计算解释了为什么上下文长度、KV head 数和 dtype 会直接影响推理显存。
+$$
+O=AV=\begin{bmatrix}10&0\\6.698&3.302\end{bmatrix}.
+$$
 
-<code>attention.py</code> 的 cache 还要保存当前长度、容量和位置。full attention 通常保留完整历史；sliding attention 只保留窗口内历史；gated delta 不使用同样的 KV 数组，而保留递归状态。
+位置 1 的输出完全来自第一个 value；位置 2 混合了两个 value。这里保留对角线是正确的：输入位置 \(t\) 的表示包含 \(x_t\)，用于预测 \(x_{t+1}\)。不能把“看见当前位置”误认为“看见预测标签”。这一缩放点积与因果 mask 形式来自 [Transformer 的原始定义](https://arxiv.org/abs/1706.03762)。
 
-## Prefill 和 decode 的生命周期
+## KV cache 保存什么，又没有保存什么
 
-prefill 把一段 token 一次写入状态，并输出最后位置的 logits。decode 读取当前状态，处理一个或一小段新 token，然后追加状态。
+在普通 causal attention 中，生成新 token 时只需要计算它自己的 \(q,k,v\)，并把新的 \(k,v\) 追加到缓存。历史 key/value 保留，新的 query 与当前可见的历史 key 比较。KV cache 不保存新的可学习参数，也不能替代模型权重。
 
-| 阶段 | 输入 | 读取的状态 | 写入的状态 | 典型输出 |
-|---|---|---|---|---|
-| prefill | \(x_{1:L}\) | 空或旧 session | \(K,V\) 到长度 \(L\)，以及 chunk 边界后的 fast state | 位置 \(L\) 的 logits |
-| decode | \(x_{L+1}\) | 长度 \(L\) 的 cache/state | 追加一个位置，必要时更新 fast state | 位置 \(L+1\) 的 logits |
+为便于估算，批量推理常用概念布局 \([B,n_{\rm kv},L,d_h]\)，其中 \(B\) 是 session 数，\(n_{\rm kv}\) 是 KV head 数。但本仓库的 <code>KVCache</code> 面向单个 session，实际 key/value 布局是 \([\text{capacity},n_{\rm kv},d_h]\)，另有长度为 capacity 的 positions 数组。把概念布局直接写进断言会把正确代码误判为错误。
 
-TTT 的 chunk size 大于 1 时，decode 不能把每个 token 都当作完整 inner update。它可能需要把 token 放进 incomplete chunk，待标签和边界满足后再更新。<code>runtime.py</code> 保存未完成块，就是为了不把半个更新误当成完整状态。
+若 key/value 每元素占 \(b\) 字节，所有层长度与 head 配置相同，仅 KV 数据的估算为
 
-一个长度为 6、chunk size 为 4 的例子是：
+$$
+M_{\rm KV}=2B\,n_{\rm layers}\,n_{\rm kv}\,L\,d_h\,b.
+$$
 
-~~~text
-prefill: x1 x2 x3 x4  → 用 φ0 处理并得到 φ1
-decode:  x5 x6        → 先放入未完成块，不能假设已经完成第二次更新
+例如 \(B=1\)、\(n_{\rm kv}=2\)、\(L=4096\)、\(d_h=64\)、\(b=2\)，每层为 \(2{,}097{,}152\) 字节，即 \(2\) MiB；12 层合计 \(24\) MiB。这不包括权重、快权重、激活、临时 workspace、positions 与分配器开销。若使用 grouped-query attention，多个 query head 共享较少的 KV heads，公式应代入 KV head 数，不能代入 query head 数。
+
+还要区分三个长度：已观察 token 数、已分配 cache capacity、当前 attention 可见窗口。它们可能不同。<code>TTTSession</code> 会增长缓存容量，sliding attention 则通过位置与 mask 限制可见历史。窗口限制不能直接证明分配器只占用“窗口长度乘每 token 字节数”的显存；具体内存应查看实际数组与设备统计。
+
+## Prefill 和 decode 必须遵守同一条时间线
+
+Prefill 表示处理一个已经给定的前缀，decode 表示处理随后到来的单个 token；它们描述的是调用方式，不是两套因果规则。本仓库 <code>prefill</code> 与 <code>decode</code> 最终都走 <code>observe</code>。对同一 token 序列，分几次提交不应改变其预测和更新语义。
+
+继续上一章 \(C=4\) 的例子。四个输入 \(x_1,x_2,x_3,x_4\) 的预测标签是 \(x_2,x_3,x_4,x_5\)。因此读完 \(x_4\) 时，最后一个标签仍未到达。下面假设启用内循环并且存在快权重；缓存栏说的是有效历史，具体分配容量可能更大。
+
+| 调用完成后 | position | pending_count | 待更新标签 | fast weights | updates | 有效缓存 |
+|---|---:|---:|---|---|---:|---|
+| reset | 0 | 0 | 无 | \(\phi_0\) | 0 | 无 |
+| prefill \(x_1,\ldots,x_4\) | 4 | 4 | \(x_2,x_3,x_4\) | \(\phi_0\) | 0 | \(x_1,\ldots,x_4\) |
+| decode \(x_5\) | 5 | 1 | 无 | \(\phi_1\) | 1 | \(x_1,\ldots,x_5\) |
+| decode \(x_6\) | 6 | 2 | \(x_6\) | \(\phi_1\) | 1 | \(x_1,\ldots,x_6\) |
+
+收到 \(x_5\) 时，程序先用它补齐前一 chunk 的标签并完成更新，然后用 \(\phi_1\) 处理 \(x_5\)，预测 \(x_6\)。这没有让 \(x_5\) 泄漏进对 \(x_5\) 的预测：那个预测已经在处理 \(x_4\) 时完成。第 3 行中的“无”只表示新 chunk 尚无已知目标，并不是模型没有看到 \(x_5\)。
+
+历史 suffix cache 可能由较早的快权重产生。本实现保留这些结果，不在每次更新后重新编码整个历史。因此，“拿最新 \(\phi\) 从头运行整段文本”不必与 session 相等。应比较的是遵守相同 chunk 边界和历史缓存规则的 <code>sequence_loss</code> 与 <code>TTTSession</code>。两者一致才说明批处理路径和流式路径实现了同一个算法。
+
+## 一个 session 是一组共同演化的状态
+
+仅保存 KV cache 不足以恢复 TTT 推理。下面这些字段共同决定下一次调用的结果：
+
+| 状态 | 为什么需要 |
+|---|---|
+| fast_weights | 决定当前适应后的计算 |
+| cache、position | 决定可见历史、位置编码与写入位置 |
+| pending_features、pending_targets、pending_count | 重建尚未完成的内循环训练样本 |
+| chunk_cache、chunk_start | 保留当前 chunk 开始时的 suffix 历史 |
+| last_logits | 继续使用最近一次 next-token 分布 |
+| updates、rng_key | 保持更新计数与随机过程一致 |
+
+<code>ttt/session_store.py</code> 把数组和元数据一起保存。加载时检查模型版本、模型配置、内循环设置、数组形状与 dtype、token 范围、位置和 chunk 边界。其格式版本为 2，并且恢复到本机第一张设备。这是具体实现约束，不是一个支持任意模型版本或任意分片拓扑的通用格式。
+
+若要检查恢复正确性，应该在 chunk 中间保存，再把同一后缀分别交给原 session 和恢复后的 session，比较 logits、快权重、更新次数和位置；还应覆盖恰好等满 chunk 但最后标签未到达的状态。仓库已有 <code>tests/test_session_store.py</code> 和 <code>tests/test_runtime_consistency.py</code>。单卡验证脚本不调用前者，不能用它的通过状态代替 session 恢复测试。
+
+## 从实现位置走到可检查的证据
+
+| 问题 | 代码位置 |
+|---|---|
+| key/value 的布局、RoPE、因果与窗口 mask | <code>ttt/models/ttt_e2e/attention.py</code> |
+| prefill/decode、标签到达与 chunk 完成 | <code>ttt/runtime.py</code> |
+| 按 chunk 计算的训练参照路径 | <code>ttt/inner_loop.py</code> |
+| session 保存及加载检查 | <code>ttt/session_store.py</code> |
+| GPU 上的因果性与流式一致性检查 | <code>ttt/validate.py</code> |
+
+完成环境章节的安装后，在远程 GPU 机器的仓库根目录运行以下命令。此处不要求在本地电脑运行测试。
+
+~~~bash
+bash scripts/validate_gpu.sh outputs/ch18/validation.json
 ~~~
 
-如果服务在 \(x_6\) 后保存 snapshot，恢复时必须同时恢复位置 6、KV 长度、未完成块和当前 fast state；只保存 token 文本不能重建同一个内部状态。
+成功时生成 <code>validation.json</code> 与同目录的 <code>environment.json</code>；前者的顶层 <code>passed</code> 为 true。每个 case 包含 <code>logits_max_error</code> 和 <code>inner_updates</code>。脚本将整段输出与流式输出比较，最大绝对误差需小于 \(10^{-3}\)；它还修改后半段 token，检查前半段 logits 在指定容差内不变。后者直接对应二维例子中“位置 1 不能读取位置 2”的原则。
 
-## 整段和流式为什么可能不一致
+若流式差异失败，先检查 token 提交顺序、chunk 标签偏移和更新时点；若只在跨窗口或缓存扩容后失败，再检查 positions、capacity 和 mask。若尚未进入 case 就报 CUDA 错误，先检查环境报告与 JAX 设备识别。该命令不验证 session 磁盘恢复，不覆盖任意长度和所有 attention backend，也不证明模型有更好的语言能力。
 
-常见原因包括：
-
-- position 起点不同；
-- decode 使用了错误的 cache index；
-- sliding window 在边界处移位；
-- prefix 的 KV 被重新计算成不同精度；
-- TTT 更新在整段和 decode 中发生在不同 token；
-- 采样使用了不同随机状态；
-- session snapshot 漏掉一个字段。
-
-因此验证不能只比较最终生成字符串。应比较每个位置的 logits 或 top-k、cache 长度、fast weight norm 和 position。误差阈值要按 dtype 和 kernel 说明。
-
-## Gated Delta 的另一种状态
-
-线性注意力或 gated delta 不保存完整的历史 token，而维护递归统计量。它的状态可能是矩阵、卷积缓冲和门控变量。这样的状态占用与上下文长度关系不同，但表达能力、数值稳定性和更新语义也不同。
-
-这正是 Frontier Lab 里 TTT 与线性注意力需要对照的原因：二者都把历史压缩进状态，却不代表状态更新规则相同。比较时要固定状态尺寸、训练预算和实际 FLOPs。
-
-## Session snapshot 与 checkpoint
-
-<code>session_store.py</code> 的快照应该原子写入，带模型版本、session ID、位置、状态摘要和协议版本。恢复前先检查模型参数版本与更新策略；恢复后再继续生成。
-
-训练 checkpoint 还包含 optimizer 和 sampler，因此不能直接作为 HTTP session snapshot。两种文件都可以使用 Orbax 或其他存储后端，但 schema 和生命周期不同。
-
-## 代码映射与验证清单
-
-阅读代码时可以按这条路径走：
-
-1. 在 <code>attention.py</code> 找 Q/K/V 投影、causal mask、cache 读写和容量检查；
-2. 在 <code>runtime.py</code> 找 session state、incomplete chunk 和 snapshot；
-3. 在 <code>inner_loop.py</code> 找 fast state 如何随 chunk 更新；
-4. 用验证脚本比较 dense/full-sequence 与 prefill/decode 的 logits。
-
-在 GPU 作业中，至少验证：
-
-1. 同一个前缀的 prefill 与 token-by-token decode；
-2. chunk 边界前后的位置与状态；
-3. 修改 suffix 不影响 prefix logits；
-4. snapshot 后恢复生成；
-5. 超过容量时明确报错；
-6. 多 session 之间状态隔离。
-
-下一章把“一个状态”扩展成“多个专家的状态路径”：MoE 的路由和专家并行会把通信也纳入模型定义。
+本章完成了从 attention 公式到 session 时间线的闭环。下一章会把同一个 hidden state 交给多个候选专家：除了读什么历史，还需要回答“由哪一组参数处理这个 token”。

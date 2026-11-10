@@ -13,9 +13,9 @@
 | 检查项 | 连续路径 | 恢复路径 | 成功判据 |
 |---|---:|---:|---|
 | 起点 | step 0 | step 2 | 恢复路径加载同一 checkpoint |
-| 下一批索引 | 2→3 | 2→3 | <code>BatchStream</code> 状态一致 |
+| 下一批数据 | RNG 的第三次抽样 | 恢复 RNG 后第一次抽样 | tokens 与 masks 逐元素一致 |
 | optimizer step | 2→3 | 2→3 | 不回到 0 |
-| valid token 数 | 16 | 16 | 与连续路径一致 |
+| 有效目标数 | 本章普通 NPY 样例为 16 | 由返回的 mask 求和 | 与连续路径一致，不从名义吞吐推断 |
 | loss | \(L_3\) | \(L'_3\) | \(\lvert L_3-L'_3\rvert\leq\epsilon\) |
 
 这张表说明“恢复成功”是一个状态比较，而不是文件存在检查。
@@ -45,7 +45,7 @@ $$
 
 如果只载入参数，优化器会从零开始，学习率 schedule 也可能回到 warmup。这样得到的是新实验，即使输出目录名字叫 resume。
 
-`--initialize-from` 表示使用已有参数作为新实验的初始点。新实验应该有新的输出目录和 experiment identity，optimizer、step、数据顺序可以重新建立。用它从 dense baseline 初始化 TTT 是合理的；用它替代断点恢复会破坏训练曲线的解释。
+`--initialize-from` 表示使用已有参数作为新实验的初始点。它重新创建 optimizer、step 和数据顺序，因此需要新的输出目录。当前入口只接受相同参数树、叶张量形状和 dtype，例如结构相同的 C 与 F 可以共享初始权重。没有 MLP′ 的 dense 模型不能用这一个参数直接变成新增 MLP′ 的模型；这需要单独的权重迁移规则，当前入口没有实现。用初始化替代恢复，会破坏训练曲线的解释。
 
 ## 一个最小的失败案例
 
@@ -58,11 +58,11 @@ $$
 
 恢复检查不能只问“文件能否打开”。至少要用同一个初始 checkpoint 做一次短实验：一条路径连续运行，另一条路径在中间保存并 resume，然后比较恢复点之后的下一批输入、step、有效 token 和 loss。低精度归约可能有小数差异，但输入顺序和状态字段不能悄悄变化。
 
-相反，从 baseline 初始化 TTT 时，应明确产生新的身份：
+相反，从同结构的 C 初始化 F 时，应明确产生新的身份：
 
 ~~~text
-baseline: source=S1, data=D1, step=1000, optimizer=O_dense
-TTT init: source=S2, data=D1, step=0, optimizer=O_ttt
+C:      source=S1, data=D1, step=1000, optimizer=O_C
+F init: source=S1, data=D1, step=0, optimizer=O_F
 ~~~
 
 这两行共享参数文件，但不是同一次运行；报告不能把第二行的 loss 曲线接在第一行后面。
@@ -80,18 +80,17 @@ TTT init: source=S2, data=D1, step=0, optimizer=O_ttt
 
 ## 运行目录应能自己解释自己
 
-失败目录也要有固定字段，哪怕进程只完成了环境初始化：
+先区分训练器当前写出的文件与实验者需要补充的记录。当前训练路径在初始化成功后写入：
 
 | 字段 | 作用 |
 |---|---|
-| status.json | running、failed、completed、resumable 等生命周期状态 |
-| error.json | 异常类型、阶段、最后一条错误和 traceback 摘要 |
-| experiment.json | commit、解析后的配置、数据与 tokenizer 指纹 |
+| status.json | running、failed、complete、stopped；失败时包含 error_type |
+| experiment.json | 解析后的模型、内循环、训练和 tokenizer 配置 |
 | environment.json | Python、JAX、设备、驱动、调度作业信息 |
-| metrics.jsonl | 已写入的 step、loss、有效 token 和梯度统计 |
-| checkpoint/ | 最近一次完整状态，以及是否允许 resume |
+| metrics.jsonl | step、loss、grad_norm、seconds、名义 tokens_seen/tokens_per_second 等 |
+| step_*.npz、latest.json | tiny 检查点及最近一次保存的路径 |
 
-这样即使编译阶段失败，也能区分“环境不可用”“配置不合法”和“训练运行后发散”。缺少 status.json 的空目录不能证明作业从未启动，只能说明记录协议没有覆盖初始化失败。
+训练器没有自动生成 <code>error.json</code> 或独立 <code>checkpoint/</code> 目录。源码 commit、文件 SHA256、完整异常栈和解释报告应另行留档；上章已保存前两项。参数初始化、数据打开和恢复检查可能在写 <code>status.json</code> 之前失败，缺少状态文件不能证明作业从未启动，应查看终端或调度日志。
 
 一份可审计的输出目录至少能回答：
 
@@ -105,7 +104,7 @@ TTT init: source=S2, data=D1, step=0, optimizer=O_ttt
 失败发生在哪个阶段？
 ~~~
 
-`experiment.json` 写输入，`environment.json` 写机器，`metrics.jsonl` 写过程，`status.json` 写生命周期，checkpoint 写状态。Markdown 报告是阅读入口，但不应成为唯一事实来源。
+这些问题是完整归档的目标，不是上述 JSON 已自动覆盖的字段。<code>experiment.json</code> 写配置，<code>environment.json</code> 写机器与源码摘要，checkpoint 的 <code>data_state</code> 保存数据指纹和 RNG 状态；<code>metrics.jsonl</code> 的 token 计数是名义输入位置数。Markdown 报告应引用相应原始证据。
 
 可以把运行信息组织成一个 manifest：
 
@@ -135,7 +134,7 @@ TTT init: source=S2, data=D1, step=0, optimizer=O_ttt
 - 异常类型与阶段；
 - 是否可以安全 resume。
 
-“没有输出”通常是最难恢复的状态。即使进程在初始化阶段失败，也应由外层脚本创建目录并写出 status。
+“没有输出”通常是最难恢复的状态。完整生产启动器应在初始化失败时也留下异常记录；这是外层启动协议需要补充的能力，当前训练入口没有覆盖所有这类失败。
 
 ## 如何比较两个结果
 
@@ -149,38 +148,89 @@ TTT init: source=S2, data=D1, step=0, optimizer=O_ttt
 
 **数值差异**：同一输入下并行归约、低精度或非确定性带来的小差异。需要给出容忍范围，而不是把所有差异都叫失败。
 
-## 本章的实际复现路径
+## 从一个确定的检查点验证恢复
 
-在远端环境中执行：
-
-~~~bash
-git rev-parse HEAD
-bash scripts/record_environment.sh --output outputs/run/environment.json
-bash scripts/run_train.sh \
-  --config configs/tiny.json \
-  --data outputs/sample-tokens.npy \
-  --output outputs/tiny \
-  --auto-resume
-~~~
-
-随后检查 step、metrics 和 latest checkpoint。对一个中断实验，先用 resume 继续；对一个新架构实验，复制输入记录并使用 initialize-from。书后面的每个架构消融都应遵循这个区分。
-
-下一章进入配置。我们要把词表、隐藏维度、MLP、快权重和训练选项写成一份能被代码校验的架构合同。
-
-## 本章的最小恢复 checkpoint
-
-先生成样例数据并启动一个会保存中间状态的 tiny 运行：
+四步 tiny 运行可能在人工按下中断键前已经完成。这里先完成连续路径，再从它保留的 step 2 检查点在另一个目录继续。检查点保存的是当时的完整状态，因此这能检验从保存点恢复的数值语义；它不检验突然断电、损坏文件或调度器信号处理。使用两个尚不存在的输出目录，在目标 Linux CPU 节点运行：
 
 ~~~bash
+set -e
+test ! -e outputs/recovery-continuous
+test ! -e outputs/recovery-resumed
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
-bash scripts/run_train.sh \
-  --config configs/tiny.json \
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/book/tiny_control.json \
   --data outputs/sample-tokens.npy \
-  --output outputs/tiny-contract-001-C \
-  --auto-resume
+  --output outputs/recovery-continuous
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/book/tiny_control.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/recovery-resumed \
+  --resume outputs/recovery-continuous/step_00000002.npz
 ~~~
 
-成功时，检查 <code>outputs/tiny-contract-001-C/status.json</code>、<code>metrics.jsonl</code>、<code>latest.json</code> 和 <code>step_*.npz</code>。把作业在 step 2 后中断，再用同一个命令重启；预期是从已有 step 继续，而不是重新写 step 0。若恢复后 loss 或下一批输入不同，先比较数据状态和 optimizer state，再比较低精度归约。
+连续路径应记录 step 1–4，恢复路径只记录 step 3–4。不要改配置中的总步数来制造中断：当前 resume 要求解析后的实验配置一致。<code>--auto-resume</code> 适合继续同一目录最新状态；对已经完成的 step 4 目录再次调用它，不会多训练一步。
+
+随机数生成器可看成一台确定性机器：seed 选择起始状态，每抽取一批数据就推进一次内部状态。重新设同一个 seed 会从第一批重新开始；恢复内部状态才会接着抽第三批。下面从 seed 连续抽两次，与从 checkpoint 恢复后抽下一次做直接比较，再比较两条路径的 step 3 loss、最终参数和优化器：
+
+~~~bash
+JAX_PLATFORMS=cpu .venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+import jax
+import numpy as np
+from ttt.checkpoint import load_checkpoint
+from ttt.data import BatchStream
+
+continuous = Path("outputs/recovery-continuous")
+resumed = Path("outputs/recovery-resumed")
+middle = load_checkpoint(continuous / "step_00000002.npz", load_optimizer=True)
+config = middle.experiment
+
+def new_stream():
+    return BatchStream(
+        "outputs/sample-tokens.npy",
+        sequence_length=config.training.sequence_length,
+        batch_size=config.training.batch_size,
+        vocab_size=config.model.vocab_size,
+        seed=config.training.seed,
+    )
+
+reference, restored = new_stream(), new_stream()
+for _ in range(int(middle.state.step)):
+    reference.next_batch_with_masks()
+restored.load_state_dict(middle.data_state)
+expected = reference.next_batch_with_masks()
+observed = restored.next_batch_with_masks()
+for left, right in zip(expected, observed):
+    np.testing.assert_array_equal(left, right)
+
+def metrics(path):
+    rows = [json.loads(line) for line in (path / "metrics.jsonl").read_text().splitlines()]
+    return {row["step"]: row for row in rows}
+
+full_log, resumed_log = metrics(continuous), metrics(resumed)
+assert sorted(full_log) == [1, 2, 3, 4]
+assert sorted(resumed_log) == [3, 4]
+np.testing.assert_allclose(full_log[3]["loss"], resumed_log[3]["loss"], rtol=1e-5, atol=1e-6)
+left = load_checkpoint(continuous / "step_00000004.npz", load_optimizer=True)
+right = load_checkpoint(resumed / "step_00000004.npz", load_optimizer=True)
+assert jax.tree.structure(left.state) == jax.tree.structure(right.state)
+maximum = 0.0
+for a, b in zip(jax.tree.leaves(left.state), jax.tree.leaves(right.state)):
+    a, b = np.asarray(a), np.asarray(b)
+    np.testing.assert_allclose(a, b, rtol=1e-5, atol=1e-6)
+    maximum = max(maximum, float(np.max(np.abs(a.astype(np.float64) - b.astype(np.float64)))))
+assert left.data_state == right.data_state
+report = {"passed": True, "step": int(right.state.step),
+          "next_batch_equal": True, "valid_targets": float(observed[1].sum()),
+          "loss_step3": resumed_log[3]["loss"], "max_state_abs_diff": maximum,
+          "rtol": 1e-5, "atol": 1e-6}
+Path("outputs/recovery-check.json").write_text(json.dumps(report, indent=2) + "\n")
+print(json.dumps(report, indent=2))
+PY
+~~~
+
+只有断言全部完成才会写入 <code>outputs/recovery-check.json</code>。其中 <code>valid_targets</code> 来自实际返回的 mask，而非训练日志中的名义 token 计数。这是待读者在目标环境执行的验证步骤，没有附会一组尚未测得的 loss 数值。若数据比较失败，先看数据指纹与 RNG；若数据相同而状态不同，再检查 optimizer、step、dtype 和数值容差。时间和吞吐无需逐值相等，因为两次运行的编译与系统负载可能不同。
 
 ## 本章小结
 

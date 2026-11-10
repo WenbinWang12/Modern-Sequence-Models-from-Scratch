@@ -68,7 +68,7 @@ Suppose 1,000 records enter exact deduplication, 80 share keys with an earlier r
 The current `ttt/data.py` and `ttt/dataset.py` implement tokenization, manifests, SHA256 checks for token artifacts, and sampling. They do not implement a production MinHash, LSH, or semantic deduplication pipeline. The upstream deduplication job should output a versioned JSONL file and its report, then run:
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input data/dedup-v1.jsonl \
   --output data/tokens-dedup-v1 \
   --sharded \
@@ -82,13 +82,13 @@ Run deduplication before assigning related documents to train and validation. Co
 The production sequence creates a new JSONL and report before tokenization:
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input <deduped-jsonl> \
   --output outputs/dedup-v1 \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~
 
-<code>&lt;deduped-jsonl&gt;</code> is an upstream artifact that the reader must replace; it is not a repository file. The report should contain additive fields such as <code>kept=890</code>, <code>exact_removed=80</code>, <code>near_removed=30</code>, and <code>near_reviewed=50</code>, plus the input digest and rule version. If the counts do not balance, inspect cluster membership and representative selection. A single <code>removed</code> total cannot diagnose which rule deleted content.
+<code>&lt;deduped-jsonl&gt;</code> is an upstream artifact to supply, not a repository file. In the hypothetical thousand-record example, <code>kept=890</code>, <code>exact_removed=80</code>, and <code>near_removed=30</code> sum to 1,000. The activity count <code>near_reviewed=50</code> overlaps these outcomes: 30 may be removed and 20 retained. Do not add it to the total again. Record the input digest and rule version; if outcome counts do not balance, inspect cluster membership and representative selection.
 
 ## Summary and next question
 

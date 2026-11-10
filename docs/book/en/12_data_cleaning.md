@@ -91,8 +91,8 @@ The current `ttt.data` path performs limited schema and whitespace checks while 
 For the repository's educational input, the interface is:
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output data/clean-corpus-v1 \
   --sharded \
   --tokenizer byte
@@ -103,8 +103,8 @@ The command assumes the JSONL already contains a `text` field and records an inp
 ## Minimal checkpoint, evidence, and failure diagnosis
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/cleaning-sample \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~

@@ -1,83 +1,131 @@
-# 12. Data mixtures and deterministic sampling
+# 12. Data mixtures: deciding what the model reads
 
-## File size is an accidental training decision
+## Storage size cannot choose the recipe
 
-Imagine 900 GB of web text, 50 GB of code, and 50 GB of books. Concatenating files gives approximately 90%, 5%, and 5% of the token stream. That may be a sensible choice, but it is a consequence of storage size, not an explicit scientific hypothesis.
+Once web text, code, and books are ready, one question remains: how much of the next billion training tokens should come from each source? Putting all files in one directory does not answer it.
 
-The opposite mistake is to sample documents uniformly. A short code snippet and a 200-page book chapter then receive equal document weight even though their token counts differ greatly. A mixture must state what is being weighted: documents, tokens, or examples.
+Suppose web text occupies 900 GB and code and books occupy 50 GB each. Web text accounts for **90% of bytes**, not necessarily 90% of tokens. Languages, formats, and tokenizers can have different token counts per byte. We must tokenize consistently before discussing training shares. For a concrete teaching example, instead assume the sources contain 800, 150, and 50 million usable tokens. Their concatenated token shares are then \(0.8,0.15,0.05\).
 
-## A recipe is a probability distribution plus a budget
+A large source is not necessarily more useful; it may simply be easier to obtain. Equalizing sources is not automatically better either, since a small collection may be read repeatedly. A recipe must address both coverage and repeated use.
 
-Write the intended mixture as data, for example:
+## Specify the sampling unit
 
-~~~
-{
-  "sources": [
-    {"name": "web", "weight": 0.70},
-    {"name": "code", "weight": 0.20},
-    {"name": "books", "weight": 0.10}
-  ],
-  "sampling": "temperature",
-  "temperature": 0.7,
-  "seed": 17,
-  "target_tokens": 1000000000
+“Code is 20%” could mean 20% of documents, windows, or valid training positions. These coincide only under additional assumptions.
+
+Suppose we select a source and then sample one window from it. If every window contains exactly \(L\) valid targets, source-selection probability \(p_j\) also determines the long-run valid-token share. If source \(j\) contributes an average of \(k_j\) valid targets per window, its valid-token share is instead
+
+$$
+q_j=\frac{p_j k_j}{\sum_i p_i k_i}.
+$$
+
+This follows from counting: over \(n\) selections, source \(j\) is selected \(np_j\) times in expectation and contributes approximately \(np_jk_j\) valid positions. Dividing by the total cancels \(n\).
+
+For example, two sources may each receive half the windows, while contributing 100 and 25 valid positions per window. Their valid-token shares become \(50/(50+12.5)=80\%\) and \(20\%\). The sampler has not failed; the mistake is equating half the windows with half the valid tokens. Both recipe and consumption report must specify their unit.
+
+## Control source proportions with an exponent
+
+Normalize the available token counts:
+
+$$
+w_j=\frac{N_j}{\sum_i N_i},
+$$
+
+where \(N_j\) is source \(j\)'s usable token count. One explicit way to reduce the dominance of large sources is
+
+$$
+p_j(\alpha)=\frac{w_j^\alpha}{\sum_i w_i^\alpha},
+\qquad \alpha>0.
+$$
+
+We call \(\alpha\) the mixture exponent rather than relying on an ambiguous temperature convention. At \(\alpha=1\), proportions remain unchanged. Values between zero and one compress disparities, while values above one amplify them. For two positive weights,
+
+$$
+\frac{p_i}{p_j}=\left(\frac{w_i}{w_j}\right)^\alpha.
+$$
+
+If \(w_i>w_j\) and \(0<\alpha<1\), the new ratio is smaller than the original ratio, although the larger source remains larger. As \(\alpha\) approaches zero from above, positive-weight sources approach equal probability. An empty source still cannot be sampled.
+
+For \(w=(0.8,0.15,0.05)\) and \(\alpha=0.5\),
+
+$$
+w^\alpha\approx(0.8944,0.3873,0.2236),\qquad
+p\approx(0.5942,0.2573,0.1485).
+$$
+
+Books rise from 5% to about 14.85%. The cost is also visible: a billion-token budget would consume about 148.5 million book tokens from a collection containing only 50 million, or 2.97 times its available volume. This estimates average coverage; overlapping random windows do not read every position exactly three times.
+
+Some systems use \(w_j^{1/T}\) instead. Their temperature \(T\) is the reciprocal of our exponent, so \(T<1\) has the opposite effect. Reproduction requires the formula and parameter, not just “temperature 0.5.”
+
+## Budget and source exhaustion
+
+With total valid-token budget \(N_{\mathrm{budget}}\), the ideal allocation is \(q_jN_{\mathrm{budget}}\). If this exceeds the available data, decide in advance whether to stop training, sample with replacement, or renormalize among surviving sources.
+
+These choices define different experiments. Stopping changes the total budget, replacement changes repetition, and renormalization changes the later distribution. Silently switching sources after exhaustion makes the original recipe an inaccurate description of the run.
+
+Logs should distinguish selected windows, input tokens, and summed valid mask weights. With binary masks the last quantity counts valid positions; fractional masks instead require the term weight sum. Source identity must also survive packing: a window crossing sources cannot be assigned wholly to the source of its first token.
+
+## A recipe calculation to inspect and save
+
+The current trainer samples from one logical token stream and does not consume a source-mixture recipe. The following standalone calculation runs on the target Linux machine after environment setup. It saves the example above without changing training behavior.
+
+~~~bash
+.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+
+counts = {"web": 800_000_000, "code": 150_000_000, "books": 50_000_000}
+alpha = 0.5
+total = sum(counts.values())
+weights = {name: (count / total) ** alpha for name, count in counts.items()}
+normalizer = sum(weights.values())
+recipe = {
+    "kind": "teaching_plan_not_connected_to_trainer",
+    "formula": "p_j = (N_j / sum(N)) ** alpha / sum_i((N_i / sum(N)) ** alpha)",
+    "alpha": alpha,
+    "selection_unit": "equal_valid_length_window",
+    "target_tokens": 1_000_000_000,
+    "exhaustion_policy": "with_replacement",
+    "sources": [
+        {"name": name, "available_tokens": counts[name], "probability": value / normalizer}
+        for name, value in weights.items()
+    ],
 }
+path = Path("outputs/mixture-example/recipe.json")
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(json.dumps(recipe, indent=2) + "\n", encoding="utf-8")
+for source in recipe["sources"]:
+    print(source["name"], f'{source["probability"]:.4f}')
+PY
 ~~~
 
-Here <code>weight</code> is the intended probability before exhaustion and filtering. <code>target_tokens</code> states how much training data the plan can consume. The plan must also specify what happens when a source runs out: stop, resample with replacement, or renormalize among remaining sources.
+The formula predicts printed probabilities of approximately 0.5942, 0.2573, and 0.1485, in that order. The JSON lets us inspect the calculation and budget. It does not establish that training used the recipe: that requires a sampler consuming the definition and logs recording actual consumption.
 
-Keep two tables. The **recipe table** records the target distribution. The **consumption table** records actual source tokens, valid masked tokens, padding, and dropped examples. A 70/20/10 recipe can produce a different observed ratio when one source is exhausted or many of its tokens are masked.
+## Why short-run proportions fluctuate
 
-## Temperature needs a declared formula
-
-“Temperature sampling” is ambiguous unless the exponent is written down. One common convention is
+A source probability of \(p=0.2\) does not force exactly one selection in every five. Assume \(n\) independent selections with unchanged probability. Let \(I_k\) be 1 when selection \(k\) chooses the source and 0 otherwise. The observed proportion is
 
 $$
-p_i=\frac{w_i^{1/\tau}}{\sum_j w_j^{1/\tau}},
+\hat p=\frac{1}{n}\sum_{k=1}^{n} I_k.
 $$
 
-while another uses $p_i\propto w_i^{\tau}$. They have opposite behavior for $\tau<1$. With weights $(0.8,0.15,0.05)$ and the first convention at $\tau=0.5$, the unnormalized values are $(0.64,0.0225,0.0025)$, which makes the largest source more dominant. With the second convention, the unnormalized values are approximately $(0.894,0.387,0.224)$, which raises the relative share of smaller sources after normalization. These numbers illustrate why a paper must name the formula rather than only reporting “temperature 0.5”.
-
-The mixture distribution is not the same as the final loss distribution. If each sampled window has a mask $m$, the effective token count from source $i$ is
+Since \(\mathbb{E}[I_k]=p\) and \(\operatorname{Var}(I_k)=p(1-p)\), independence lets us add variances:
 
 $$
-N_i^{\mathrm{effective}}=\sum_{t\in i}m_t,
+\mathbb{E}[\hat p]=p,\qquad
+\operatorname{Var}(\hat p)=\frac{p(1-p)}{n}.
 $$
 
-not simply the number of windows selected from that source.
+At \(n=100\), the standard deviation is 0.04, or four percentage points. Observing 17% once does not establish a sampler bug. This calculation counts independent source selections; 1,000 correlated tokens within one window are not 1,000 independent selections.
 
-## Determinism across ranks
+## Restoring the same distributed plan
 
-Distributed training adds a choice that is easy to miss. Do we select a source globally and then partition its samples across ranks, or let every rank select independently? The first avoids some duplicated choices but requires coordinated indices; the second is simpler but changes the global distribution and communication pattern.
-
-A clear design derives a source and window from a global sample index, seed, and recipe version, then assigns that index to a rank. The function can be described as
+Processes on multiple GPUs need assigned sample identities. One design derives the source and window from a global sample index, then distributes disjoint indices across processes:
 
 $$
-(\text{source},\text{window})=f(\text{seed},\text{recipe},\text{global\_index}).
+(\text{source},\text{window start})
+=f(\text{seed},\text{recipe version},\text{data version},\text{sample index}).
 $$
 
-Restoring a run then means restoring the global step and recipe fingerprint, rather than hoping that each rank's private RNG happens to resume in the same order.
+This describes a proposed source-level design. The current code already has stateless sampling for single-stream windows, but lacks the complete source selection, exhaustion handling, and consumption log. Restoring only the integer step is insufficient: the function and its version, data fingerprint, global batch, and index assignment must also agree.
 
-The current <code>BatchStream</code> samples windows from one logical token stream. It does not implement source-level mixture scheduling, temperature sampling, exhaustion policies, or rank-aware global indices. The JSON above is a next-stage design contract, not an existing feature. Experiments must not claim that the current sampler enforces it.
-
-## A validation plan
-
-Before training, generate a fixed sample plan with a fixed seed and count planned source tokens. During training, log cumulative source tokens, effective mask tokens, padding, and dropped examples. After restore, concatenate the pre-restore and post-restore global sample indices and check for a duplicate or a gap.
-
-Also report uncertainty over a finite window. If the target is 70/20/10, a 1,000-token window can deviate substantially even when the long-run ratio is correct. Use both cumulative proportions and a sliding-window interval so that a short burst of a small source is not mistaken for a recipe failure.
-
-## Reproducible command skeleton
-
-The repository does not yet expose a source-mixture command. A reproducible experiment can still store the proposed recipe next to the resolved experiment configuration:
-
-~~~
-python -c "import json; p='runs/recipe.json'; print(json.dumps(json.load(open(p, encoding='utf-8')), indent=2))"
-~~~
-
-Treat this as an inspection step until a sampler implementation is added. A recipe file without a sampler and consumption log is documentation, not evidence that the mixture was used.
-
-The next chapter turns these contracts into a preflight gate before compilation and a long training run.
-
-## Summary and next question
-
-A mixture is an explicit probability distribution and token budget, not a side effect of file size. State the temperature convention, derive rank and recovery behavior from a global sample index, and record consumption rather than only weights. The next chapter combines tokenizer, manifest, masks, and recipe into a preflight gate.
+Compare the source and start-index sequence of an uninterrupted run with an interrupted-and-resumed run. Sample indices must not be skipped or duplicated. Sampling with replacement may legitimately assign the same window to different indices; that is a revisit, not a restoration error. The next chapter brings these recipe, data, and model conditions together before training.

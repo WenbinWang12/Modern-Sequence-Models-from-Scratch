@@ -49,7 +49,7 @@ Attention / Delta
 
 这种划分减少了内循环需要重复的计算，但也带来一个约束：prefix 的 cache 和 hidden 必须与 suffix 的位置、mask 对齐。后缀不是一段独立文本，它接收的是同一序列中对应位置的表示。
 
-`sequence_loss` 先把 token 序列按 ttt_chunk_size 补齐并 reshape，再运行 model.prefix。suffix 在 scan 中逐 chunk 处理。快权重从 initial_fast_weights 开始，下一块使用上一块的更新结果；尾块不足完整长度时，代码保留旧 fast weights，不让 padding token 改变状态。
+`sequence_loss` 先补齐输入，并运行 <code>model.prefix</code> 得到隐藏表示，再将表示按 <code>ttt_chunk_size</code> 分块。suffix 在 scan 中逐块处理。快权重从 <code>initial_fast_weights(params)</code> 开始；完整块完成后，下一块使用它的更新结果。尾块不足完整长度时仍对真实目标评分，但整块不提交快权重更新，真实尾部目标也不例外；这与流式路径等待完整块的规则一致。
 
 ## 为什么快权重不是普通参数
 
@@ -62,26 +62,26 @@ $$
 $$
 
 $$
-\phi_{t+1}=\phi_t-\eta_{\mathrm{inner}}
-\nabla_\phi \mathcal{L}_{\mathrm{inner}}(x_t;\theta,\phi_t).
+\phi_{c+1}=\phi_c-\eta_{\mathrm{inner}}
+\nabla_\phi \mathcal{L}_{\mathrm{inner}}(\theta,\phi_c;X_c,Y_c,M_c).
 $$
 
-$\theta$ 是静态参数，$\phi$ 是快权重。外循环学习的是“怎样初始化和使用 $\phi$”，内循环执行的是“当前上下文如何改变 $\phi$”。如果把 $\phi$ 直接放进 optimizer state，TTT 的时间尺度就被错误合并了。
+\(k\) 计数外循环训练步，\(c\) 计数序列内的完整更新块；\(X_c,Y_c,M_c\) 是该块的输入、目标和 mask。这里先写普通梯度下降形式，实际更新还有梯度裁剪，下一章展开。静态参数 \(\theta\) 包含 MLP′ 的可学习初值，<code>initial_fast_weights(params)</code> 从中取出 \(\phi_0\)。这个初值参与外循环训练；随后产生的 \(\phi_1,\phi_2,\ldots\) 是序列或会话状态，不写回全局 AdamW 参数。不能把“初值参与训练”和“会话中的适应值属于优化器”混为一谈。
 
 ## 梯度边界和因果性
 
 一个安全的内循环顺序是：
 
 ~~~text
-使用 fast_t 预测 y_t
-→ 用已观测 label 计算 inner loss
-→ 更新得到 fast_{t+1}
-→ 后续 chunk 使用 fast_{t+1}
+使用当前 fast state 预测一个块的目标
+→ 等待该块全部目标可观测，计算 inner loss
+→ 提交新的 fast state
+→ 下一块使用新状态
 ~~~
 
-如果 suffix 的 label 在同一次预测前已经用于更新，模型可以通过标签泄漏获得不应有的信息。因果性测试应修改后半段 token，再比较前半段 logits；前半段不能因为未来标签改变。
+如果当前预测的标签已经被用于修改产生该预测的状态，模型就得到了未来信息。因果性测试应修改较晚位置的 token，再比较它之前所有位置的 logits；较早预测不能因为未来标签改变。这里“较早/较晚”指时间位置，与前面按层划分的 prefix/suffix 是两个不同的轴。
 
-当前实现的 inner_step 对 fast_weights 求 value_and_grad，再调用 sgd_update。外循环对 sequence_loss 的输出求导，因此是否保留高阶梯度由这条计算图和 checkpoint 重算共同决定。阅读代码时要区分“更新了 fast state”和“是否对更新过程求了高阶导”。
+当前 <code>inner_step</code> 对 fast weights 使用 <code>jax.value_and_grad</code>，再调用 <code>sgd_update</code>；外循环继续对 <code>sequence_loss</code> 求导，计算图可穿过内更新，产生二阶导数项。<code>jax.checkpoint</code> 通过重算节省内存，不会自动截断这条梯度。若要做一阶近似，需要显式指定哪些导数路径被截断，不能把重计算误称为一阶算法。
 
 ## 一个手算的 chunk 例子
 
@@ -92,7 +92,7 @@ chunk 0: positions 0,1,2,3
 chunk 1: positions 4,5,6,7
 ~~~
 
-chunk 0 使用 $\phi_0$ 产生 $\mathcal{L}_0$，并更新成 $\phi_1$。chunk 1 使用 $\phi_1$ 产生 $\mathcal{L}_1$。若最后一个块只有 2 个真实位置，另外 2 个是 padding，mask 将后两个 label 置零，状态更新也不应因 padding 发生。
+chunk 0 使用 $\phi_0$ 产生 $\mathcal{L}_0$，并更新成 $\phi_1$。chunk 1 使用 $\phi_1$ 产生 $\mathcal{L}_1$。另设序列只有 6 个目标位置：最后一块有 2 个真实目标和 2 个 padding。两个真实目标仍计入 loss；padding 的 mask 为 0。由于该块未满，当前实现保留整个旧快权重 \(\phi_1\)，不提交这两个真实目标产生的更新。
 
 这个例子解释了为什么 chunk size 不是单纯的 batch 参数。它改变了快权重观察上下文的频率，也改变了内循环反向传播和 cache 的边界。
 
@@ -100,20 +100,18 @@ chunk 0 使用 $\phi_0$ 产生 $\mathcal{L}_0$，并更新成 $\phi_1$。chunk 1
 
 至少做四种检查：
 
-1. dense C 路径与 fast MLP 关闭时的输出形状和数值；
-2. 修改 suffix token 不影响 prefix logits 的因果性；
+1. 分别核对无 fast MLP 的 dense 模型和保留模块但关闭更新的 C；二者结构不同，不要求 logits 相等；
+2. 修改某个较晚 token 后，它之前所有位置的 logits 不变；
 3. 完整序列前向与 prefill/decode 的输出在容忍范围内一致；
 4. 把 chunk size 改变时，明确记录这是算法变量还是仅实现变量。
 
-GPU 验证脚本会生成架构和运行时报告，但报告中的数值必须关联到 config 与初始参数。一次通过不说明所有长度和所有 layer_types 都通过。
-
-下一章把前向中的更新写成内循环与外循环，解释损失如何在两个时间尺度之间流动。
+这些检查是验证目标，不全由一条脚本覆盖。下面列出当前 GPU 脚本真正执行和记录的内容；其他对照应有独立证据。
 
 ## 一个 token 的 shape walk
 
 用 tiny 配置的 \(d=16\)、\(V=259\)、batch \(B=1\) 和位置数 \(L=4\) 走一遍：
 
-| 阶段 | 代码对象 | 形状 | 读者要检查的事实 |
+| 阶段 | 教学对象 | 批量形状 | 读者要检查的事实 |
 |---|---|---|---|
 | 输入 | <code>input_ids</code> | \([1,4]\) | 每个整数在 \([0,259)\) |
 | embedding | hidden | \([1,4,16]\) | token ID 变成残差向量 |
@@ -121,27 +119,31 @@ GPU 验证脚本会生成架构和运行时报告，但报告中的数值必须�
 | MLP′ | fast branch | \([1,4,16]\) | 中间宽度可变，输出回到 16 |
 | 输出 | logits | \([1,4,259]\) | 每个位置有 259 个候选分数 |
 
-这张表的最后一列比“shape 能对上”更重要：它说明每个接口为什么需要这个形状。
+这张表描述批量计算的概念布局。当前模型 <code>forward</code> 处理单序列 <code>input_ids</code>，输入形状为 \([L]\)，内部 hidden 为 \([L,d]\)，logits 为 \([L,V]\)；训练代码在外层用 <code>jax.vmap</code> 加上 batch 轴。表中的 \([B,L]\) 不能直接传入这个单序列接口。
 
 ## 一个可计算的因果性断言
 
-设 prefix 代码索引为 0、1，suffix 为 2、3。用同一初始参数和 mask 跑两次，只把索引 3 的 token 从 18 改为 19。记录 prefix logits 的最大绝对差：
+对一个包含 4 个输入位置的序列，用同一初始参数和 mask 跑两次，只把输入索引 3 的 token 从 18 改为 19。索引 0、1、2 都在改变位置之前，因此三者的 logits 都必须不变。以单序列输出 <code>[L,V]</code> 为例，概念上的断言是：
 
 ~~~text
-max_abs_diff(logits_a[:, 0:2, :], logits_b[:, 0:2, :]) <= 1e-6
-max_abs_diff(logits_a[:, 2:, :], logits_b[:, 2:, :]) may be > 0
+max_abs_diff(logits_a[0:3, :], logits_b[0:3, :]) <= tolerance
+max_abs_diff(logits_a[3:, :], logits_b[3:, :]) may be > 0
 ~~~
 
-第一行失败说明未来信息泄漏到 prefix；第二行允许变化，因为 suffix 看到了不同输入。这个断言比只检查输出 shape 更能验证 causal mask 和 fast-state 更新边界。
+这里 <code>max_abs_diff</code> 是“取逐元素差的绝对值再取最大值”的说明性记法，不是仓库 API。第一行失败意味着未来信息影响了较早预测；只有从索引 3 开始才允许变化。容差应与 dtype 及比较方式一起声明，不能为通过测试而任意放宽。
 
 ## 本章最小验证
 
-在远端 GPU 节点运行 <code>bash scripts/validate_gpu.sh outputs/gpu-validation.json</code>。预期报告至少包含架构摘要、整段与流式 logits 比较、因果性检查、状态 shape 和恢复结果。若失败，先查看报告中的 config、mask 和 initial state；通过一次 tiny 长度只说明该组合通过，不代表所有 layer type 和上下文长度都通过。
+在远端 GPU 节点运行 <code>bash scripts/validate_gpu.sh outputs/gpu-validation.json</code>。它执行 <code>ttt/validate.py</code> 中内置的 tiny 用例，不会读取上一章的 C/F 配置文件。每个用例检查 loss/梯度有限性，对比 <code>sequence_loss</code> 与 <code>TTTSession.observe</code>，并通过断言检查未来 token 扰动的因果性。
+
+成功报告的顶层是 <code>environment</code>、<code>passed</code>、<code>cases</code>。每个 case 有 <code>name</code>、<code>tokens</code>、<code>loss</code>、<code>finite_gradients</code>、<code>logits_max_error</code>、<code>compilation_seconds</code>、<code>training_seconds</code>、<code>state_bytes</code> 和 <code>inner_updates</code>。其中 <code>logits_max_error</code> 是序列/流式差异，不是单独的因果误差字段。失败报告包含 <code>passed=false</code>、异常类型、消息和环境信息。
+
+脚本不输出完整配置、mask、初始参数、state shape 或恢复比较；用例设定与随机 seed 在源码中，必须保存源码版本才能追溯。它要求至少一个可用 GPU，并不验证特定 GPU 型号或多卡数量。恢复实验见第 3 章。一次 tiny 验证只覆盖实际列出的组合；下一章将进一步解释内循环与外循环的梯度如何连接。
 
 ## 本章小结
 
 - 前向顺序决定每条残差路径看到的输入和状态；
-- fast weights 是序列/会话状态，不是普通 AdamW 参数；
+- fast weights 的初值参与外循环训练，适应后的值属于序列/会话状态；
 - prefix/suffix、chunk 和 mask 必须使用同一位置坐标；
 - 因果性要通过修改未来 token 的数值断言验证；
 - 下一章把这里的状态转移展开为 inner 与 outer 两条梯度路径。

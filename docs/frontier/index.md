@@ -1,40 +1,54 @@
-# Frontier Lab：前沿专题
+# Frontier Lab：把前沿主张变成可检验的问题
 
-这一部分不是按固定教材顺序推进的章节，而是一个带日期的研究雷达。每个专题都必须回答三个问题：
+**资料快照：2026-11-11。代码审阅基线：<code>567fef3</code>。状态：研究方案与局部实现；未宣称完成论文复现。**
 
-1. 论文或社区当前提出了什么新主张；
-2. 这个主张与 TTT-E2E 当前代码有什么关系；
-3. 我们能否在固定规模、固定数据和固定算力下复现或证伪它。
+一个新方法在论文中获得更低的损失，并不说明把它的模块加入现有模型就会得到同样的收益。数据、训练预算、状态更新顺序和推理实现都可能不同。Frontier Lab 的任务是把这些差异展开，让读者能区分“数学关系成立”“代码实现了这种关系”和“训练实验支持了收益”三件事。
 
-## 热点专题的生命周期
+本部分依赖主线中的 next-token 损失、梯度、因果注意力和实验记录。如果暂时看不懂下面的公式，先读[基线](../book/20_baseline_model.md)、[内外循环](../book/05_inner_outer_loop.md)和[注意力缓存](../book/06_attention_cache.md)。这里的最小运行用于检查研究起点，不是作业题，也不是论文结果表。
 
-```text
-Radar → Paper reading → Minimal reproduction → Compute-matched comparison
-  ↑                                               ↓
-Archive ← No evidence / topic cooled ← Decision record
-```
+## 资料、主张与本地状态
 
-每个专题都记录快照日期、论文版本、代码状态和复现实验状态。热点可以从主线进入，也可以在证据不足时归档，不把未经验证的宣传结论写成教材事实。
+论文链接固定到版本，避免网页更新后同一引用指向不同论证。表中的状态来自代码阅读，不等同于本轮执行通过。
 
-## 当前专题
+| 专题 | 版本化来源 | 要检验的主张 | 当前状态 |
+|---|---|---|---|
+| [TTT 与线性注意力](ttt_linear_attention.md) | [TTT v4](https://arxiv.org/abs/2407.04620v4)、[KV binding v4](https://arxiv.org/abs/2602.21204v4) | 特定快模型和更新能否改写成显式递推？ | 有 Gated Delta 与内循环；独立等价性实验待建立 |
+| [TTT-E2E 与长上下文](ttt_e2e_long_context.md) | [TTT-E2E v2](https://arxiv.org/abs/2512.23675v2) | 更新权重是否改善长上下文质量与成本？ | 有训练、会话和 tiny 验证入口；正式质量比较待运行 |
+| [Looped Transformer](loop_transformer.md) | [Loop v1](https://arxiv.org/abs/2502.17416v1) | 共享参数增加有效深度是否值得额外计算？ | 有逐层共享重复；论文协议与质量比较未复现 |
 
-| 专题 | 核心问题 | 当前状态 |
-|---|---|---|
-| TTT 与线性注意力 | TTT 的状态更新是否可以看成线性注意力、KV binding 或 delta rule | 复现中 |
-| TTT-E2E 与长上下文 | 测试时学习能否以权重状态压缩上下文，并保持可扩展性 | 主线方向 |
-| Looped / recurrent-depth Transformer | 重复使用同一层增加有效深度，是否比增加独立参数更划算 | 复现中 |
-| TTT × Loop | 时间方向的快权重更新与深度方向的循环是否互补 | 待设计对照 |
+**已实现（implemented）**表示存在实际执行路径；**实验框架（scaffold）**表示有入口或配置，但尚缺完整对照与证据；**计划（planned）**表示还没有对应实验实现。状态应逐项标注，不能把整个专题写成笼统的“复现中”。
 
-## 专题固定模板
+## 为什么主线之外还需要这一部分
 
-```text
-Snapshot：日期、论文版本、代码版本
-Claim：论文主张是什么
-Relation：与当前 TTT-E2E 哪些组件相关
-Controls：必须保持不变的模型、数据、tokens、FLOPs
-Minimal reproduction：最小可运行实验
-Decision：支持、部分支持、未复现或证伪
-Next step：是否进入主线架构或归档
-```
+主线教读者建立可靠的实验系统，前沿专题则询问系统应尝试什么新假设。例如，TTT 与 Loop 都增加计算，但前者改变随上下文推进的权重状态，后者重复使用某个深度位置的计算。把两者统称为“让模型多想一会儿”会遮蔽它们的状态和预算差别。
 
-专题页面放在 `docs/frontier/`，主线代码和稳定配置仍放在 `ttt/` 与 `configs/`，正式结果放在 `docs/reports/`。如果某个专题需要独立实验目录，应在仓库中显式创建并写入对应的配置和 manifest；前沿章节引用主线代码，但不把临时研究分支直接混入稳定训练入口。
+因此每个专题先给出最小问题，再建立对应实现。一个单 token 代数恒等式可以检查更新规则；一个 tiny 模型可以检查梯度和流式状态；只有训练与评测协议齐全，才能比较方法质量。前两层的通过不能替代第三层。
+
+## 共同的最小起点
+
+以下命令在已经按[环境章节](../book/01_environment.md)安装依赖的远端 GPU 节点、仓库根目录执行。CPU 检查使用获授权的远端 CPU 机器。本次编辑没有执行这些实验。
+
+~~~bash
+mkdir -p outputs/frontier-smoke
+git rev-parse HEAD > outputs/frontier-smoke/source-commit.txt
+bash scripts/validate_gpu.sh outputs/frontier-smoke/validation.json
+~~~
+
+脚本使用程序内定义的 tiny 架构，默认上下文检查为 64 和 512 token，并包含 Gated Delta、三种 Loop、MoE 和流式一致性用例。它不会加载某个 125M 配方，也不会自动运行正式数据评测。用例名 <code>dense</code> 也不能被直接当作“关闭 TTT 的训练基线”：是否有快权重及更新必须查看实际配置。
+
+成功时应得到 <code>environment.json</code>、<code>source-commit.txt</code> 和 <code>validation.json</code>。报告顶层 <code>passed</code> 应为 true，各用例包含 <code>finite_gradients</code>、<code>logits_max_error</code>、编译时间与状态字节数。因果性由断言检查，不是一个独立的成功布尔字段。
+
+失败时先检查 <code>error_type</code> 与 <code>error</code>，再查环境中的 GPU/后端和失败用例。进程在报告写入前被杀死时，必须保存调度日志；“没有 JSON”不是通过。
+
+## 控制变量、指标与决策记录
+
+质量实验固定数据切分、tokenizer、初始化策略、有效 token 数和优化器。成本实验还要固定硬件、精度、批量、序列长度和测量窗口。参数量相同不代表 FLOPs 相同，FLOPs 相同也不代表墙钟时间相同；三者都记录。
+
+| 证据层 | 需要的指标 | 通过后能说什么 | 仍不能说什么 |
+|---|---|---|---|
+| 代数 | 状态/输出误差与假设 | 给定条件下公式对应 | 任意 TTT 都等价 |
+| 功能 | 有限梯度、因果性、流式误差 | 该配置执行语义一致 | 已得到质量收益 |
+| 成本 | 编译、稳态吞吐、状态/峰值显存 | 该机器上的资源代价 | 换硬件仍有相同比例 |
+| 质量 | 固定验证集损失、任务分数、种子差异 | 该协议下的比较结果 | 普遍优于其他架构 |
+
+每个正式结果还应指向配置、数据指纹和原始报告。当前专题没有新增实测结果；空缺用“未运行”表示，不填写预测数字。下次运行首先完成各专题的最小检查，然后再决定是否扩大规模。

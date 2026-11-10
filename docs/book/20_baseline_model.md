@@ -20,7 +20,7 @@ $$
 
 $$
 \ell_t=-\log\frac{\exp z_{t,y_t}}
-{\sum_{v=1}^{V}\exp z_{t,v}}.
+{\sum_{v=0}^{V-1}\exp z_{t,v}}.
 $$
 
 直接对大词表计算完整 softmax 可能占用显存，因此仓库的 `loss.py` 提供按 token 和 vocab block 处理的路径。数学目标不因分块而改变；实现只是把求和拆成可执行的块。
@@ -41,7 +41,7 @@ $$
 =p_{t,v}-\mathbf{1}[v=y_t].
 $$
 
-正确 token 的梯度是 $p_{t,y_t}-1$，会推动它的分数上升；其他 token 的梯度是它们当前的概率，会推动它们的分数下降。反向传播只是把这个局部误差信号沿模型的计算图继续传回 embedding、attention 和 MLP；后面的 AdamW 再决定怎样用这些梯度更新参数。
+正确 token 的局部梯度是 \(p_{t,y_t}-1\)，其他 token 的局部梯度是 \(p_{t,v}\)。若把 logits 当作彼此独立的参数直接做 SGD，正确项会上升、其他项会下降。实际网络共享参数，反向传播会汇总不同位置的误差信号，再由 AdamW 更新参数，因此不能保证每个样本的正确 logit 都单调上升。
 
 这个结果可以直接从损失展开得到：
 
@@ -90,7 +90,7 @@ loop_mode = none
 
 这些开关表达“没有额外动态状态、没有路由、没有深度循环”。注意力仍然可以是 sliding 或 full；如果要研究注意力类型，需把它作为独立变量，不能把所有默认项混成一个 baseline 名称。
 
-仓库的 configs/tiny.json 是训练配置包装，model 子对象最终由 TTTE2EConfig 解析。configs/125m 目录下的配置是配方和消融候选，125M 是档位名，不代表启用 MLP′、专家或大词表后的精确总参数。
+本章使用 <code>configs/book/tiny_dense.json</code>，显式关闭 MLP′，令 suffix 长度为零，并关闭内更新。<code>configs/book/tiny_control.json</code> 保留 MLP′、关闭更新，才是与 <code>configs/tiny.json</code> 的 F 变体配对的 C 对照。Dense 与 C 的参数树不同，不能仅用“更新关了”把它们混为一谈。
 
 ## 训练一步如何发生
 
@@ -148,13 +148,13 @@ loop_mode = none
 ~~~bash
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
 JAX_PLATFORMS=cpu bash scripts/run_train.sh \
-  --config configs/tiny.json \
+  --config configs/book/tiny_dense.json \
   --data outputs/sample-tokens.npy \
   --output outputs/baseline-tiny-001
 ~~~
 
-成功目录至少应包含 <code>experiment.json</code>、<code>environment.json</code>、<code>metrics.jsonl</code>、<code>status.json</code> 和 checkpoint；loss 应为有限数，恢复后下一批输入和 step 应与连续运行对齐。loss 下降本身不能证明泛化；若 held-out loss 上升，先检查 split、重复和 mask。
+成功目录至少应包含 <code>experiment.json</code>、<code>environment.json</code>、<code>metrics.jsonl</code>、<code>status.json</code> 和 checkpoint；loss 应为有限数。这里的四步命令没有执行恢复对照，也没有计算独立验证集损失。恢复检查按[可复现运行](02_reproducible_runs.md)的同配置协议另做；held-out loss 需要独立数据和评估过程，不能从训练日志推断。
 
 ## 本章小结与下一问
 
-Dense baseline 固定数据身份、预算、配置和恢复协议，用 logits、mask loss、梯度、checkpoint 和 held-out loss 证明训练系统至少是可解释的。它不会证明 TTT、Loop 或 MoE 的收益。下一部分沿着同一 token 进入前向路径，明确快权重在哪一刻改变。
+这次最小运行把 logits、masked loss、梯度和 checkpoint 接到一个明确的普通模型配置上。完整研究基线还需要独立验证集评估与恢复对照；四步样例只建立功能检查的起点。下一部分沿着同一 token 进入前向路径，明确快权重在哪一刻改变。

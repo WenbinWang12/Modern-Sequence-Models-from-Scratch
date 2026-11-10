@@ -1,13 +1,15 @@
 # From Scratch: Modern Sequence Models
 
-This is the English edition of the experiment book. It follows the same code, configurations, remote runs, and evidence as the Chinese edition.
+This is the English edition of a book under active development. It follows the same concepts, code, configurations, and experimental protocols as the Chinese edition, distinguishing implemented paths, standalone teaching examples, and planned experiments.
+
+The manuscript remains under revision and has not passed publication review. See the [editorial records](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/tree/main/editorial) for paragraph-level findings, revisions, and pending checks.
 
 <figure class="book-figure">
   <img src="../../assets/figures/book-roadmap.svg" alt="Book roadmap from data and tokenizer through the dense baseline and frontier models to reproducible evidence">
   <figcaption><strong>Figure 1. The book spine.</strong> Every model claim passes through data, budget, implementation, and evidence; Frontier Lab reuses the same experiment contract.</figcaption>
 </figure>
 
-Every chapter uses the same narrative:
+The intended learning sequence connects the following functions; section headings vary with the chapter's question:
 
 ```text
 Question → Theory → Code → Remote experiment → Evidence → Next question

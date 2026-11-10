@@ -85,7 +85,7 @@ Reporting only “99,500 documents” hides ten missing files and ten parsing fa
 For a small text file, the repository command is:
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input examples/sample.txt \
   --output outputs/sample-tokens.npy \
   --tokenizer byte
@@ -94,7 +94,7 @@ python -m ttt.data \
 For JSONL records with a `text` field and a versioned shard manifest:
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input corpus.jsonl \
   --output data/pretrain-v1 \
   --sharded \
@@ -108,7 +108,7 @@ These commands encode already selected text; they do not create the source recor
 Start with the teaching text that actually exists in the repository:
 
 ~~~bash
-python -m ttt.data \
+.venv/bin/python -m ttt.data \
   --input examples/sample.txt \
   --output outputs/acquisition-sample.npy \
   --tokenizer byte
@@ -117,8 +117,8 @@ python -m ttt.data \
 The expected artifact is a one-dimensional token file. It proves only that the tokenizer can read the input; it does not prove provenance, licensing, extraction quality, or data quality. To inspect a sharded manifest, run:
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/acquisition-shards \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~

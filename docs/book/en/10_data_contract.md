@@ -24,13 +24,13 @@ This chapter starts with a short running example rather than a large download. W
 
 Suppose the raw collection has two records: record \(r_1\) contains “The cat sits.” and record \(r_2\) is a web mirror. If cleaning and deduplication keep only \(r_1\), uniform sampling changes from \(P(r_1)=P(r_2)=1/2\) to \(P(r_1)=1\). The file name did not change; the distribution seen by the model did.
 
-In the byte-tokenizer teaching setup, characters become integer IDs. For illustration, suppose the stream is \(s=(10,11,12,2)\), with 2 as EOS. A length-3 window becomes \(X=(10,11,12)\), \(Y=(11,12,2)\), and \(M=(1,1,1)\). This chain connects data quality to one summand in cross-entropy.
+To isolate the shift rule, use the invented short sequence \(s=(10,11,12,2)\), with 2 as EOS. These are not the actual byte-tokenizer IDs of the sentence above; we compute real encodings in the tokenizer chapter. A length-3 window becomes \(X=(10,11,12)\), \(Y=(11,12,2)\), and \(M=(1,1,1)\). Inputs and targets differ by one position, connecting a document to the summands in cross-entropy.
 
-The smallest checkpoint is the command below. It proves that the input object can be read by the loader; it does not prove cleaning quality, contamination safety, or model generalization.
+The command below encodes the repository JSONL example into shards and writes a manifest. This is data generation; the Dataset and preflight chapters separately check that the loader can read it correctly. Generation alone establishes neither cleaning quality, contamination checks, nor model generalization.
 
 ~~~bash
 .venv/bin/python -m ttt.data \
-  --input examples/sample.txt \
+  --input examples/sample.jsonl \
   --output outputs/book-data-contract \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~
@@ -83,13 +83,9 @@ $$
 C_{\mathrm{train}}=\{r_1,\ldots,r_n\}.
 $$
 
-If cleaning, splitting, and source mixing form a transformation $C$, the document distribution can be written as
+Cleaning can modify text or reject a record. Rejection requires renormalizing probabilities: after dropping one of three equally likely records, each survivor has probability \(1/2\), not \(1/3\). Deduplication also compares records, so it is not simply a transformation applied independently to each text. We therefore first fix the cleaned, deduplicated training split and then define how to sample it.
 
-$$
-P_{\mathrm{doc}}=C_{\#}P_{\mathrm{raw}},
-$$
-
-where $\#$ denotes pushing a distribution through a transformation. For a fixed document collection, if the sampler selects record $i$ with weight $w_i$, the empirical document distribution is
+Assign each surviving record a nonnegative weight \(w_i\), with at least one positive weight. The document sampling distribution is
 
 $$
 P_{\mathrm{doc}}(r_i)=
@@ -100,22 +96,14 @@ Uniform document sampling, length-weighted sampling, and source-level sampling t
 
 Document distribution and training-position distribution are also different objects. Uniformly selecting documents can still give longer documents more loss positions. Sampling token starts uniformly produces another weighting over short documents, long documents, and boundaries. Document count, token count, and supervised loss positions are not interchangeable statistics.
 
-A tokenizer $\tau$ maps document text to a token sequence and pushes the document distribution into a token-sequence distribution:
+A tokenizer \(\tau\) maps document text to a token sequence:
 
 $$
 \tau(u_i)=s^{(i)}=(s^{(i)}_1,\ldots,s^{(i)}_{L_i}),
 \qquad s^{(i)}_t\in\{0,\ldots,V-1\},
 $$
 
-where $V$ is the vocabulary size. A window sampler then applies sequence length, packing, EOS, and document-boundary rules. Let this operation be $\Pi$. It induces:
-
-$$
-P_{\mathrm{tok}}=\tau_{\#}P_{\mathrm{doc}},
-\qquad
-P_{\mathrm{win}}=\Pi_{\#}P_{\mathrm{tok}}.
-$$
-
-For document-local sampling, this can be written explicitly as:
+where \(V\) is the vocabulary size. We must next decide whether to sample inside one document or inside a concatenated stream. If we first select a document and then sample a window within it, call the second step's conditional distribution \(P_\Pi\). Summing over possible documents gives
 
 $$
 P_{\mathrm{win}}(X,Y,M)
@@ -124,17 +112,14 @@ P_{\mathrm{win}}(X,Y,M)
 \,P_{\Pi}(X,Y,M\mid \tau(u_i)).
 $$
 
-The complete chain can be summarized as:
+The repository instead concatenates encoded documents into a fixed stream \(S=(S_1,\ldots,S_T)\), accompanied by a mask stream. A prediction window of length \(L\) needs \(L+1\) consecutive tokens, so its valid starts are \(a=1,\ldots,T-L\). Write \(W_a=(X_a,Y_a,M_a)\) for the shifted window at start \(a\). Uniformly sampling starts gives
 
 $$
-P_{\mathrm{raw}}
-\xrightarrow{\,C\,}P_{\mathrm{doc}}
-\xrightarrow{\,\tau\,}P_{\mathrm{tok}}
-\xrightarrow{\,\Pi+\text{pack/shift/mask}\,}P_{\mathrm{win}}(X,Y,M)
-\xrightarrow{\,p_\theta\,}\mathcal{L}.
+P_{\mathrm{win}}(W)
+=\frac{1}{T-L}\sum_{a=1}^{T-L}\mathbf{1}\{W_a=W\}.
 $$
 
-For a concatenated logical stream, $\Pi$ acts on the packed stream rather than one document, but the same idea applies: the window distribution is induced by the complete data protocol. In practice, $P_{\mathrm{win}}$ is the object closest to the “training data distribution”. It depends on source weights, cleaning, deduplication, tokenization, packing, window length, and masks.
+The indicator \(\mathbf{1}\) is 1 when its condition holds and 0 otherwise. If two starts produce identical windows, both count. This expression includes windows crossing document boundaries; the preceding document-local formula does not. Document order, EOS, BOS, window length, and masks can all change \(P_{\mathrm{win}}\).
 
 ## What exactly is prediction loss?
 
@@ -175,16 +160,17 @@ $$
 {\sum_{t=1}^{L}m_t}.
 $$
 
-The population objective induced by the pipeline is
+The preceding expression requires \(\sum_t m_t>0\). An entirely ignored window has no defined average loss and should be reported separately by data checks. We must also choose how to combine windows: one vote per window or one vote per valid token? Let \(A=\sum_t m_t\ell_t\) be a window's total loss and \(K=\sum_t m_t\) its valid count. The two objectives are
 
 $$
-\mathcal{L}(\theta;P_{\mathrm{win}})
-=
-\mathbb{E}_{(X,Y,M)\sim P_{\mathrm{win}}}
-\left[\ell(\theta;X,Y,M)\right].
+\mathcal{L}_{\mathrm{window}}=\mathbb{E}[A/K],
+\qquad
+\mathcal{L}_{\mathrm{token}}=\frac{\mathbb{E}[A]}{\mathbb{E}[K]}.
 $$
 
-A finite run sees $N$ sampled windows. If the loss is averaged over all unmasked tokens, the empirical objective is
+They coincide under conditions such as a fixed valid count. Suppose one window has a single valid position with loss 4, while another has three valid positions with loss 1 each. Averaging window means gives \((4+1)/2=2.5\); pooling valid positions gives \((4+3)/4=1.75\). The latter gives every valid position equal weight and is the convention used here for dataset-level loss.
+
+A finite evaluation observes \(N\) sampled windows. Its token-weighted estimator is
 
 $$
 \widehat{\mathcal{L}}_N(\theta)
@@ -194,7 +180,7 @@ m^{(k)}_t\ell^{(k)}_t(\theta)}
 {\sum_{k=1}^{N}\sum_{t=1}^{L_k}m^{(k)}_t}.
 $$
 
-Minibatch optimization approximates gradients of this empirical objective. “The model learns from the data” therefore means that its parameters are updated so that average next-token negative log likelihood decreases on windows produced by the declared sampler.
+Training also normalizes by valid positions within each minibatch. A random numerator divided by a random denominator is generally not an unbiased estimator of the population ratio, especially when valid counts vary substantially. To aggregate evaluation batches, sum their total losses and valid counts before dividing; do not simply average their mean losses. Gradient updates aim to reduce the chosen training objective, but one update need not reduce every window's loss.
 
 Validation loss uses the same definition with an independent $P_{\mathrm{val}}$ in place of $P_{\mathrm{win}}$. Training loss asks whether the model fits the training distribution; validation loss asks how it predicts on another declared distribution. If validation contains near duplicates of training, the second question has not been measured reliably.
 
@@ -220,9 +206,11 @@ For an illustrative token sequence:
 | Object | Value |
 |---|---|
 | Token stream \(s\) | \((10,11,12,2)\) |
-| Code field `input_ids` (mathematical \(X\)) | \((10,11,12)\) |
-| Code field `labels` (mathematical \(Y\)) | \((11,12,2)\) |
-| Code field `loss_mask` (mathematical \(M\)) | \((1,1,1)\) |
+| Teaching array <code>input_ids</code> (mathematical \(X\)) | \((10,11,12)\) |
+| Teaching array <code>labels</code> (mathematical \(Y\)) | \((11,12,2)\) |
+| Teaching array <code>loss_mask</code> (mathematical \(M\)) | \((1,1,1)\) |
+
+These names explain the three mathematical objects. The actual loader returns unshifted <code>tokens</code> and target <code>masks</code>; <code>sequence_loss</code> constructs inputs and targets from tokens.
 
 The window loss is
 
@@ -259,13 +247,13 @@ Masking the final EOS changes both the numerator and denominator. Crossing a doc
 | Code | 50,000 | 2,000 | 100M |
 | Books | 10,000 | 10,000 | 100M |
 
-Concatenation makes web text about 82% of the token stream. Uniform document sampling increases the probability of book documents. Both can be valid, but they define different $P_{\mathrm{doc}}$ and therefore different objectives.
+Concatenation gives books \(100/1100\approx9.09\%\) of tokens. Uniformly selecting a document and taking exactly one equal-length window from it instead selects books with probability \(10{,}000/960{,}000\approx1.04\%\). Uniformly selecting one of the three sources gives books \(1/3\) of selections. A sampling rule must specify how many windows are taken after selecting a document; uniform document sampling does not automatically increase the weight of long-document sources.
 
 If 30% of web tokens are boilerplate duplicates, cleaning may reduce effective web tokens to 630M. If the mixture is not recomputed, the effective weights of code and books rise automatically. Every stage must report its own denominator rather than only a final token total.
 
 The current `BatchStream` samples windows from one logical token stream. It does not implement source-level mixture scheduling. The later mixture chapter defines that capability without claiming it already exists here.
 
-## The pretraining data contract
+## Data specifications to settle before training
 
 Before a long run, the pipeline should answer:
 
@@ -297,7 +285,7 @@ These objects must not share one vague “data version”. A fixed raw file can 
 
 ~~~bash
 .venv/bin/python -m ttt.data \
-  --input examples/sample.txt \
+  --input examples/sample.jsonl \
   --output outputs/book-data \
   --sharded \
   --tokenizer byte \

@@ -1,128 +1,130 @@
 # 18. Attention, caches, and streaming inference
 
-## One model, two timelines
+## Why generating a sentence requires state
 
-During training, a batch can contain the whole sequence. During generation, a serving process usually receives one new token at a time. Full forward can construct a causal mask over all positions; streaming forward must remember the past without recomputing it at every step.
+The previous chapter established when fast weights change. We now change the execution pattern from a whole sequence to tokens arriving one at a time. Suppose the model has read “The weather today” and receives another token. It needs the known prefix to continue predicting. Recomputing the prefix on every call repeats the same historical key and value calculations. A KV cache stores those intermediate results to avoid that repetition.
 
-For a token at position \(t\), causal attention may read keys and values from positions \(1,\ldots,t\), but never from \(t+1\). A KV cache stores those past keys and values. If the query has shape `[batch, query_heads, 1, head_dim]` and the cache has shape `[batch, kv_heads, cache_length, head_dim]`, grouped-query attention reuses each KV head for the corresponding query-head group. The cache stores history; it is not another set of trainable parameters.
-
-## Prefill and decode in a concrete example
-
-Suppose a request starts with tokens \(x_1,x_2,x_3\). **Prefill** processes all three, writes their keys and values, and returns the logits for the last position. The next generated token \(x_4\) is handled by **decode**: read the three cached positions, compute one new query/key/value, predict the next token, and append the new key/value. Recomputing \(x_1,x_2,x_3\) each time may produce similar logits but measures a much more expensive serving algorithm.
-
-TTT adds state beyond KV: a Delta/GDN recurrent state and possibly fast weights. A complete session therefore contains:
-
-~~~text
-session
-├── position
-├── KV cache or Delta state
-├── TTT fast weights
-├── incomplete chunk
-└── random state
-~~~
-
-All fields must advance together. Restoring only the cache while leaving fast weights at a later state produces a different model; restoring the weights with the wrong position changes RoPE and masking.
+We retain the tiny example with hidden width \(d=16\) and TTT chunk length \(C=4\). First we calculate attention with two-dimensional vectors; then we track a session from \(x_1\) through \(x_6\). The prerequisites are matrix multiplication and softmax, whose roles we connect explicitly below. The goal is to explain which history each step reads, which state it writes, and why future tokens remain inaccessible.
 
 <figure class="book-figure">
-  <img src="../../../assets/figures/attention-kv.svg" alt="Prefill builds the KV cache, while decode reuses history and appends one new key and value">
-  <figcaption><strong>Figure 4. Prefill and decode.</strong> The KV cache stores past keys and values; it is not trainable, but it must be restored together with positions, recurrent state, and TTT fast weights.</figcaption>
+  <img src="../../../assets/figures/attention-kv.svg" alt="Prefill processes a known prefix and builds historical keys and values; decode processes a new token using that history">
+  <figcaption><strong>Figure 4. From sequence processing to token processing.</strong> Follow the new token to its query and follow the historical arrows to the keys and values it can read. The figure explains the cache; a TTT session additionally retains fast weights, positions, and an unfinished chunk.</figcaption>
 </figure>
 
-## Two tokens by hand: Q, K, V, and the causal mask
+## From retrieving relevant information to two positions
 
-Let the query, key, and value width be \(2\). Choose
-
-$$
-q_1=(1,0),\quad q_2=(1,0),\quad
-k_1=(1,0),\quad k_2=(0,1),
-$$
+Attention is a weighted retrieval operation. A query represents what the current position needs, a key represents what a candidate position offers, and a value carries the information retrieved. These are learned linear projections, not human-assigned semantic labels:
 
 $$
-v_1=(10,0),\qquad v_2=(0,10).
+Q=HW_Q,\qquad K=HW_K,\qquad V=HW_V.
 $$
 
-Scaled dot-product attention uses
+Here \(H\in\mathbb R^{L\times d}\) contains one sequence's hidden states, \(L\) is its length, and one head has \(Q,K\in\mathbb R^{L\times d_h}\). The dot product \(q_t^\top k_s\) measures compatibility in the learned representation space. Dividing by \(\sqrt{d_h}\) controls its scale: if the components are independent with zero mean and unit variance, the dot product has variance \(d_h\), and the scaled result has variance 1. This motivates the scaling; it does not assert that trained queries and keys follow those assumptions exactly.
+
+Set \(L=d_h=2\), using already projected matrices:
 
 $$
-s_{t,j}=\frac{q_t k_j^{\mathsf T}}{\sqrt{d_h}}.
+Q=\begin{bmatrix}1&0\\1&0\end{bmatrix},\quad
+K=\begin{bmatrix}1&0\\0&1\end{bmatrix},\quad
+V=\begin{bmatrix}10&0\\0&10\end{bmatrix}.
 $$
 
-At position 1, the causal mask hides position 2, so the only visible score is \(1/\sqrt{2}\). Softmax over one visible entry gives weight \(1\), and the output is \(v_1=(10,0)\).
-
-At position 2, both keys are visible. The score vector is
+Before masking, the scores are
 
 $$
-\left(\frac{1}{\sqrt{2}},0\right)\approx(0.707,0).
+S=\frac{QK^\top}{\sqrt2}
+=\begin{bmatrix}0.7071&0\\0.7071&0\end{bmatrix}.
 $$
 
-Its softmax is approximately \((0.67,0.33)\), so the output is
+Position 1 must not read position 2 in an autoregressive language model. Otherwise, an input from the future might reveal the answer it is supposed to predict. An additive causal mask contributes zero to allowed scores and negative infinity to forbidden scores:
+
+| Query position \ historical position | \(s=1\) | \(s=2\) |
+|---|---:|---:|
+| \(t=1\) | \(0\): allowed | \(-\infty\): future |
+| \(t=2\) | \(0\): allowed | \(0\): allowed |
+
+Write this additive attention mask as \(\mathcal M\), distinguishing it from the data chapters' loss mask. Applying softmax independently to each row gives weights \(A\) and output \(O\):
 
 $$
-0.67v_1+0.33v_2\approx(6.7,3.3).
+\mathcal M=\begin{bmatrix}0&-\infty\\0&0\end{bmatrix},\qquad
+A=\operatorname{softmax}_{\rm row}(S+\mathcal M)
+=\begin{bmatrix}1&0\\0.6698&0.3302\end{bmatrix},
 $$
 
-The query expresses what the current position is looking for, the key expresses how well each history position matches, and the value carries the information that is retrieved. The causal mask decides which keys are allowed to enter the softmax; it is therefore part of the model's semantics, not just a memory optimization.
-
-## State lifetimes and memory
-
-| State | Role | Lifetime |
-|---|---|---|
-| KV cache | past keys and values | request or session |
-| Delta/GDN state | recurrent linear-attention summary | streaming session |
-| TTT fast weights | locally adapted parameters | experiment-defined session |
-
-For ordinary full attention, KV memory grows approximately as
-
 $$
-\text{bytes}_{\mathrm{KV}}
-\approx 2\,B\,L\,H_{\mathrm{KV}}\,d_{\mathrm{head}}\,\text{bytes(dtype)},
+O=AV=\begin{bmatrix}10&0\\6.698&3.302\end{bmatrix}.
 $$
 
-where the factor 2 counts keys and values. A sliding window caps \(L\) at the window size. Cache capacity is not identical to `max_position_embeddings`: the former is storage allocated for a session, while the latter is the maximum legal model position. `grow_cache` must copy valid entries and preserve positions; silently overwriting old entries corrupts causality.
+Position 1 uses only the first value; position 2 mixes both. Keeping the diagonal is correct: the representation at input position \(t\) includes \(x_t\) and predicts \(x_{t+1}\). Observing the current input is different from observing its next-token label. This scaled dot-product construction and causal masking follow the [original Transformer formulation](https://arxiv.org/abs/1706.03762).
 
-## A concrete KV-memory calculation
+## What a KV cache does and does not store
 
-For one layer, let \(B=1\), \(H_{\mathrm{KV}}=2\), \(L=4096\), \(d_{\mathrm{head}}=64\), and bfloat16 storage with \(s=2\) bytes. Then
+In ordinary causal attention, a new token needs its own \(q,k,v\); its key and value are appended to the cache. Historical keys and values remain available, and the new query compares against the currently visible keys. A KV cache is intermediate computation, not a new set of trainable parameters, and it cannot replace model weights.
+
+For memory estimates, batched inference is often described with the conceptual layout \([B,n_{\rm kv},L,d_h]\), where \(B\) is the number of sessions and \(n_{\rm kv}\) the number of KV heads. This repository's <code>KVCache</code> serves a single session and actually stores keys and values as \([\text{capacity},n_{\rm kv},d_h]\), plus a positions array of length capacity. An assertion copied from the conceptual layout would incorrectly reject this implementation.
+
+If each key/value element uses \(b\) bytes, and all layers share the same length and head configuration, the KV data alone occupy approximately
 
 $$
-2\cdot1\cdot2\cdot4096\cdot64\cdot2
-=2{,}097{,}152\ \text{bytes}\approx2\ \text{MiB}.
+M_{\rm KV}=2B\,n_{\rm layers}\,n_{\rm kv}\,L\,d_h\,b.
 $$
 
-Twelve layers would use about \(24\) MiB for KV alone. Activations, fast weights, allocator fragmentation, and other session fields are additional. This is why reducing \(H_{\mathrm{KV}}\), using a sliding window, or changing dtype changes serving memory even when the hidden width is unchanged.
+With \(B=1\), \(n_{\rm kv}=2\), \(L=4096\), \(d_h=64\), and \(b=2\), this is \(2{,}097{,}152\) bytes, or \(2\) MiB, per layer; 12 layers use \(24\) MiB. This excludes weights, fast weights, activations, workspace, positions, and allocator overhead. With grouped-query attention, several query heads share fewer KV heads; use the KV head count in the formula.
 
-## Code path
+Three lengths must remain distinct: observed token count, allocated cache capacity, and the attention window currently visible. <code>TTTSession</code> grows capacity, while sliding attention restricts visible history through positions and masking. A window constraint does not establish that the allocator holds exactly “window length times bytes per token.” Inspect actual arrays and device memory statistics.
 
-`ttt/models/ttt_e2e/attention.py` implements causal attention, GQA, and layer caches. `gated_delta.py` implements the recurrent state used by Delta layers. `ttt/runtime.py` combines prefill, decode, chunk boundaries, and random state. `ttt/session_store.py` provides atomic snapshots and capacity limits.
+## Prefill and decode follow the same timeline
 
-The runtime's `prefill` method calls the same observation path as a sequence of tokens, while `decode` supplies a one-token array. With `ttt_chunk_size>1`, a decode token may be placed into an incomplete chunk; the fast update is delayed until the next label closes the chunk. This is why `pending_features`, `pending_targets`, `pending_count`, and `chunk_start` are session fields rather than local variables.
+Prefill processes an already supplied prefix; decode processes a subsequently arriving token. These names describe call patterns, not different causal rules. In this repository, both <code>prefill</code> and <code>decode</code> ultimately use <code>observe</code>. Splitting the same token stream across calls should preserve its prediction and update semantics.
 
-## Why full and streaming outputs can differ
+Continue with \(C=4\). The four inputs \(x_1,x_2,x_3,x_4\) have targets \(x_2,x_3,x_4,x_5\). After observing \(x_4\), the last label is still unavailable. The following table assumes enabled inner updates and a nonempty fast-weight tree. The cache column describes valid history; allocated capacity can be larger.
 
-Compare per-position logits, not only the final generated string. Common causes of a mismatch are:
+| After the call | position | pending_count | Pending targets | Fast weights | updates | Valid cache |
+|---|---:|---:|---|---|---:|---|
+| reset | 0 | 0 | none | \(\phi_0\) | 0 | none |
+| prefill \(x_1,\ldots,x_4\) | 4 | 4 | \(x_2,x_3,x_4\) | \(\phi_0\) | 0 | \(x_1,\ldots,x_4\) |
+| decode \(x_5\) | 5 | 1 | none | \(\phi_1\) | 1 | \(x_1,\ldots,x_5\) |
+| decode \(x_6\) | 6 | 2 | \(x_6\) | \(\phi_1\) | 1 | \(x_1,\ldots,x_6\) |
 
-- position zero versus one-based indexing;
-- an incorrect cache write index;
-- a sliding-window boundary shifted by one token;
-- recomputing prefix keys in a different dtype;
-- applying a TTT update at different token boundaries;
-- using a different random key for sampling;
-- omitting one field from a session snapshot.
+When \(x_5\) arrives, the program first completes the previous chunk's labels, performs its update, and then processes \(x_5\) with \(\phi_1\) to predict \(x_6\). This does not leak \(x_5\) into the prediction of \(x_5\), which was already made while processing \(x_4\). “None” in the third row means the new chunk has no known target yet, not that the model has failed to observe \(x_5\).
 
-The tolerance belongs in the report because floating-point kernels and dtype change the expected error. A streaming check should also compare cache length, position, fast-weight norm, and pending-chunk count.
+Historical suffix caches may have been produced under earlier fast weights. This implementation retains them instead of re-encoding all history after every update. Therefore, rerunning the entire prefix with the latest \(\phi\) is not a valid equality reference. Compare <code>sequence_loss</code> and <code>TTTSession</code> under the same chunk boundaries and cache history rules. Their agreement establishes that the batch and streaming paths implement the same algorithm.
 
-## Snapshot is not training checkpoint
+## A session is jointly evolving state
 
-`session_store.py` snapshots should be atomic and include model version, session ID, position, state digest, and protocol version. A training checkpoint additionally contains optimizer and sampler state. Loading one as the other can appear to succeed while resuming an unrelated lifecycle. Check the model parameter version and update policy before restoring, then verify the next token's logits.
+Saving KV alone cannot restore TTT inference. The following fields jointly determine the next call:
 
-## Remote validation
+| State | Why it matters |
+|---|---|
+| fast_weights | Determine the current adapted computation |
+| cache, position | Determine visible history, positional encoding, and writes |
+| pending_features, pending_targets, pending_count | Reconstruct the unfinished inner-loop sample |
+| chunk_cache, chunk_start | Retain the suffix history at the current chunk's start |
+| last_logits | Preserve the most recent next-token distribution |
+| updates, rng_key | Preserve update counts and the random process |
 
-The repository provides a GPU validation entry point:
+<code>ttt/session_store.py</code> saves arrays together with metadata. Loading checks model revision, configuration, inner-loop settings, array shapes and dtypes, token ranges, positions, and chunk boundaries. The format version is 2, and loading targets the first local device. These are implementation constraints, not a promise of arbitrary model-version or distributed-topology migration.
+
+A meaningful restoration check saves in the middle of a chunk, sends the same suffix through the original and restored sessions, and compares logits, fast weights, update counts, and positions. It should also cover a full chunk whose final target has not yet arrived. The repository contains <code>tests/test_session_store.py</code> and <code>tests/test_runtime_consistency.py</code>. The single-GPU validation script does not call the former; its success cannot stand in for session restoration coverage.
+
+## Connecting implementation to evidence
+
+| Question | Code location |
+|---|---|
+| Key/value layout, RoPE, causal and window masks | <code>ttt/models/ttt_e2e/attention.py</code> |
+| Prefill/decode, arriving labels, chunk completion | <code>ttt/runtime.py</code> |
+| Chunk-based training reference | <code>ttt/inner_loop.py</code> |
+| Saving sessions and checking restores | <code>ttt/session_store.py</code> |
+| GPU causality and streaming checks | <code>ttt/validate.py</code> |
+
+After completing environment setup, run this command at the repository root on a remote GPU machine. It does not require local-computer testing.
 
 ~~~bash
-bash scripts/validate_gpu.sh outputs/gpu-validation.json
+bash scripts/validate_gpu.sh outputs/ch18/validation.json
 ~~~
 
-The report compares full forward with prefill-plus-decode, changed-suffix causality, chunk boundaries, state bytes, finite gradients, and compilation versus execution time. It is a functional gate; it does not claim a particular generation quality or latency on every GPU.
+Success produces <code>validation.json</code> and a sibling <code>environment.json</code>; the former has top-level <code>passed: true</code>. Every case includes <code>logits_max_error</code> and <code>inner_updates</code>. Full-sequence and streaming logits must have maximum absolute error below \(10^{-3}\). The script also changes tokens in the second half and checks that first-half logits remain unchanged within its numerical tolerances. That check is the operational counterpart of forbidding position 1 from reading position 2.
 
-The next chapter adds multiple experts. Routing makes the state boundary dynamic and introduces communication between devices.
+For a streaming mismatch, first inspect token order, target offsets, and update timing. If failure occurs only across a window or capacity expansion, inspect positions, capacity, and masks. For a CUDA failure before any case starts, inspect the environment report and JAX device discovery. This command does not validate on-disk session restoration, arbitrary lengths, every attention backend, or improved language quality.
+
+We have connected the attention equations to a session timeline. The next chapter adds another decision to the same hidden state: which subset of parameters should process this token?

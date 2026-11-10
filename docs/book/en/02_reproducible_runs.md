@@ -13,9 +13,9 @@ Suppose a tiny run saves at step 2. One path continues to step 4; the other resu
 | Check | Uninterrupted | Resumed | Passing condition |
 |---|---:|---:|---|
 | Starting point | step 0 | step 2 | the same checkpoint is loaded |
-| Next batch index | 2→3 | 2→3 | <code>BatchStream</code> state agrees |
+| Next batch | third draw from the initial RNG | first draw after restoring RNG state | tokens and masks agree elementwise |
 | Optimizer step | 2→3 | 2→3 | it does not return to 0 |
-| Valid-token count | 16 | 16 | it agrees with the uninterrupted path |
+| Valid-target count | 16 for this ordinary NPY sample | sum of the returned mask | agrees with the uninterrupted path; not inferred from nominal throughput |
 | Loss | \(L_3\) | \(L'_3\) | \(\lvert L_3-L'_3\rvert\leq\epsilon\) |
 
 Recovery is therefore a state comparison, not a file-existence check.
@@ -48,7 +48,7 @@ Without one of these fields, reproduction becomes an approximation.
 
 resume restores parameters, optimizer state, consumed-data position, and random state. It is for continuing an interrupted run and requires compatible configuration and data.
 
-initialize-from loads parameters but creates a new optimizer and experiment identity. It is useful when initializing TTT from the dense baseline. Confusing the two changes the meaning of step, learning rate, and effective token count.
+initialize-from loads parameters but creates a new optimizer, step, and data order in a new output directory. The current entry point requires the same parameter tree, leaf shapes, and dtypes. Structurally identical C and F models can reuse weights. A dense model without MLP-prime cannot initialize a model with an added MLP-prime through this flag alone: that requires explicit weight migration, which this entry point does not implement. Confusing initialization and resume changes the meaning of step, learning rate, and consumed tokens.
 
 ## A small failure case
 
@@ -61,74 +61,132 @@ Suppose a checkpoint was written at global step 100. Its parameters have seen 10
 
 “The checkpoint opens” is therefore not a recovery test. Use the same short run in two paths: one uninterrupted path and one path that saves and resumes at the middle. Compare the next input order, step, valid-token count, and loss. Low-precision reductions may differ in the last digits, but the state fields and input order must not silently change.
 
-The opposite operation, initializing TTT from a dense baseline, creates a new identity:
+Initializing F from a structurally identical C creates a new identity:
 
 ~~~text
-dense baseline: source=S1, data=D1, step=1000, optimizer=O_dense
-TTT initialize: source=S2, data=D1, step=0, optimizer=O_ttt
+C:      source=S1, data=D1, step=1000, optimizer=O_C
+F init: source=S1, data=D1, step=0, optimizer=O_F
 ~~~
 
 The two runs share an initial parameter file but are not one continuous curve. A report must not append the second loss curve to the first.
 
+## Parameters and temporary fast state
+
+A training checkpoint and a running session store different state. Fast-weight initialization belongs to learned model parameters. The weights adapted within one training sequence are temporary; the outer loop learns how to initialize and use them. During serving, adapted weights instead belong to that session, along with its cache and position, and may need snapshot or rollback. A session snapshot does not replace the optimizer and sampler state in a training checkpoint.
+
 ## Code and artifacts
 
-Even a failure during environment setup should leave a structured directory:
+Separate current automatic output from additional records the experimenter must preserve. After successful initialization, the trainer writes:
 
 | File or field | Purpose |
 |---|---|
-| status.json | lifecycle such as running, failed, completed, or resumable |
-| error.json | exception type, stage, last error, and traceback summary |
-| experiment.json | commit, resolved configuration, data, and tokenizer fingerprints |
+| status.json | running, failed, complete, or stopped; a failed run includes error_type |
+| experiment.json | resolved model, inner-loop, training, and tokenizer configuration |
 | environment.json | Python, JAX, devices, driver, and scheduler information |
-| metrics.jsonl | steps, losses, valid tokens, and gradient statistics written so far |
-| checkpoint/ | the latest complete state and whether resume is allowed |
+| metrics.jsonl | step, loss, grad_norm, seconds, nominal tokens_seen/tokens_per_second, and other statistics |
+| step_*.npz, latest.json | tiny checkpoint files and the latest saved path |
 
-This lets a reader distinguish an unavailable device, an invalid configuration, and a run that diverged after training began. An empty output directory cannot establish that a job never started; it only shows that the initialization protocol did not record the failure.
+The trainer does not create <code>error.json</code> or a separate <code>checkpoint/</code> directory. Save Git commit, data-file SHA256, full traceback, and interpretation separately; the environment chapter records the first two. Initialization, data loading, and restore checks can fail before <code>status.json</code> is written. Its absence does not prove that a job never started: retain terminal or scheduler logs. A production launcher should cover these early failures, but the current trainer does not cover them all.
 
 - ttt/provenance.py records Python, JAX, device, driver, PBS, and source information.
 - scripts/record_environment.sh writes the environment snapshot.
 - ttt/checkpoint.py saves parameters, optimizer, and sampler state and checks identity on restore.
 - docs/reproducibility.md contains the complete installation and recovery path.
 
-Machine-readable JSONL and status files are the source of truth. Markdown reports should reference them instead of manually copying numbers.
-
-~~~bash
-git rev-parse HEAD
-bash scripts/record_environment.sh --output outputs/run/environment.json
-sha256sum data/pretrain/manifest.json
-
-bash scripts/run_gpu_train.sh \
-  --config configs/runs/tiny_gpu.json \
-  --data outputs/sample-tokens.npy \
-  --output outputs/tiny-gpu \
-  --auto-resume
-~~~
+Machine-readable records are the source of truth. The checkpoint's <code>data_state</code> holds the data fingerprint and RNG state; the metric token counts refer to nominal input positions. Reports should point to these specific records instead of claiming that <code>experiment.json</code> contains every identity field.
 
 Failures should leave their output directory and error status. A failed compile or incompatible checkpoint is evidence about the boundary that still needs work.
 
-## Transition
+## Which differences change the experiment?
 
-Two runs are comparable only when tokens, tokenizer, sequence length, effective batch, optimizer, seed, architecture, and data manifest match or are declared as variables. The next chapter makes those architectural constraints explicit through the vocabulary and configuration objects.
+For model quality, fix the effective-token budget and data identity. For system efficiency, also fix devices, precision, batch, sequence length, and compilation protocol. For streaming behavior, compare the same initial cache, position, and session state.
 
-## Minimal recovery checkpoint
+Vocabulary, architecture, or training-token changes are differences in the experiment's definition. GPU, driver, or compiler changes are environment differences; performance results need separate reporting. Small discrepancies from floating-point precision or reduction order are numerical differences and need a declared tolerance. Do not call all three “randomness.”
 
-Generate sample data and start a tiny run that writes intermediate state:
+## Validate recovery from a specific checkpoint
+
+A four-step tiny run can finish before a person manages to interrupt it. Instead, complete the uninterrupted path, then resume its saved step-2 checkpoint in another directory. The checkpoint contains the state at that point, so this checks numerical recovery semantics; it does not test power loss, damaged files, or scheduler-signal handling. Use two output directories that do not yet exist, on the target Linux CPU node:
 
 ~~~bash
+set -e
+test ! -e outputs/recovery-continuous
+test ! -e outputs/recovery-resumed
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
-bash scripts/run_train.sh \
-  --config configs/tiny.json \
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/book/tiny_control.json \
   --data outputs/sample-tokens.npy \
-  --output outputs/tiny-contract-001-C \
-  --auto-resume
+  --output outputs/recovery-continuous
+JAX_PLATFORMS=cpu bash scripts/run_train.sh \
+  --config configs/book/tiny_control.json \
+  --data outputs/sample-tokens.npy \
+  --output outputs/recovery-resumed \
+  --resume outputs/recovery-continuous/step_00000002.npz
 ~~~
 
-On success, inspect <code>outputs/tiny-contract-001-C/status.json</code>, <code>metrics.jsonl</code>, <code>latest.json</code>, and <code>step_*.npz</code>. Interrupt after step 2 and run the same command again; it should continue from the saved step rather than silently writing step 0. If the next loss or input order differs, compare data state and optimizer state before blaming low-precision reductions.
+The uninterrupted log should contain steps 1–4; the resumed log should contain only steps 3–4. Do not change the configured total step count to manufacture an interruption: resume currently requires an identical resolved experiment configuration. Use <code>--auto-resume</code> to continue the latest state in one directory. Calling it on an already completed step-4 run does not train an additional step.
+
+A pseudo-random generator is a deterministic machine: a seed selects its initial state, and each draw advances the state. Reapplying the seed starts again at the first batch; restoring the internal state continues with the third batch. The following compares two draws from the seed with the saved state, then compares step-3 loss and the final parameters and optimizer state:
+
+~~~bash
+JAX_PLATFORMS=cpu .venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+import jax
+import numpy as np
+from ttt.checkpoint import load_checkpoint
+from ttt.data import BatchStream
+
+continuous = Path("outputs/recovery-continuous")
+resumed = Path("outputs/recovery-resumed")
+middle = load_checkpoint(continuous / "step_00000002.npz", load_optimizer=True)
+config = middle.experiment
+
+def new_stream():
+    return BatchStream(
+        "outputs/sample-tokens.npy",
+        sequence_length=config.training.sequence_length,
+        batch_size=config.training.batch_size,
+        vocab_size=config.model.vocab_size,
+        seed=config.training.seed,
+    )
+
+reference, restored = new_stream(), new_stream()
+for _ in range(int(middle.state.step)):
+    reference.next_batch_with_masks()
+restored.load_state_dict(middle.data_state)
+expected = reference.next_batch_with_masks()
+observed = restored.next_batch_with_masks()
+for left, right in zip(expected, observed):
+    np.testing.assert_array_equal(left, right)
+
+def metrics(path):
+    rows = [json.loads(line) for line in (path / "metrics.jsonl").read_text().splitlines()]
+    return {row["step"]: row for row in rows}
+
+full_log, resumed_log = metrics(continuous), metrics(resumed)
+assert sorted(full_log) == [1, 2, 3, 4]
+assert sorted(resumed_log) == [3, 4]
+np.testing.assert_allclose(full_log[3]["loss"], resumed_log[3]["loss"], rtol=1e-5, atol=1e-6)
+left = load_checkpoint(continuous / "step_00000004.npz", load_optimizer=True)
+right = load_checkpoint(resumed / "step_00000004.npz", load_optimizer=True)
+assert jax.tree.structure(left.state) == jax.tree.structure(right.state)
+maximum = 0.0
+for a, b in zip(jax.tree.leaves(left.state), jax.tree.leaves(right.state)):
+    a, b = np.asarray(a), np.asarray(b)
+    np.testing.assert_allclose(a, b, rtol=1e-5, atol=1e-6)
+    maximum = max(maximum, float(np.max(np.abs(a.astype(np.float64) - b.astype(np.float64)))))
+assert left.data_state == right.data_state
+report = {"passed": True, "step": int(right.state.step),
+          "next_batch_equal": True, "valid_targets": float(observed[1].sum()),
+          "loss_step3": resumed_log[3]["loss"], "max_state_abs_diff": maximum,
+          "rtol": 1e-5, "atol": 1e-6}
+Path("outputs/recovery-check.json").write_text(json.dumps(report, indent=2) + "\n")
+print(json.dumps(report, indent=2))
+PY
+~~~
+
+Only after all assertions succeed does this write <code>outputs/recovery-check.json</code>. Its <code>valid_targets</code> comes from the actual returned mask, not the nominal token counter. These are verification steps to execute in the target environment; no unmeasured loss values are presented as results. If data differs, inspect the fingerprint and RNG first. If data agrees but state differs, inspect optimizer, step, dtype, and numerical tolerance. Timing and throughput need not match because compilation and system load can differ.
 
 ## Summary
 
-- Resume continues one optimization process; initialize-from creates a new experiment identity.
-- The random stream, sampler position, optimizer state, and global step are part of recovery semantics.
-- An output directory must describe success, failure, and resumability.
-- Recovery compares state and next-step behavior, not only the final checkpoint file.
-- The next chapter connects these identity fields to model shapes and vocabulary dimensions.
+Resume continues one optimization process; initialize-from creates a new one with a compatible parameter tree. A useful recovery check compares the next batch, optimizer, step, and numerical result. The next chapter connects these recorded configuration values to concrete model shapes and vocabulary dimensions.

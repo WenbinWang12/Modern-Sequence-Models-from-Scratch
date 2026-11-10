@@ -148,16 +148,16 @@ spm_train \
 
 仓库现在提供了实际生成 tokenizer 文件的入口：[scripts/train_tokenizer.py](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py)。它读取纯文本或 JSONL，训练 BPE/Unigram，并通过 `PreTrainedTokenizerFast.save_pretrained` 保存可以被 `AutoTokenizer.from_pretrained` 加载的目录。
 
-先安装 tokenizer 依赖：
+沿用环境章已经准备好的解释器和仓库内 uv，再补齐 tokenizer 依赖。这里的 <code>--frozen</code> 使用锁文件，<code>--inexact</code> 保留已安装的其他 extras，避免在分词章意外移除 CUDA 或 checkpoint 依赖。其行为见 [uv 的同步说明](https://docs.astral.sh/uv/concepts/projects/sync/)。
 
 ~~~bash
-uv sync --extra tokenizer
+.tools/uv sync --frozen --inexact --python .venv/bin/python --extra tokenizer
 ~~~
 
 然后从 JSONL 的 `text` 字段训练一个 32K Byte-level BPE：
 
 ~~~bash
-uv run python scripts/train_tokenizer.py \
+.venv/bin/python scripts/train_tokenizer.py \
   --input data/tokenizer/train.jsonl \
   --output outputs/tokenizer-32k \
   --algorithm bpe \
@@ -171,17 +171,19 @@ uv run python scripts/train_tokenizer.py \
 
 ### 直接使用 Hugging Face Tokenizers API
 
-也可以用 `tokenizers` 库在 Python 中显式定义 normalizer、pre-tokenizer 和 trainer：
+也可以用 <code>tokenizers</code> 库在 Python 中显式定义 normalizer、pre-tokenizer、trainer 和 decoder。下面是独立的 API 例子，输入 <code>data/tokenizer/train.txt</code> 需要事先准备，输出目录也应先创建；它与上面的仓库脚本是两种替代入口。
 
 ~~~python
-from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, trainers
+from tokenizers import Tokenizer, decoders, models, normalizers, pre_tokenizers, trainers
 
 tokenizer = Tokenizer(models.BPE(unk_token="<unk>"))
 tokenizer.normalizer = normalizers.NFKC()
 tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+tokenizer.decoder = decoders.ByteLevel()
 
 trainer = trainers.BpeTrainer(
     vocab_size=32_000,
+    initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
     special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
 )
 tokenizer.train(["data/tokenizer/train.txt"], trainer)
@@ -196,7 +198,7 @@ tokenizer.save("outputs/tokenizer-32k/tokenizer.json")
 
 ~~~text
 tokenizer files
-→ encode/decode round trip
+→ decode(encode(text)) == normalize(text)
 → token ID 范围检查
 → special token 检查
 → tokens/byte 和长度分布
@@ -217,6 +219,12 @@ tokenizer files
 - [`generate.py` 的词表检查](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/generate.py#L25-L27)：防止 tokenizer 词表大于模型输出维度。
 
 本节中的 SentencePiece 命令和 `tokenizers` Python 示例解释算法；仓库实际的生成入口是 [`scripts/train_tokenizer.py`](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py)。`ttt.data` 负责加载输出目录、检查 ID 并生成分片。
+
+### 解码应该还原哪一份文本
+
+上述例子使用 NFKC 归一化。例如全角 <code>Ａ</code> 会变成半角 <code>A</code>，字符 <code>①</code> 会变成 <code>1</code>。这个过程不是可逆的，所以正确的检查目标是解码后等于归一化文本，而不是无条件等于原始文本。若实验必须保留这些字形差异，应先选择相应的归一化策略，再训练 tokenizer；不能靠 decoder 恢复已经丢掉的信息。
+
+Byte-level BPE 还需要区分“先转换为字节表示”和“所有字节都能编码”。API 例子通过 <code>initial_alphabet</code> 加入完整字节字符表，并通过 ByteLevel decoder 还原字节表示。当前仓库训练脚本已设置 decoder，但 trainer 尚未显式加入完整初始字符表；未在训练中出现的字节字符可能落到 UNK。因此不能把该脚本当前产物声称为无条件无损的 byte fallback。实际验收要覆盖训练外的中文、符号和空白，并核对规范化后的解码结果。
 
 ## Byte tokenizer 是什么
 
@@ -243,7 +251,7 @@ vocab_size   = 259
 
 ## 分词效率要按来源统计
 
-设原始文本的 UTF-8 字节数为 \(B\)，token 数为 \(T\)，可用 \(T/B\) 衡量编码密度。它不是质量分数，但能说明 sequence length 的实际覆盖。
+设原始文本的 UTF-8 字节数为 \(N_{\mathrm{bytes}}\)，token 数为 \(T\)，可用 \(T/N_{\mathrm{bytes}}\) 衡量编码密度。字节数不再使用代表 batch 大小的 \(B\)。这不是质量分数，但能说明固定 token 长度实际覆盖多少文本。
 
 至少统计：
 
@@ -262,11 +270,11 @@ vocab_size   = 259
 
 当前仓库提供两个加载路径：`ttt.data` 中的 `ByteTokenizer`，以及通过 tokenizer extra 调用 Hugging Face 的 `HuggingFaceTokenizer`。后者使用 `AutoTokenizer.from_pretrained`，当前命令行只接收模型名称，没有暴露 revision 参数，也不会把远端 tokenizer 文件提交进 Git。因此正式实验必须在仓库外固定名称、revision、本地缓存摘要和文件哈希，并把这些信息写入实验记录。
 
-数据准备入口是：
+下面是两个替代实验。<code>corpus.jsonl</code> 需要替换为已经完成清洗与切分、每行包含 <code>text</code> 的语料；第二条还要求先完成上文 tokenizer 训练，得到固定的本地 <code>outputs/tokenizer-32k</code> 目录。分别使用新输出目录：
 
 ~~~bash
-python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --tokenizer byte
-python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --tokenizer meta-llama/Meta-Llama-3-8B
+.venv/bin/python -m ttt.data --input corpus.jsonl --output data/pretrain-byte --sharded --tokenizer byte
+.venv/bin/python -m ttt.data --input corpus.jsonl --output data/pretrain-bpe --sharded --tokenizer outputs/tokenizer-32k
 ~~~
 
 三条实际路径的边界如下：
@@ -292,8 +300,8 @@ python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --token
 先用仓库内样例确认当前 byte tokenizer 的词表和分片行为：
 
 ~~~bash
-python -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/tokenizer-sample \
   --sharded --tokenizer byte --shard-tokens 256
 ~~~

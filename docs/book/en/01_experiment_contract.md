@@ -4,21 +4,23 @@
 
 Suppose we train the same tiny model twice: once with the TTT inner loop disabled and once with it enabled. A lower loss in the second run does not yet show that TTT helped. The runs may have consumed different tokens, used different learning-rate schedules, or started from different checkpoints. This chapter turns the question “what changed?” into a contract that a machine can inspect.
 
-After this chapter, you should be able to fill in the research variable, fixed variables, budget, and evidence files for a control/treatment pair. You should also be able to classify a run as runnable, learnable, or interpretable. Model construction and data processing are defined in later chapters; this chapter defines experiment identity.
+After this chapter, you should be able to fill in the research variable, fixed variables, budget, and evidence files for a control/treatment pair. You should also be able to classify a run as runnable, updatable and recoverable, or interpretable. Model construction and data processing are defined in later chapters; this chapter defines experiment identity.
+
+Before reading the configuration table, distinguish several kinds of numbers. **Parameters** are learned values, such as embedding-matrix entries. An **optimizer** changes them using gradients; AdamW also stores moving averages of gradients and their squares as history for later updates. That history is optimizer state. A **dtype** specifies number representation: a float32 element occupies four bytes, and changing dtype affects precision and memory. A **seed** initializes a pseudo-random sequence, while its current state identifies progress through that sequence. The restoration chapter demonstrates the distinction.
 
 ## Running example: tiny-contract-001
 
-We use <code>tiny-contract-001</code> throughout. It reads <code>configs/tiny.json</code> and byte-token shards made from <code>examples/sample.txt</code>, then runs 4 steps with batch size 1 and sequence length 16. The control disables the inner update; the treatment changes only <code>inner.enabled</code> from <code>false</code> to <code>true</code>.
+We use <code>tiny-contract-001</code> throughout. The control reads <code>configs/book/tiny_control.json</code>; the treatment reads <code>configs/tiny.json</code>. Both use the ordinary NPY token file made from <code>examples/sample.txt</code>, with 4 steps, batch size 1, and sequence length 16. The configurations differ only in <code>inner.enabled</code>: <code>false</code> for the control and <code>true</code> for the treatment. Both retain the fast-MLP architecture. A dense model without that module is a separate structural comparison.
 
 | Field | Control | Treatment |
 |---|---|---|
 | Run identity | <code>tiny-contract-001-C</code> | <code>tiny-contract-001-F</code> |
 | Only change | <code>inner.enabled=false</code> | <code>inner.enabled=true</code> |
 | Fixed inputs | commit, tokenizer, data, 16-token window, 4 steps, seed, dtype | same |
-| Main metrics | <code>loss</code>, <code>valid_tokens</code>, <code>tokens_per_second</code> | same |
+| Automatically logged metrics | <code>loss</code>, <code>grad_norm</code>, <code>tokens_per_second</code> | same |
 | Evidence directory | <code>outputs/tiny-contract-001-C/</code> | <code>outputs/tiny-contract-001-F/</code> |
 
-Write this table before looking at a result. It prevents the comparison rule from changing after the numbers are known.
+Write this table before looking at a result. It prevents the comparison rule from changing after the numbers are known. The current <code>tokens_per_second</code> counts batch size × sequence length, including masked positions. It is throughput in input positions, not necessarily supervised tokens. The trainer does not emit <code>valid_tokens</code>; an experiment using masks must record their sum separately.
 
 ## Decide what the experiment is meant to prove
 
@@ -72,7 +74,7 @@ Report every run at three levels.
 
 **Runnable** means that dependencies, devices, configuration, and data entry points are valid and the program produces output.
 
-**Learnable** means that loss and gradients are finite, training state changes, checkpoints can be loaded, and the resumed next step agrees with continuous training within a declared tolerance.
+**Updatable and recoverable** means that loss and gradients are finite, training state changes, checkpoints can be loaded, and the resumed next step agrees with continuous training within a declared tolerance. These check optimization and state handling; learning useful patterns requires controlled training and independent evaluation.
 
 **Interpretable** means that the control and treatment differ only in the declared variable, evaluation uses an independent and trustworthy manifest, and the result contains quality, cost, and state evidence sufficient for a bounded claim.
 
@@ -80,16 +82,16 @@ A four-step tiny run can establish that the interface and optimization path are 
 
 ## The run directory must explain itself
 
-A formal run should preserve at least:
+A formal experiment should also preserve source identity, data identity, and its interpretation. The following is a recommended archive layout. The experimenter or an upstream script must create <code>source.json</code>, <code>data.json</code>, and <code>report.md</code>; the trainer does not generate them:
 
 ~~~text
-experiment.json   # inputs, parsed configuration, and budget
+experiment.json   # trainer-written resolved configuration and budget
 source.json       # commit and worktree state
-environment.json  # Python, JAX, devices, drivers, and dtype
+environment.json  # Python, package versions, devices, driver, source digest
 data.json         # manifest, tokenizer, and data fingerprints
 metrics.jsonl     # loss, gradients, speed, and state statistics
-status.json       # successful, interrupted, or failed stage
-checkpoint/       # model, optimizer, and resumable state
+status.json       # running, failed, complete, or stopped
+step_*.npz        # tiny model, optimizer, and sampler state
 report.md         # interpretation and conclusion boundary
 ~~~
 
@@ -99,11 +101,13 @@ For <code>tiny-contract-001</code>, the reader should be able to trace each clai
 
 | Claim | Primary artifact | Passing condition |
 |---|---|---|
-| The intended configuration ran | <code>experiment.json</code> | resolved values match <code>configs/tiny.json</code> |
-| The intended device ran | <code>environment.json</code> | backend, device count, and dtype are present |
-| The model updated | <code>metrics.jsonl</code> | finite loss and nonzero update or parameter summary change |
+| The intended configuration ran | <code>experiment.json</code> | C matches <code>tiny_control.json</code>; F matches <code>tiny.json</code> |
+| Device and precision are recorded | <code>environment.json</code>, <code>experiment.json</code> | the first records <code>device_count</code> and <code>devices</code>; the second records model dtype settings |
+| The model updated | parameter comparison between checkpoints, with <code>metrics.jsonl</code> as supporting evidence | a finite parameter change; a nonzero gradient alone does not establish a nonzero learning rate or an update |
 | The run can resume | <code>latest.json</code>, checkpoint, <code>status.json</code> | step and next input order continue |
 | The comparison is attributable | <code>report.md</code> and control/treatment table | only the declared variable differs |
+
+Training checkpoints, session snapshots, and experiment reports have different purposes. A training checkpoint restores model parameters, optimizer history, global step, and data state. A session snapshot restores KV cache, fast weights, position, and request state. A report explains what the recorded states and measurements support.
 
 ## Resume is different from initialize-from
 
@@ -139,6 +143,6 @@ The environment chapter answers where a run executes; the data and representatio
 
 - A run identity contains source, resolved configuration, data fingerprints, environment, random and optimizer state, budget, and evidence.
 - A control/treatment comparison must name its fixed inputs and its one declared change before training.
-- Runnable, learnable, and interpretable are separate thresholds.
+- Runnable, updatable and recoverable, and interpretable are separate thresholds.
 - A training checkpoint, a session snapshot, and a report serve different recovery and interpretation purposes.
 - The next step for <code>tiny-contract-001</code> is to create sample tokens in the environment chapter and fill this contract with real output.

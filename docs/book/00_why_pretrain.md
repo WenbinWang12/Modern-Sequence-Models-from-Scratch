@@ -35,22 +35,37 @@ token ID： 17   42   31     2
 
 ## 基模究竟在学习什么
 
-设 tokenizer 输出 token 流 \(x_1,\ldots,x_L\)。自回归模型把整段序列的概率分解成每个位置的条件概率：
+先理解“在已知信息下预测”是什么意思。若某个候选词原本很常见，看到具体上下文后，它仍可能变得不合适。条件概率 \(p(b\mid a)\) 就表示已经知道 \(a\) 发生时，对 \(b\) 分配的概率。由定义 \(p(b\mid a)=p(a,b)/p(a)\)（要求 \(p(a)>0\)），移项得到 \(p(a,b)=p(a)p(b\mid a)\)。对三个事件再次使用同一关系：
 
 $$
-p_\theta(x_{1:L})
+p(a,b,c)=p(a,b)p(c\mid a,b)
+=p(a)p(b\mid a)p(c\mid a,b).
+$$
+
+这并不假设三个事件独立，反而把依赖关系保留在条件中。把事件换成“序列各位置出现哪个 token”，就得到语言模型的概率分解。设 BOS 是已提供的起始符，之后需要预测的 token 为 \(s_1,\ldots,s_L\)（可以包含 EOS）；BOS 本身不计入这 \(L\) 个目标。记它为 \(s_0\)，则
+
+$$
+p_\theta(s_{1:L}\mid s_0)
 =
-\prod_{t=1}^{L}p_\theta(x_t\mid x_{<t}).
+\prod_{t=1}^{L}p_\theta(s_t\mid s_{0:t-1}).
 $$
 
-这里 \(x_{<t}\) 表示位置 \(t\) 之前的 token，\(\theta\) 是模型参数。训练时，我们希望真实 token 获得更高概率，因此最小化平均负对数似然：
+这里 \(s_{0:t-1}\) 表示起始符以及此前已经出现的 token，\(\theta\) 是模型参数。例如三个目标依次获得 \(0.5,0.8,0.25\) 的条件概率，整段概率就是 \(0.5\times0.8\times0.25=0.1\)。序列很长时，许多小于 1 的数连乘会变得非常小；自然对数把乘法变成加法，便于表达和计算：
+
+$$
+\log p_\theta(s_{1:L}\mid s_0)
+=\log\prod_{t=1}^{L}p_\theta(s_t\mid s_{0:t-1})
+=\sum_{t=1}^{L}\log p_\theta(s_t\mid s_{0:t-1}).
+$$
+
+本书的 \(\log\) 默认是自然对数，其底数为 \(e\approx2.718\)。对数是单调递增的，最大化概率等价于最大化其对数；前面加负号就变成最小化。再除以目标数 \(L\)，得到平均负对数似然：
 
 $$
 \mathcal{L}(\theta)
 =
 -\frac{1}{L}
 \sum_{t=1}^{L}
-\log p_\theta(x_t\mid x_{<t}).
+\log p_\theta(s_t\mid s_{0:t-1}).
 $$
 
 这个目标是“局部”的：每次只评价下一个 token。但要预测代码中的变量、长句中的指代或题目中的答案，模型可能需要使用很远的上下文。于是，减少局部预测误差会推动模型学习语法、格式和部分事实结构。
@@ -97,7 +112,7 @@ $$
 p_j-\mathbf{1}[j=y].
 $$
 
-正确类别的梯度为 \(p_y-1<0\)，梯度下降会提高它的分数；错误类别的梯度为 \(p_j>0\)，梯度下降会降低它们的分数。这个推导以后会连接到 dense baseline、inner SGD 和 meta-gradient。
+指示函数 \(\mathbf{1}[j=y]\) 在 \(j\) 是正确类别时为 1，否则为 0。若把每个 logit 当成独立参数做梯度下降，负梯度会提高正确项的分数、降低其他项。这是一个局部分析；实际网络通过共享参数同时影响许多预测，不能保证每个样本都向这个方向改变。基线模型章会把这条局部导数连接到参数的链式求导。
 
 有 padding 或 prompt mask 时，只对 \(m_t=1\) 的位置求平均：
 
@@ -159,8 +174,8 @@ $$
 
 ~~~bash
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
-python3 -m ttt.data \
-  --input examples/sample.txt \
+.venv/bin/python -m ttt.data \
+  --input examples/sample.jsonl \
   --output outputs/sample-shards \
   --tokenizer byte \
   --sharded \

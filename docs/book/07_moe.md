@@ -1,150 +1,119 @@
-# 19　MoE：路由把模型变成一条动态计算图
+# 19　MoE：让 token 选择计算路径
 
-## 为什么“复制 FFN”不是 MoE
+## 参数更多，为什么未必每次都算得更多
 
-如果把一个 FFN 复制八份，然后每个 token 都执行八份，参数量增加了，激活计算也增加了，这只是更大的 dense 模型。MoE 的关键是 router 根据 hidden state 选择少数专家，使总参数容量和每 token 的激活计算分离。
+上一章讨论 token 如何读取历史。现在保留 attention，改变后面的前馈网络：准备多组专家参数，让每个 token 只选择其中少数几组。一个专家通常就是一个 MLP；决定选谁的小网络叫 router，整个结构称为 mixture of experts，简称 MoE。
 
-一个 token 的动态路径是：
+这使“模型存了多少参数”和“一个 token 激活多少参数”成为不同的问题。设有 \(n_{\rm exp}\) 个 SwiGLU 专家，每个专家隐藏宽度为 \(d\)、中间宽度为 \(d_{\rm ff}\)，忽略偏置时共有约 \(3n_{\rm exp}dd_{\rm ff}\) 个专家参数。若一个 token 选择 \(k_{\rm sel}\) 个专家，它的专家前向乘法规模主要对应 \(3k_{\rm sel}dd_{\rm ff}\)。router、排序、通信与内存搬运仍需成本，因此这个参数计数不能直接当作 GPU 加速比。
 
-~~~text
-h
-  ↓ router logits
-  ↓ top-k expert ids and gate weights
-  ↓ token dispatch
-  ↓ expert FFN
-  ↓ restore original order
-  ↓ weighted sum + residual
-~~~
-
-任何一步出错都可能保留相同 shape，却改变模型。比如 token dispatch 后没有正确恢复原顺序，loss 仍然会是一个有限数字，只是每个位置接收了别人的专家输出。
+本章先让四个 token 在两个专家之间选一个，手工追踪排序和还原；再扩展到仓库使用的 top-2 和四专家双卡验证。读者需要上一章的 hidden state 与 softmax，以及前馈层的矩阵形状。暂时不加入共享专家、快路由或记忆修正，最后再说明它们放在哪里。
 
 <figure class="book-figure">
-  <img src="../../assets/figures/moe-routing-zh.svg" alt="路由器根据 hidden state 选择少数专家，经过容量分配后合并专家输出">
-  <figcaption><strong>图 5　MoE 路由。</strong> 路由器、容量和专家分组共同决定每个 token 的动态计算路径；实验报告必须记录路由统计。</figcaption>
+  <img src="../../assets/figures/moe-routing-zh.svg" alt="Token 经路由选择专家，按专家分组计算后恢复 token 顺序">
+  <figcaption><strong>图 5　一次 MoE 前向计算。</strong> 请同时追踪 token 身份与专家分组：计算时可以重排，返回残差流前必须恢复。图中的容量概念用于解释常见设计；本仓库当前参考路径不会按容量丢弃 token。</figcaption>
 </figure>
 
-## Router 的数学对象
+## 从路由分数到加权输出
 
-设有 \(E\) 个专家，router 为位置 \(t\) 产生 \(r_t\in\mathbb{R}^{E}\)。softmax 得到所有专家的概率：
+对 token 的 hidden state \(h_t\in\mathbb R^d\)，router 产生 \(n_{\rm exp}\) 个 logits \(r_{t,e}\)，再用 softmax 得到概率：
 
-\[
-p_{t,e}=\frac{\exp(r_{t,e})}{\sum_{j=1}^{E}\exp(r_{t,j})}.
-\]
+$$
+r_t=W_rh_t,\qquad
+p_{t,e}=\frac{\exp(r_{t,e})}{\sum_{j=1}^{n_{\rm exp}}\exp(r_{t,j})}.
+$$
 
-top-k 只保留分数最高的 \(k\) 个专家，得到集合 \(S_t\) 和重新归一化后的权重 \(g_{t,e}\)。稀疏专家输出为：
+数学式采用列向量约定；代码通常把 token 放在矩阵的行上，由 <code>linear</code> 处理对应转置。当前实现用 \(r_{t,e}+b_e\) 选择 top-\(k_{\rm sel}\)，其中 \(b_e\) 是 <code>load_bias</code>；但混合权重取自原始 \(p_{t,e}\)，再在所选集合 \(S_t\) 内归一化：
 
-\[
-y_t=\sum_{e\in S_t}g_{t,e} f_e(h_t).
-\]
+$$
+S_t=\operatorname{TopK}(r_t+b,k_{\rm sel}),\qquad
+\widetilde p_{t,e}=
+\frac{p_{t,e}}{\sum_{j\in S_t}p_{t,j}},\qquad
+y_t=\sum_{e\in S_t}\widetilde p_{t,e}F_e(h_t).
+$$
 
-这里的 \(f_e\) 是第 \(e\) 个专家 FFN。router 概率决定“想去哪里”，top-k 决定“实际去哪里”，权重决定多个专家的结果如何合并。
+\(F_e\) 是第 \(e\) 个专家。选择分数与混合权重必须分开理解：负载偏置可以改变谁被选中，但不是直接把同一个偏置加进混合 softmax。以下例子取 \(b=0\)，所以按概率排序与按 logits 排序相同。
 
-## 四个 token 的手算路由
+| 原 token 下标（代码） | \(p_{t,1}\) | \(p_{t,2}\) | top-1 专家 |
+|---:|---:|---:|---|
+| 0 | 0.8 | 0.2 | \(E_1\) |
+| 1 | 0.4 | 0.6 | \(E_2\) |
+| 2 | 0.7 | 0.3 | \(E_1\) |
+| 3 | 0.3 | 0.7 | \(E_2\) |
 
-用两个专家 \(E_1,E_2\) 和 top-1 做一个最小例子。四个 token 的 router 概率如下：
+这里只选一个专家，所选权重重新归一化后为 1。两个专家分别收到 token \([0,2]\) 与 \([1,3]\)。专家分组后的行顺序是 \([0,2,1,3]\)，分组大小是 \([2,2]\)；输出时必须回到 \([0,1,2,3]\)。一个常见错误是专家结果算对了，却把 token 2 的结果交给 token 1。
 
-| token | \(p(E_1)\) | \(p(E_2)\) | 选择 |
-|---|---:|---:|---|
-| \(t_1\) | 0.80 | 0.20 | \(E_1\) |
-| \(t_2\) | 0.70 | 0.30 | \(E_1\) |
-| \(t_3\) | 0.40 | 0.60 | \(E_2\) |
-| \(t_4\) | 0.30 | 0.70 | \(E_2\) |
+top-2 时，每个 token 产生两条“token—专家”分配，可能暂时复制输入行。例如三个专家概率为 \((0.6,0.3,0.1)\)，选前两者后权重变为 \((2/3,1/3)\)。若对应专家输出为 \((2,0)\) 与 \((0,3)\)，最终输出为 \((4/3,1)\)。还原的是每条分配，然后才按同一个 token 聚合，不能在分组时丢掉第二条路径。
 
-dispatch 后，\(E_1\) 收到 \(t_1,t_2\)，\(E_2\) 收到 \(t_3,t_4\)。两个专家分别执行自己的 FFN，再按原 token 顺序恢复：
+top-1 例子只用于解释重排。在本实现的归一化规则下，单个所选权重恒为 1，离散选择本身也没有通常意义下的梯度，因此该路径上的语言模型损失不会通过混合权重训练 router；辅助项仍可提供梯度。不能把这个教学例子直接当成所有 top-1 MoE 的训练定义。仓库双卡验证使用 top-2。
 
-~~~text
-E1 receives t1 and t2, then returns f1(t1) and f1(t2).
-E2 receives t3 and t4, then returns f2(t3) and f2(t4).
-restore returns [f1(t1), f1(t2), f2(t3), f2(t4)].
-~~~
+## 容量与负载：两个不同的问题
 
-如果恢复时把第二项和第三项交换，张量 shape 仍然是四行，但每个位置拿到的内容已经错位。这就是必须单独检查 token index 和 restore order 的原因。
+若所有 token 都偏爱同一专家，逻辑上仍可逐个处理，但该专家可能成为计算和显存瓶颈。带固定容量的实现常用
 
-## 负载均衡辅助损失
+$$
+C_{\rm exp}=
+\left\lceil\gamma\frac{T_{\rm tok}k_{\rm sel}}{n_{\rm exp}}\right\rceil
+$$
 
-仓库统计每个专家接收的 token 负载。设 \(f_e\) 是实际被 top-k 选中的 token（含 mask 权重）占比，\(p_e\) 是所有 token 的平均 router 概率，一个常见的辅助项是：
+给每个专家分配槽位，\(\gamma\) 为 capacity factor，\(T_{\rm tok}\) 是一次路由中的 token 数。上例 \(T_{\rm tok}=4\)、\(k_{\rm sel}=1\)、\(n_{\rm exp}=2\)、\(\gamma=1\)，故容量为 2，均衡分配刚好放得下。若另一次路由把四个 token 都送往 \(E_1\)，则该专家超出两个槽位；系统必须事先规定丢弃、溢出缓冲、重路由或其他处理方式。
 
-\[
-\mathcal{L}_{\mathrm{aux}}
-=
-E\sum_{e=1}^{E} f_e p_e.
-\]
+这是常见设计空间，不能误写为本仓库已有的功能。<code>moe_forward</code> 当前采用无丢弃分组路径：按实际分配计数构造 <code>group_sizes</code>，没有 capacity factor 配置，也没有自动丢弃溢出的 token。它避免了这类丢弃语义，但仍可能受到负载不均衡、通信和临时内存成本影响。[Switch Transformer](https://arxiv.org/abs/2101.03961) 可作为容量与负载均衡设计的原始参考。
 
-在上面的均衡例子中，\(f=(0.5,0.5)\)，平均概率约为 \(p=(0.55,0.45)\)，因此：
+为鼓励分配分散，代码计算平均路由概率 \(\bar p_e\) 和分配频率 \(\rho_e\)。若所有 token 都有效，则
 
-\[
-\mathcal{L}_{\mathrm{aux}}
-=2(0.5\times0.55+0.5\times0.45)=1.
-\]
+$$
+\bar p_e=\frac1{T_{\rm tok}}\sum_t p_{t,e},\qquad
+\rho_e=\frac{\#\{\text{分配到 }e\text{ 的路径}\}}
+                  {T_{\rm tok}k_{\rm sel}},\qquad
+\mathcal L_{\rm aux}=n_{\rm exp}\sum_e
+\bar p_e\,\operatorname{stopgrad}(\rho_e).
+$$
 
-若四个 token 全部被送到 \(E_1\)，则 \(f=(1,0)\)。即使平均概率是 \((0.7,0.3)\)，辅助项也变为：
+有 mask 时，分子分母都按有效 token 权重计数。四 token 例子中 \(\bar p=(0.55,0.45)\)、\(\rho=(0.5,0.5)\)，所以 \(\mathcal L_{\rm aux}=1\)。若四个 token 的概率全是 \((0.9,0.1)\) 且 top-1 全选 \(E_1\)，则该值为 \(2\times0.9=1.8\)。这说明该项对负载集中给出不同信号，并不证明 1 是任意路由情形下的严格下界，也不代表语言模型准确率。
 
-\[
-2(1\times0.7+0\times0.3)=1.4.
-\]
+代码还计算 \(\mathcal L_z=T_{\rm tok}^{-1}\sum_t(\log\sum_e e^{r_{t,e}})^2\)，有 mask 时同样取加权平均，用于约束 router logits 的尺度。训练总损失按配置加入辅助项和 z-loss；报告语言建模质量时应单独看 NLL，不能把正则项系数变化当成预测能力变化。
 
-这个更高的值表示路由偏向更严重。实际训练还要记录 z loss，它约束 router logits 的整体尺度；它与语言模型 NLL 和负载辅助项回答的是不同问题。
+## 为什么要把小矩阵乘法分组
 
-当前 <code>moe.py</code> 返回 <code>loads</code>、<code>aux</code> 和 <code>z</code>，<code>sequence_loss</code> 再将它们传给 <code>training.py</code>。报告中应分开记录，不能把所有数值合并成一个不透明的“MoE loss”。
+路由之后若逐 token 调用 MLP，会产生许多很小的矩阵乘法，难以充分利用 GPU。分组计算先把属于同一专家的输入排在一起，再对各组应用对应的专家矩阵。对四 token 例子，逻辑上是
 
-## 容量、token drop 与当前实现边界
+$$
+\begin{bmatrix}h_0\\h_2\end{bmatrix}W_1,\qquad
+\begin{bmatrix}h_1\\h_3\end{bmatrix}W_2.
+$$
 
-如果每一步有 \(T\) 个 token、\(E\) 个专家、top-k 为 \(k\)，常见容量上限可写成：
+Grouped GEMM 把“多组输入乘各自权重”的描述交给底层算子，而不是把专家参数混成一个普通 dense 层。<code>moe.py</code> 先稳定排序专家 ID，得到 token 索引和分组大小；计算 SwiGLU 的 gate、up、down 投影；最后反向散射并加权。前述 \([0,2,1,3]\) 是可以手工检查的最小重排案例。
 
-\[
-C=\left\lceil \frac{T\,k}{E}\times\mathrm{capacity\ factor}\right\rceil.
-\]
+但“代码用了 grouped GEMM”仍不等于“高阶训练只计算激活专家的 FLOPs”。<code>grouped_gemm.py</code> 的普通原始前向使用 <code>jax.lax.ragged_dot</code>；为支持批处理及高阶求导，自定义 JVP 的参考路径会循环专家并用 mask 合并结果。因此，开头的激活参数估算描述算法结构，实际内外循环训练成本必须通过编译成本分析和设备测量确定。这一点会影响下一章的同算力比较。
 
-例如 \(T=4,E=2,k=1\)、capacity factor 为 1 时，\(C=2\)。均衡路由正好每个专家两个 token；如果四个 token 都去 \(E_1\)，\(E_1\) 只能接收两个，剩下两个要么被丢弃，要么转为 padding/备用路径，要么等待动态扩容。
+## 两张 GPU 上，专家到底分在哪里
 
-token drop 可以限制显存和通信，但会让部分 token 没有经过完整专家路径；不允许 drop 可能增加 padding、通信或 OOM 风险。当前仓库的参考 <code>moe_forward</code> 根据 top-k 结果构造 grouped dispatch，没有实现一个独立的 capacity factor/drop 策略。因此本文的容量例子是系统设计边界，不能描述成当前代码已经支持的开关。
+仓库 tiny mesh 验证有四个专家，\(d=d_{\rm ff}=16\)。按代码的权重存储约定，一组 gate 权重全局形状为 \([4,16,16]\)，维度依次是专家、输出、输入。使用两张 GPU、<code>expert_parallel_size=2</code> 时：
 
-比较 dense 与 MoE 时，至少报告：
+| 对象 | 全局形状 | GPU 0 本地形状 | GPU 1 本地形状 |
+|---|---|---|---|
+| 专家 gate 权重 | \([4,16,16]\) | \([2,16,16]\) | \([2,16,16]\) |
+| 验证输入 token IDs | \([2,5]\) | \([2,5]\) | \([2,5]\) |
+| 预测目标 mask | \([2,4]\) | \([2,4]\) | \([2,4]\) |
 
-- 总参数和 active 参数；
-- 每个 token 的 expert 数；
-- expert token counts 的均值、最大值和分位数；
-- drop 或 padding token 数（当前实现应明确为未启用或未统计）；
-- all-to-all 时间；
-- 每个设备的峰值显存。
+这里 mesh 是 \(\text{data}=1,\text{expert}=2\)，所以输入没有沿 data 轴再切成两份。五个 token 提供四个 next-token 目标；这是上一章标签对齐在多卡输入上的延续。JAX 根据分片和计算图安排所需的数据传输；源码中没有一条手写 all-to-all 命令可直接代表全部通信成本，实际 collective 应通过编译结果或 profiler 检查。
 
-只比较总参数会低估 MoE 的活跃成本；只比较 active 参数又可能忽略 checkpoint 和 optimizer 的存储。
-
-## Grouped GEMM 的角色
-
-专家计算通常希望把属于同一专家的 token 聚合成一组矩阵乘法。假设四个 token 的分组大小为 \([2,2]\)，每个 token 的隐藏维度是 \(d=16\)，那么 grouped GEMM 可以把前两行交给专家 1，把后两行交给专家 2，最后根据排序索引恢复原序。
-
-<code>grouped_gemm.py</code> 提供参考路径和高阶实现路径，但 JAX、批处理和高阶导可能限制可用 kernel。需要区分：
-
-**数学路径**：token 按专家聚合，计算 expert FFN，再按原顺序还原。
-
-**参考实现**：便于验证，可能逐专家执行矩阵乘。
-
-**优化实现**：减少 kernel launch 和 padding，可能对 shape 有更严格要求。
-
-参考路径正确，不代表优化路径等价；性能报告也不能拿参考路径的时间声称优化 kernel 的吞吐。
-
-## 专家并行和 mesh
-
-<code>ttt/distributed.py</code> 使用 data/expert 轴表达 batch 与专家的设备布局。expert parallel size 改变专家参数和 token 的所在设备，all-to-all 通信成为每步计算的一部分。
-
-例如两个设备各保存一个专家时，global hidden 可以是 \([4,16]\)，每个设备本地只看到自己负责的 token 子集和专家参数。若只打印 rank 0 的本地参数量，会把全局模型误判成一半大小；若恢复 checkpoint 时 mesh 不同，还可能把 shard 解释成错误的完整数组。
-
-多卡验证需要检查全局和本地 shape、路由计数、通信时间和 restore 后的下一步。checkpoint 恢复也必须恢复到目标 mesh，而不是先拼成单卡数组再假设等价。
-
-## 最小两卡实验
+远程作业应恰好有两张可见 GPU，且环境已经安装，再在仓库根目录运行。脚本把所有可见设备放入 mesh；八张可见卡会形成 data=4、expert=2，而内置 batch=2 无法沿 data 轴切分。应申请两卡作业，或在调度器已分配的设备映射内选取两卡；不要用机器的全局 GPU 编号覆盖调度器设置。
 
 ~~~bash
-bash scripts/run_gpu_train.sh \
-  --config configs/runs/mesh_tiny.json \
-  --data outputs/sample-tokens.npy \
-  --output outputs/mesh-tiny
-
 bash scripts/validate_mesh.sh \
-  outputs/mesh-validation.json \
-  outputs/mesh-checkpoint
+  outputs/ch19/mesh.json \
+  outputs/ch19/checkpoints
 ~~~
 
-这不是性能结论，而是系统门槛：专家 shape、路由计数、通信、两步 loss 和 restore 后的下一步都要有记录。先用不丢 token 的小配置验证路径，再探索容量和 kernel 优化。
+预期报告含 <code>passed: true</code>、<code>scale: "tiny"</code>、<code>mesh</code>、<code>expert_shards</code> 和 <code>checkpoint_roundtrip: true</code>。正好两张 GPU 时应看到 data=1、expert=2，以及专家矩阵全局第一维为 4、本地第一维为 2。脚本执行两个训练步，并在 tiny 模式中恢复优化器与模型状态，比较恢复后的下一步结果。
 
-下一章建立消融矩阵，把 TTT、Loop、MoE 的质量与计算成本放进同一张实验表。
+如果设备数不能被专家并行度整除，先查实际可见设备和 mesh 配置；若专家矩阵不能切分，查专家数与分片轴；若恢复失败，先查检查点目录及原始报错，不要绕过恢复检查。成功只验证这一短序列、该精度和该拓扑的实现路径，不能证明大模型负载均衡、通信效率或长期质量收益。
+
+## 在同一个框架中区分几种研究问题
+
+<code>moe.py</code> 还允许在 router logits 上加入 fast router 修正或 Delta memory 读出，允许共享专家输出参与残差。三条适应路线应明确区分：<code>mlp</code> 更新的是 MoE 之前额外的稠密 MLP′，<code>router</code> 更新的是路由适配器，<code>delta_router</code> 用递归记忆状态修正路由。当前内循环不更新 <code>moe.experts</code>；专家参数由外循环训练。
+
+这些开关改变了适应位置或状态机制，不应一次全部打开后，把结果概括为“MoE 更好”。从上述固定路由例子出发，先验证普通 MoE 的分组与还原，再分别比较稠密 MLP′ 适应、路由适配器更新、记忆路由和共享参数重复计算，实验才有清晰的归因。
+
+本章的核心证据链是：分数决定选择，选择决定分配，分配决定分组，分组结果还原为 token 输出；负载与成本必须沿着这条链一起测量。下一章会把质量与成本放到同一张实验表中。

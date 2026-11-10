@@ -1,6 +1,8 @@
 # Modern Sequence Models — From Scratch
 
-这是一本边写边跑的现代序列模型训练实验书。主线从数据、tokenizer 和 dense baseline 开始，逐步进入 TTT、线性注意力、Loop、MoE、长上下文和多卡训练。每一章都对应仓库中的真实代码、配置和实验记录：先解释一个问题，再用最小实现跑起来，最后把结果写回仓库。
+这是一本正在撰写和实验的现代序列模型训练书。主线从数据、tokenizer 和 dense baseline 开始，逐步进入 TTT、线性注意力、Loop、MoE、长上下文和多卡训练。章节连接概念、推导、实现和实验；已实现路径、独立教学示例和待完成实验分别标注。
+
+当前为修订稿，尚未达到出版标准。逐章逐段意见、修复记录及未验收项目见[编辑与审稿记录](https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/tree/main/editorial)。
 
 <figure class="book-figure">
   <img src="assets/figures/book-roadmap-zh.svg" alt="从数据、词元化、密集基线和前沿模块走向可复现实验证据的全书路线图">
@@ -9,7 +11,7 @@
 
 ## 阅读方式
 
-每章沿着同一条叙事链展开：
+阅读一章时，可以沿着下面的关系理解内容；各章按问题组织，不机械套用相同标题：
 
 1. **问题**：这一章要解决什么训练或系统问题；
 2. **原理**：哪些概念和约束决定了实现；

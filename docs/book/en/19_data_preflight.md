@@ -69,6 +69,29 @@ Each item should contain its inputs, observations, status, and reason:
 
 Use <code>pass</code>, <code>warning</code>, and <code>fail</code> deliberately. A warning states the human decision and its scope; a fail blocks a long job. Save the report under the run directory and reference it from <code>experiment.json</code>, so a later reader can see what was checked before training.
 
+## A complete pass, warning, and fail example
+
+Here is a shortened report for a tiny run. File and window checks pass, continuous windows across EOS receive a warning, and a vocabulary mismatch fails the run:
+
+~~~
+{
+  "checks": [
+    {"name": "file_integrity", "status": "pass", "message": "2 shards and masks match their hashes"},
+    {"name": "boundary_semantics", "status": "warning", "message": "windows may cross EOS; document isolation is not claimed"},
+    {"name": "vocab_alignment", "status": "fail", "observed": {"manifest": 259, "tokenizer": 259, "model": 32000}, "message": "model vocab_size differs"}
+  ],
+  "ready_for_long_run": false
+}
+~~~
+
+The fail should be repaired before submitting a long job. Either the model must use the 259 positions required by the byte tokenizer, or the experiment must train a new 32K tokenizer, regenerate token shards, update the manifest and experiment identity, and run preflight again. The warning also needs a recorded human decision. The current repository has no standalone preflight command, but a remote operator can force the loader checks before requesting a GPU:
+
+~~~
+python -c "from ttt.dataset import TokenDataset; TokenDataset('runs/example_shards/manifest.json', 259); print('manifest and shards: pass')"
+~~~
+
+This command checks implemented file and range invariants. It does not replace split, contamination, or distribution checks.
+
 ## What the repository provides today
 
 There is not yet a standalone <code>ttt.preflight</code> command. The current minimum gate is the validation performed by <code>TokenDataset</code>, a sampled window check through <code>BatchStream</code>, and a tiny training or validation run. On the remote experiment machine, an operator can at least force the loader to read the manifest before requesting a GPU:

@@ -43,6 +43,26 @@ The vocabulary field matters even when every integer is in range. A file produce
 
 A hash proves that bytes match the manifest; it does not prove that the bytes represent the right corpus. That is why source digests, tokenizer metadata, and split records remain necessary.
 
+### A worked cross-shard window
+
+Use two tiny shards:
+
+| Physical shard | Token contents | Count | Cumulative end |
+|---|---|---:|---:|
+| <code>v-00000.npy</code> | <code>[10, 11, 12, 13]</code> | 4 | 4 |
+| <code>v-00001.npy</code> | <code>[20, 21, 22, 23, 24]</code> | 5 | 9 |
+
+These ends use half-open code-index intervals: shard 0 covers global positions [0,4), and shard 1 covers [4,9). For <code>start=2</code> and <code>length=5</code>, the requested global positions are 2, 3, 4, 5, 6. <code>searchsorted([4,9], 2)</code> selects shard 0, so the loader reads local offsets 2 and 3 (<code>[12,13]</code>), then continues at local offsets 0, 1, and 2 in shard 1 (<code>[20,21,22]</code>):
+
+~~~text
+global positions: 2, 3 | 4, 5, 6
+physical shard:   v-0   | v-1
+local offsets:       2, 3 | 0, 1, 2
+tokens:            12,13 | 20,21,22
+~~~
+
+For a next-token window of length 5, the training path reads one additional token before shifting labels. A shard boundary does not insert EOS and does not reset attention; it is only a storage boundary. Document isolation comes from tokenization and packing policy, not from the fact that two arrays have different filenames.
+
 ## Three identities to keep
 
 There are three useful layers of identity:

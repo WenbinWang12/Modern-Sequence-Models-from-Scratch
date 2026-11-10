@@ -48,6 +48,29 @@
 
 当前仓库还没有独立的 `ttt.preflight` 命令。读者可以先使用数据 loader 的校验和 tiny 训练完成最小验收；后续应把上面的检查抽成无 GPU 的命令，方便调度器在申请 GPU 之前运行。
 
+## 一个真实的验收报告
+
+下面是一个 tiny 运行的简化报告。文件和窗口检查通过，跨 EOS 的连续流被标成 warning，而词表不一致直接 fail：
+
+~~~json
+{
+  "checks": [
+    {"name": "file_integrity", "status": "pass", "message": "2 shards and masks match their hashes"},
+    {"name": "boundary_semantics", "status": "warning", "message": "windows may cross EOS; document isolation is not claimed"},
+    {"name": "vocab_alignment", "status": "fail", "observed": {"manifest": 259, "tokenizer": 259, "model": 32000}, "message": "model vocab_size differs"}
+  ],
+  "ready_for_long_run": false
+}
+~~~
+
+这个结果不能靠“先跑起来再说”处理。应先确认模型配置是否应当使用 byte tokenizer 的 259 个位置；如果确实要换成 32K tokenizer，就必须重新生成 token shard、更新 manifest 和 experiment identity，再重新验收。只有把 fail 修复、把 warning 的人工决定写入报告，才可以提交长作业。当前代码没有独立的 preflight 命令，远端可以先运行：
+
+~~~bash
+python -c "from ttt.dataset import TokenDataset; TokenDataset('runs/example_shards/manifest.json', 259); print('manifest and shards: pass')"
+~~~
+
+这条命令只能证明 loader 的文件和范围检查通过，不能替代上面未实现的 split、污染和分布检查。
+
 ## 从本章进入模型
 
 验收通过只说明输入自洽，不说明模型已经学会语言。下一章定义 dense baseline：固定这些输入，测量 loss、梯度、恢复和计算成本，随后才有资格讨论 TTT。

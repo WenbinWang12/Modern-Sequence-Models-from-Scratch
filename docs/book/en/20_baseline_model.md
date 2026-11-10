@@ -45,6 +45,32 @@ $$
 
 The second term is exactly the softmax probability, which gives the form $p_{t,v}-\mathbf{1}[v=y_t]$.
 
+## One minimal gradient update
+
+Use the same logits example to isolate the direction of the error signal. Let
+\(\mathbf z=(2,1,0)\), with the second token (<code>sat</code>) as the target. Then
+\(\mathbf p\approx(0.665,0.245,0.090)\), and
+\(\partial\ell/\partial\mathbf z=\mathbf p-\mathrm{onehot}(y)\) gives
+
+$$
+\mathbf g\approx(0.665,-0.755,0.090).
+$$
+
+If logits were temporarily treated as directly updateable variables, a plain SGD
+step with \(\eta=0.1\) would be
+
+$$
+\mathbf z'=\mathbf z-\eta\mathbf g
+\approx(1.9335,1.0755,-0.009).
+$$
+
+The correct score rises from 1 to about 1.076, and its softmax probability rises
+from about 0.245 to about 0.271. Real training does not optimize logits directly:
+it propagates \(\mathbf g\) through the computation graph into the output
+projection, hidden state, embedding, attention, and MLP, then AdamW updates the
+parameters. This calculation demonstrates the local direction of one gradient;
+it does not establish model capability.
+
 ## What the baseline disables
 
 ~~~text

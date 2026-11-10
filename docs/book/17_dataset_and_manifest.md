@@ -32,6 +32,26 @@ Manifest 把这些隐含条件写成数据版本。当前 loader 期待的核心
 
 当前 `TokenDataset` 还会计算分片端点，并让任意全局 start 经过 `searchsorted` 找到物理 shard。窗口跨 shard 时，代码按各分片的局部 offset 取值。这是让大数据不必完整载入内存的关键，但跨 shard 的窗口仍然是同一条逻辑 token 流。
 
+## 一个跨分片窗口的手算
+
+把两个分片写成最小例子：
+
+| 物理 shard | token 内容 | count | 全局结束 offset |
+|---|---|---:|---:|
+| <code>v-00000.npy</code> | <code>[10, 11, 12, 13]</code> | 4 | 4 |
+| <code>v-00001.npy</code> | <code>[20, 21, 22, 23, 24]</code> | 5 | 9 |
+
+这里的 offset 是代码数组索引的边界，采用半开区间：第一个分片覆盖全局位置 [0,4)，第二个覆盖 [4,9)。如果请求 <code>start=2, length=5</code>，窗口要读取全局位置 2、3、4、5、6。<code>searchsorted([4,9], 2)</code> 找到第一个结束端点 4，因此先从第一个分片的局部 offset 2 读取 [12,13]，再从第二个分片的局部 offset 0 读取 [20,21,22]。拼接结果是：
+
+~~~text
+global positions: 2, 3 | 4, 5, 6
+physical shard:   v-0   | v-1
+local offsets:       2, 3 | 0, 1, 2
+tokens:            12,13 | 20,21,22
+~~~
+
+如果模型窗口长度是 5，训练代码还需要额外读取一个 token 来构造 next-token target；因此可用窗口长度和底层读取长度不是同一个数字。分片边界不会自动插入 EOS，也不会重置 attention；它只是存储边界。是否隔离文档由 token 化和 packing 规则决定。
+
 ## Manifest 身份与文件身份
 
 manifest 有自己的 SHA256，分片也有各自 SHA256。两层都需要保留：

@@ -54,6 +54,31 @@ $$
 
 第二项正是 softmax 概率，所以才得到上面的 $p_{t,v}-\mathbf{1}[v=y_t]$。
 
+## 一次最小的梯度更新
+
+先只在 logits 空间做一个手算，隔离“梯度方向”这个概念。仍使用分数
+\(\mathbf z=(2,1,0)\)，正确 token 是第二个位置 <code>sat</code>，所以
+\(\mathbf p\approx(0.665,0.245,0.090)\)。由
+\(\partial\ell/\partial\mathbf z=\mathbf p-\mathrm{onehot}(y)\)，得到：
+
+$$
+\mathbf g\approx(0.665,-0.755,0.090).
+$$
+
+如果暂时把 logits 当成可以直接更新的变量，并取学习率
+\(\eta=0.1\)，一次普通 SGD 是
+
+$$
+\mathbf z'=\mathbf z-\eta\mathbf g
+\approx(1.9335,1.0755,-0.009).
+$$
+
+更新后正确 token 的分数从 1 增加到约 1.076，softmax 概率从约
+0.245 上升到约 0.271。真实训练不会直接把 logits 当参数；它会把
+\(\mathbf g\) 沿计算图传回 \(W\)、hidden、embedding 和 MLP，再由
+AdamW 结合动量与权重衰减更新参数。这个小例子只证明局部误差信号的方向，
+不代表一次更新就能证明模型能力。
+
 ## 基线配置到底关闭了什么
 
 ~~~text

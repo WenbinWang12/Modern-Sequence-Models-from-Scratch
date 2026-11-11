@@ -114,17 +114,20 @@ $$
 
 指示函数 \(\mathbf{1}[j=y]\) 在 \(j\) 是正确类别时为 1，否则为 0。若把每个 logit 当成独立参数做梯度下降，负梯度会提高正确项的分数、降低其他项。这是一个局部分析；实际网络通过共享参数同时影响许多预测，不能保证每个样本都向这个方向改变。基线模型章会把这条局部导数连接到参数的链式求导。
 
-有 padding 或 prompt mask 时，只对 \(m_t=1\) 的位置求平均：
+有 padding 或 prompt mask 时，设 \(W=\sum_{t=1}^{L}m_t\) 为监督权重总和。只有正权重位置参与平均：
 
 $$
 \mathcal{L}
 =
 \frac{\sum_{t=1}^{L}
 m_t[-\log p_\theta(y_t\mid x_{\le t})]}
-{\max(\sum_{t=1}^{L}m_t,1)}.
+{\begin{cases}
+W,&W>0,\\
+1,&W=0.
+\end{cases}}
 $$
 
-若把 input 和 label 错开一位，模型训练的就不是同一个 next-token 任务；若把 padding 计入 loss，模型会被迫学习填充符号。这是数据管线问题，不是模型结构问题。
+其中 \(m_t\) 可以是分数 mask；正的权重即使小于 1 也必须保留。全零 mask 没有监督信号，安全分母只防止除零，不把它变成有效训练样本。若把 input 和 label 错开一位，模型训练的就不是同一个 next-token 任务；若把 padding 计入 loss，模型会被迫学习填充符号。这是数据管线问题，不是模型结构问题。
 
 ## 为什么要从零训练
 
@@ -182,7 +185,7 @@ bash scripts/prepare_sample.sh outputs/sample-tokens.npy
   --shard-tokens 256
 ~~~
 
-预期产物是 <code>outputs/sample-tokens.npy</code>、若干 shard 和 <code>manifest.json</code>。先检查 manifest 中的 <code>vocab_size</code>、shard 长度和输入 digest；如果文件不存在，先查 Python 环境、输入路径和输出目录权限。这个 checkpoint 只证明数据和字段能生成，不证明模型能学习，也不证明 GPU 训练可扩展。
+预期产物是 <code>outputs/sample-tokens.npy</code>、若干 shard 和 <code>manifest.json</code>。先检查 manifest 中的 <code>vocab_size</code>、shard 长度和输入 digest；如果文件不存在，先查 Python 环境、输入路径和输出目录权限。这些数据产物只证明数据和字段能生成，不证明模型能学习，也不证明 GPU 训练可扩展。
 
 全书使用三层完成标准：**可运行**表示入口和依赖成立；**可学习**表示 loss、有效 token 和参数更新呈现合理变化；**可解释**表示控制变量、评估和报告足以支持结论。完成上一层不能跳过下一层。
 

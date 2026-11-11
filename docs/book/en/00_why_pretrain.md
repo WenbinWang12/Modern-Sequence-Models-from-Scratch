@@ -112,17 +112,20 @@ $$
 
 The indicator \(\mathbf{1}[j=y]\) equals 1 for the correct class and 0 otherwise. If logits were independent parameters, gradient descent would raise the correct score and lower the others. This is a local analysis: shared network parameters affect many predictions at once, so an actual update need not move every example in that direction. The baseline chapter connects this derivative to the chain rule for model parameters.
 
-With padding or prompt masks, only \(m_t=1\) positions contribute:
+With padding or prompt masks, let \(W=\sum_{t=1}^{L}m_t\) be the total supervision weight. Only positive-weight positions contribute:
 
 $$
 \mathcal{L}
 =
 \frac{\sum_{t=1}^{L}
 m_t[-\log p_\theta(y_t\mid x_{\le t})]}
-{\max(\sum_{t=1}^{L}m_t,1)}.
+{\begin{cases}
+W,&W>0,\\
+1,&W=0.
+\end{cases}}
 $$
 
-A wrong input-label shift trains a different task. Counting padding trains the model to predict padding. Those are data-pipeline errors, not architecture errors.
+The mask may contain fractional weights; a positive weight below \(1\) remains part of the denominator. An all-zero mask has no supervision; the safe denominator only prevents division by zero and does not turn that window into a useful training example. A wrong input-label shift trains a different task. Counting padding trains the model to predict padding. Those are data-pipeline errors, not architecture errors.
 
 ## Why train from scratch
 

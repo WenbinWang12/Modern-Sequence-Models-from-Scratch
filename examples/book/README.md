@@ -32,7 +32,7 @@ The first command needs only Python 3.10 or newer. The full command additionally
 
 `--tokenizer` 先检查依赖，再运行测试文件并保存 `tokenizer-tests.junit.xml`。只有 JUnit 中测试数大于零，且失败、错误、跳过数都为零，才能通过这一项；缺失或损坏的 XML 同样失败。即使 pytest 实际退出码为零，也不会把跳过当成通过：报告保留真实退出码，另写 `validation_error`。此测试命令不加载模型的 `conftest.py`，并忽略外部 `PYTEST_ADDOPTS`，避免意外只收集或筛掉测试。当前文件包含 6 个 pytest 用例，其中 BPE 和 Unigram 分别占一个参数化用例。未请求此选项时，成功状态不包含这些 tokenizer 检查。
 
-The default run contains seven subprocess commands: two boundary-check files and five walkthroughs. The current standard-library suites contain ten and seven test methods respectively; subtests exercise additional input variants. Command count is not test count. The runner preserves its plan, command states, actual return codes, stdout, stderr, and interpreter information.
+The default run contains seven subprocess commands: two boundary-check files and five walkthroughs. The current standard-library suites contain twelve and seven test methods respectively; subtests exercise additional input variants. Command count is not test count. The runner preserves its plan, command states, actual return codes, stdout, stderr, and interpreter information.
 
 Any command failure, invalid test report, or mismatch between initial and final source digests leaves `all_requested_commands_passed` false. Terminal states are `completed`, `failed`, and `interrupted`; a report still marked `running` is not completion evidence. Digests cover the teaching sources and inputs, tokenizer implementation and tests, `pyproject.toml`, and `uv.lock`. They compare file contents at the start and end, not an entire operating-system or Python-installation snapshot. Run in a checkout without concurrent modifications.
 

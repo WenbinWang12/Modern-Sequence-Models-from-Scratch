@@ -79,11 +79,6 @@ nav:
       - 全书统一记号: book/notation.md
   - 序章 — 为什么训练基模:
       - 训练系统全景: book/00_why_pretrain.md
-  - Frontier Lab — 前沿专题:
-      - 专题总览: frontier/index.md
-      - TTT 与线性注意力: frontier/ttt_linear_attention.md
-      - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
-      - Looped Transformer: frontier/loop_transformer.md
   - Part I — 实验契约与工具链:
       - 1. 实验契约: book/01_experiment_contract.md
       - 2. 环境与第一次训练: book/01_environment.md
@@ -111,6 +106,11 @@ nav:
   - Part VI — 做实验:
       - 20. 消融与 scaling: book/08_experiments.md
       - 21. GPU、多卡与检查点验证: book/09_gpu_validation.md
+   - Frontier Lab — 可选前沿专题:
+       - 专题总览: frontier/index.md
+       - TTT 与线性注意力: frontier/ttt_linear_attention.md
+       - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
+       - Looped Transformer: frontier/loop_transformer.md
   - 附录:
       - 复现命令: reproducibility.md
       - 验证记录: validation.md
@@ -120,11 +120,6 @@ nav:
       - Overview: book/en/index.md
       - Notation and conventions: book/en/notation.md
       - Why train a base model: book/en/00_why_pretrain.md
-      - Frontier Lab:
-          - Overview: frontier/en/index.md
-          - TTT and linear attention: frontier/en/ttt_linear_attention.md
-          - TTT-E2E and long context: frontier/en/ttt_e2e_long_context.md
-          - Looped Transformer: frontier/en/loop_transformer.md
       - 1. Experiment contract: book/en/01_experiment_contract.md
       - 2. Environment and first training run: book/en/01_environment.md
       - 3. Reproducible runs: book/en/02_reproducible_runs.md
@@ -146,3 +141,8 @@ nav:
       - 19. MoE and expert parallelism: book/en/07_moe.md
       - 20. Ablations, cost, and scaling: book/en/08_experiments.md
       - 21. GPU and checkpoint validation: book/en/09_gpu_validation.md
+       - Frontier Lab (optional):
+           - Overview: frontier/en/index.md
+           - TTT and linear attention: frontier/en/ttt_linear_attention.md
+           - TTT-E2E and long context: frontier/en/ttt_e2e_long_context.md
+           - Looped Transformer: frontier/en/loop_transformer.md

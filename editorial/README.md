@@ -2,7 +2,7 @@
 
 当前版本仍是需要实质修订的书稿，**未通过出版验收**。本目录保存对标依据、固定版本的逐段意见和修订后复审记录；它不进入读者正文，也不把构建成功称为出版通过。
 
-最新进展见[第三轮对抗性修订](reviews/adversarial-round3.md)和[第四轮出版级对抗审阅](reviews/adversarial-publication-round4.md)：第四轮修正了 mask 分母、训练入口 checkpoint 路径、项目范围说明和前沿基线，并逐张查看了发布的六张双语教学图。模型、数据回归和 TikZ 独立编译仍分别记录。
+最新进展见[第三轮对抗性修订](reviews/adversarial-round3.md)、[第四轮出版级对抗审阅](reviews/adversarial-publication-round4.md)和[第五轮内容缺口审阅](reviews/content-gap-audit-round5.md)：第四轮修正了 mask 分母、训练入口 checkpoint 路径、项目范围说明和前沿基线，并逐张查看了发布的六张双语教学图；第五轮重新核对长期会话要求，列出数学工具箱、标准 Transformer、统一评估和端到端数据 capstone 等尚缺主线。模型、数据回归和 TikZ 独立编译仍分别记录。
 
 第二轮集中处理获取、清洗、去重、切分和分词五章的教学缺口，范围及具体处置见[数据章节第二轮修订](reviews/data-round2.md)。五章的中英文均已重写并交叉审读，新增独立实验、原始教学数据和运行入口。该轮的运行与视觉状态作为历史快照保留，后续处置见第三轮记录。
 

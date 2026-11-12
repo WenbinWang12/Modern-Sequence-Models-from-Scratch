@@ -2,6 +2,27 @@
 
 `F:/teleai/IndexShare/From_YZH/mindformers_formal_v1.0_simlarity_production` 采用的是模型框架组织方式，代表代码要被训练器、推理器、配置系统、权重转换工具和测试系统共同调用。当前 TTT 的算法实现已具备研究验证能力，但原来的入口主要面向直接导入 Python 类，工程接口还不完整。
 
+本轮还对照了 `F:/teleai/MLA_SWA` 的实验目录和 `mindformers` 正式包。这里借鉴的是责任边界和公开接口，不复制 MindSpore、Ascend 或 teleai 的运行时依赖；TTT 的计算后端仍然是 JAX，目标硬件是 NVIDIA GPU。
+
+| teleai 中的工程习惯 | TTT 当前对应物 | 仍需补齐的生产规范 |
+|---|---|---|
+| `models/<model>/configuration_*.py`、`modeling_*.py` | `ttt/models/ttt_e2e/` | 文件头许可证、完整类型注解、稳定公共 API 和更细的模块文档 |
+| `models/auto` 与注册器 | `ttt/models/auto.py`、`registry.py` | 让 train/infer/base 三种入口都通过同一注册协议构建，减少硬编码导入 |
+| `Trainer`、`TrainingArguments`、callbacks | `ttt/train.py`、`ttt/training.py` | 把 CLI 参数、运行状态、日志、评估和 checkpoint 生命周期收进明确的 Trainer 层 |
+| YAML 配方与配置覆盖 | `configs/**/*.json`、`ttt/config.py` | 提供 schema 版本、实验覆盖、配置摘要和可读的训练配方 |
+| `toolkit/weight_convert` 与 safetensors 文档 | `ttt/convert_official.py`、`ttt/checkpoint.py` | 提供 official config 模板、格式版本、参数映射和公开发布检查 |
+| `tools/logger.py`、monitor、callback | `print`、`metrics.jsonl` 和零散脚本 | 统一结构化日志、事件级回调、吞吐/显存/编译阶段指标 |
+| 分层 `tests/ut`、`tests/st` 和 CI | `tests/`、GitHub workflows | 修复依赖安装 CI，分离静态检查、CPU 单测、GPU smoke 和多卡验收 |
+
+## 计划中的代码改造顺序
+
+1. 先稳定公共模型接口：统一 `AutoConfig`、`AutoModelForCausalLM`、配置 schema 版本和 train/infer/base 的构建协议。
+2. 再加入 `ttt/trainer/`：用 `TrainingArguments` 保存运行参数，用 `Trainer` 管理 train/eval/predict、恢复、日志和回调；保留现有 `ttt.train` 作为兼容 CLI。
+3. 将配置、数据 manifest、tokenizer 身份、git commit 和命令行写入统一 run metadata；把初始化失败也纳入 status 生命周期。
+4. 增加权重转换模板、格式版本和发布前检查，再补分层 CI 与 H100 多卡 smoke 入口。
+
+每一步都保持现有 Python API 的兼容包装，避免为了外观重写已经有数值验证的核心算子。
+
 ## 已对齐的接口
 
 | 框架习惯 | TTT 当前实现 |

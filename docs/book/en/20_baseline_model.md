@@ -12,6 +12,37 @@ If the correct token is `sat`, this example gives probability about $0.245$ and 
 
 The dense baseline is the control for TTT, Loop, and MoE. It fixes tokenizer, manifests, sequence length, effective token budget, initialization, optimizer, schedule, seed, precision, hardware, and checkpoint format before adding dynamic state or routing.
 
+## From embedding to the output head: read an ordinary block first
+
+A dense causal LM can first be viewed as a shape-preserving pipeline:
+
+$$
+\text{token IDs}
+\rightarrow\text{embedding}
+\rightarrow\text{attention}
+\rightarrow\text{MLP}
+\rightarrow\text{logits}.
+$$
+
+Input \(X\in\{0,\ldots,V-1\}^{B\times L}\) becomes \(B\times L\times d\) after embedding. Each attention head uses \(d\times d_h\) projections to produce Q, K, and V. The causal mask prevents a position from reading future tokens; concatenated heads are projected back to width \(d\). An abstract residual block is
+
+$$
+H_1=H+\operatorname{Attention}(\operatorname{Norm}(H)),
+\qquad
+H_2=H_1+\operatorname{MLP}(\operatorname{Norm}(H_1)).
+$$
+
+An MLP with a SwiGLU-style gate can be written as
+
+$$
+\operatorname{MLP}(h)
+=W_2\bigl(\operatorname{SiLU}(W_g h)\odot W_u h\bigr).
+$$
+
+The output projection maps \(B\times L\times d\) to \(B\times L\times V\). When reading code, check residual input/output widths first, then check that the final logits axis equals the tokenizer vocabulary size. The repository's base implementation is distributed across <code>models/ttt_e2e/layers.py</code>, <code>attention.py</code>, and <code>modeling_ttt_e2e.py</code>; exact layer types, normalization, and positional handling come from the configuration and source.
+
+This ordinary path is the control. After adding fast MLPs, inner updates, routing, or repeated depth, state which computation, state, and cost changed. TTT does not replace the entire Transformer with an unrelated network; it adds an updateable state and a declared gradient protocol at selected positions.
+
 For logits \(z\) at position \(t\) and target \(y_t\):
 
 $$

@@ -8,9 +8,9 @@
 
 ## 需要补充的核心内容
 
-### P1：标准 Transformer 基线的逐层实现（数学工具箱已补）
+### P1：标准 Transformer 基线的逐层实现（基础 walkthrough 已补）
 
-当前内容从配置和 dense baseline 直接进入 TTT。完全零基础的读者还需要先看到 embedding、位置编码、QKV、因果 mask、残差、Norm、SwiGLU、初始化和输出头如何组成一个普通 block。建议增加一章或扩充 Part III：用一个 token 的 shape walkthrough 对照每个代码文件，再说明 TTT 只改变哪一段状态。
+基线章现在补充了 embedding、QKV、因果 mask、残差、Norm、SwiGLU、输出头和代码文件映射。后续仍需把初始化、学习率调度和一个逐层 token walkthrough 接到实际运行证据，并继续扩充多卡与性能部分。
 
 ### P1：统一评估与统计协议（协议章已补，自动化仍缺）
 
@@ -46,7 +46,7 @@ validation.md 主要是历史版本证据，应在页首更醒目标注历史快
 
 ## 推荐实施顺序
 
-1. 先补标准 Transformer baseline，补齐零基础读者从普通 LM 到 TTT 的概念阶梯。
+1. 把标准 Transformer 的初始化、学习率调度和逐层 token walkthrough 接到实际运行证据。
 2. 把评估 schema 接入 runner，再扩充消融和 Frontier 质量比较。
 3. 实现端到端数据 capstone 和 tokenizer provenance，建立从原始记录到 checkpoint 的一条可追溯链。
 4. 最后补治理模板、多卡通信图、英文工程附录、官方转换模板和 CI/启动失败协议。

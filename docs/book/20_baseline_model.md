@@ -6,6 +6,37 @@
 
 基线至少固定：tokenizer 和特殊 token、训练/验证 manifest、sequence length、有效 token 预算、初始化、优化器、学习率计划、随机种子、精度、硬件和 checkpoint 格式。之后的结构实验只改变声明的架构变量。
 
+## 从 embedding 到输出头：先读懂普通 block
+
+一个普通 causal LM 可以先看成一条形状稳定的流水线：
+
+$$
+\text{token IDs}
+\rightarrow\text{embedding}
+\rightarrow\text{attention}
+\rightarrow\text{MLP}
+\rightarrow\text{logits}.
+$$
+
+输入 \(X\in\{0,\ldots,V-1\}^{B\times L}\) 经过 embedding 变成 \(B\times L\times d\)。每个 attention head 用 \(d\times d_h\) 的投影矩阵产生 Q、K、V，因果 mask 禁止位置读取未来 token；多头结果拼接后再投影回 \(d\) 维。一个标准残差 block 可以抽象为
+
+$$
+H_1=H+\operatorname{Attention}(\operatorname{Norm}(H)),
+\qquad
+H_2=H_1+\operatorname{MLP}(\operatorname{Norm}(H_1)).
+$$
+
+SwiGLU 形式的 MLP 可以写成
+
+$$
+\operatorname{MLP}(h)
+=W_2\bigl(\operatorname{SiLU}(W_g h)\odot W_u h\bigr).
+$$
+
+最后的输出投影把 \(B\times L\times d\) 变成 \(B\times L\times V\)。因此，读代码时先检查每个残差分支的输入输出宽度，再检查 logits 的最后一维是否等于 tokenizer 的词表大小。仓库中对应的基础实现分布在 <code>models/ttt_e2e/layers.py</code>、<code>attention.py</code> 和 <code>modeling_ttt_e2e.py</code>；具体层类型、Norm 和位置处理以配置和源码为准。
+
+这条普通路径是控制变量。加入 MLP′、内循环、路由或深度循环以后，必须说明改变的是哪一段计算、哪一组状态和哪一项成本。TTT 不是“把整个 Transformer 换成另一个网络”，而是在声明的位置增加可更新状态及其梯度协议。
+
 ## 从 logits 到 loss
 
 `logits` 先不要理解成概率，它只是模型给每个候选 token 的分数。例如词表只有 `cat`、`sat`、`dog`，某个位置的分数是 $(2,1,0)$，softmax 才会把它们变成和为 1 的概率：

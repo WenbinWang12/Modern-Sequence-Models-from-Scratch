@@ -45,6 +45,23 @@ tiny 的四步训练用于检查流程，不代表语言能力或召回能力。
 
 正式配置默认保存 Orbax 分片检查点；tiny 显式使用 NPZ。中断后可用 `--auto-resume` 或 `--resume <检查点>`，配置、数据指纹和采样种子必须一致。改变训练阶段使用 `--initialize-from <检查点>`，重新建立优化器。
 
+代码也提供接近业界 Trainer 的 Python 门面，CLI 仍保持兼容：
+
+NaN
+NaN
+0
+NaN
+NaN
+NaN
+NaN
+NaN
+NaN
+NaN
+NaN
+NaN
+NaN
+NaN
+
 ## 数据
 
 支持一维整数 `.npy` 和带 SHA256 校验的分片清单。分片可以跨文件采样，不需要把整个语料载入内存。

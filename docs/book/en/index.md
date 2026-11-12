@@ -33,4 +33,4 @@ The stable path starts with the training system and data, establishes a dense ca
 
 The stable path establishes the protocol first. [Frontier Lab](../../frontier/en/index.md) can move faster, but its claims should reuse the mainline data, training, and evaluation contract before they are compared with the baseline.
 
-Start with [Why train a base model](00_why_pretrain.md), then read [The experiment contract](01_experiment_contract.md).
+Start with [Notation and conventions](notation.md) and the [mathematics and deep-learning toolkit](00_prerequisites.md), then read [Why train a base model](00_why_pretrain.md) and [The experiment contract](01_experiment_contract.md).

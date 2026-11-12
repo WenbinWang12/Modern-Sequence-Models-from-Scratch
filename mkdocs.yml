@@ -77,6 +77,7 @@ nav:
   - 首页: index.md
   - 阅读说明:
       - 全书统一记号: book/notation.md
+      - 数学与深度学习工具箱: book/00_prerequisites.md
   - 序章 — 为什么训练基模:
       - 训练系统全景: book/00_why_pretrain.md
   - Part I — 实验契约与工具链:
@@ -119,6 +120,7 @@ nav:
   - English Edition:
       - Overview: book/en/index.md
       - Notation and conventions: book/en/notation.md
+      - Mathematics and deep-learning toolkit: book/en/00_prerequisites.md
       - Why train a base model: book/en/00_why_pretrain.md
       - 1. Experiment contract: book/en/01_experiment_contract.md
       - 2. Environment and first training run: book/en/01_environment.md

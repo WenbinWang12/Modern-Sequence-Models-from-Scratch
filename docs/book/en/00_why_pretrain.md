@@ -1,5 +1,7 @@
 # Prologue: Why train a base model from scratch
 
+If tensor shapes, gradients, or softmax are new to you, read the [mathematics and deep-learning toolkit](00_prerequisites.md) first. This prologue then explains why we choose to train from scratch.
+
 ## Overview
 
 If the goal is to ship an application, downloading a checkpoint is usually the shortest route. This book takes the longer route: start with data, build the tokenizer, construct the training windows and loss, save checkpoints, and then study TTT, linear attention, recurrent depth, MoE, and long-context state.

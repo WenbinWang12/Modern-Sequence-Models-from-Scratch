@@ -50,4 +50,4 @@ flowchart LR
 
 主线章节优先建立稳定的实验协议；Frontier Lab 允许更快地加入新论文和新假设。只有当一个前沿想法能够复用主线的数据、训练和评估协议时，才把它写成可比较的结果。
 
-开始阅读：[为什么训练基模](book/00_why_pretrain.md)，然后阅读[实验契约](book/01_experiment_contract.md)。
+开始阅读：[统一记号](book/notation.md)和[数学与深度学习工具箱](book/00_prerequisites.md)，再读[为什么训练基模](book/00_why_pretrain.md)与[实验契约](book/01_experiment_contract.md)。

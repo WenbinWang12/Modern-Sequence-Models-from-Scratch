@@ -40,7 +40,7 @@ $$
 \operatorname{PPL}=\exp(\mathcal L_{\mathrm{tok}}).
 $$
 
-Do not average per-window losses equally unless every window has the same valid weight. Save the loss numerator, denominator, window count, and supervised count. A fractional mask reports a weight sum, not an invented integer token count.
+Do not average per-window losses equally unless every window has the same valid weight. Save the loss numerator, denominator, window count, positive-mask position count, and supervision-weight sum. A fractional mask reports a weight sum, not an invented integer token count.
 
 ## Document boundaries and contamination
 
@@ -76,7 +76,7 @@ The mean and standard deviation describe seed variation; they are not automatica
 
 ## A shared result record
 
-A minimal result object should lead back to its inputs and code:
+The following is a proposed result schema; the current runner does not automatically write every field. A minimal result object should lead back to its inputs and code:
 
 ~~~json
 {

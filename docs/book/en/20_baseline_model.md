@@ -122,4 +122,4 @@ The expected directory contains <code>experiment.json</code>, <code>environment.
 
 ## Summary and next question
 
-This minimal run connects logits, masked loss, gradients, and checkpoints to an explicit ordinary-model configuration. A complete research baseline still requires independent evaluation and a restoration comparison; four sample steps establish a functional starting point. The next part follows the same token through the forward path and identifies when fast weights change.
+This minimal run connects logits, masked loss, gradients, and checkpoints to an explicit ordinary-model configuration. A complete research baseline still requires independent evaluation and a restoration comparison; four sample steps establish a functional starting point. The shared metric, contamination, and statistical protocol is in [Evaluation and statistical protocol](21_evaluation_protocol.md). The next part follows the same token through the forward path and identifies when fast weights change.

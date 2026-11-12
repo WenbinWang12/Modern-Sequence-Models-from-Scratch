@@ -160,4 +160,4 @@ JAX_PLATFORMS=cpu bash scripts/run_train.sh \
 
 ## 本章小结与下一问
 
-这次最小运行把 logits、masked loss、梯度和 checkpoint 接到一个明确的普通模型配置上。完整研究基线还需要独立验证集评估与恢复对照；四步样例只建立功能检查的起点。下一部分沿着同一 token 进入前向路径，明确快权重在哪一刻改变。
+这次最小运行把 logits、masked loss、梯度和 checkpoint 接到一个明确的普通模型配置上。完整研究基线还需要独立验证集评估与恢复对照；四步样例只建立功能检查的起点。统一的指标、污染和统计协议见[评估与统计协议](21_evaluation_protocol.md)。下一部分沿着同一 token 进入前向路径，明确快权重在哪一刻改变。

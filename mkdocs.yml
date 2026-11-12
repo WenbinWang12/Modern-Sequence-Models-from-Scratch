@@ -105,6 +105,7 @@ nav:
       - 18. 注意力、缓存与流式推理: book/06_attention_cache.md
       - 19. MoE、路由与专家并行: book/07_moe.md
   - Part VI — 做实验:
+      - 评估与统计协议: book/21_evaluation_protocol.md
       - 20. 消融与 scaling: book/08_experiments.md
       - 21. GPU、多卡与检查点验证: book/09_gpu_validation.md
   - Frontier Lab — 可选前沿专题:
@@ -141,6 +142,7 @@ nav:
       - 17. Inner and outer loops: book/en/05_inner_outer_loop.md
       - 18. Attention, caches, and streaming: book/en/06_attention_cache.md
       - 19. MoE and expert parallelism: book/en/07_moe.md
+      - Evaluation and statistical protocol: book/en/21_evaluation_protocol.md
       - 20. Ablations, cost, and scaling: book/en/08_experiments.md
       - 21. GPU and checkpoint validation: book/en/09_gpu_validation.md
       - Frontier Lab (optional):

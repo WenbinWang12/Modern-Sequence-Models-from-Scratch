@@ -4,19 +4,17 @@
 
 本轮先修正了三类已经确认的事实或结构问题：序章中英文统一使用监督权重分母；英文 examples README 从十个改为十二个标准库检查；Frontier Lab 移到主线之后并标为可选。序章还修正了“只生成数据却称为 checkpoint”的表述。
 
+本轮随后已经落地两个最高优先级补充：中英文“数学与深度学习工具箱”已放在统一记号之后；中英文“评估与统计协议”已加入 Part VI，并明确当前 runner 尚未自动生成完整 schema、bootstrap 或多 seed 汇总。下面仍保留未完成的结构缺口，避免把新增章节误报成完整实现。
+
 ## 需要补充的核心内容
 
-### P1：数学与深度学习工具箱
-
-当前序章和 notation 能定义符号，但读者随后会很快遇到矩阵乘法、QKV、softmax、链式法则、二阶梯度、top-k 和 Adam。缺少一个从标量到向量、矩阵、张量 shape，再到导数、反向传播、SGD、AdamW 和学习率调度的集中桥接。建议放在 notation 之后、实验契约之前，并为 attention、TTT、MoE 各自链接先修小节。
-
-### P1：标准 Transformer 基线的逐层实现
+### P1：标准 Transformer 基线的逐层实现（数学工具箱已补）
 
 当前内容从配置和 dense baseline 直接进入 TTT。完全零基础的读者还需要先看到 embedding、位置编码、QKV、因果 mask、残差、Norm、SwiGLU、初始化和输出头如何组成一个普通 block。建议增加一章或扩充 Part III：用一个 token 的 shape walkthrough 对照每个代码文件，再说明 TTT 只改变哪一段状态。
 
-### P1：统一评估与统计协议
+### P1：统一评估与统计协议（协议章已补，自动化仍缺）
 
-held-out loss、retrieval、RULER、长上下文和 Frontier 质量指标目前分散在不同页面，没有统一定义。应增加独立评估章，至少固定 train/validation/test 角色、token-weighted NLL 与 perplexity、分数 mask 分母、生成和检索任务格式、污染检查、多 seed、bootstrap 或置信区间，以及统一结果 JSON schema。没有这一章，消融结果无法形成可比较的证据链。
+评估协议章现已固定 train/validation/test 角色、token-weighted NLL 与 perplexity、分数 mask 分母、生成和检索任务格式、污染检查、多 seed、bootstrap 或置信区间，以及统一结果 JSON schema。仍需把这些字段接入实际 runner，并生成可重复的多 seed 和污染报告；没有真实产物，协议仍不能替代结果证据。
 
 ### P1：端到端数据 capstone
 
@@ -48,8 +46,8 @@ validation.md 主要是历史版本证据，应在页首更醒目标注历史快
 
 ## 推荐实施顺序
 
-1. 先写数学工具箱和标准 Transformer baseline，补齐零基础读者从普通 LM 到 TTT 的概念阶梯。
-2. 接着写统一评估章，并规定结果 schema；之后再扩充消融和 Frontier 质量比较。
+1. 先补标准 Transformer baseline，补齐零基础读者从普通 LM 到 TTT 的概念阶梯。
+2. 把评估 schema 接入 runner，再扩充消融和 Frontier 质量比较。
 3. 实现端到端数据 capstone 和 tokenizer provenance，建立从原始记录到 checkpoint 的一条可追溯链。
 4. 最后补治理模板、多卡通信图、英文工程附录、官方转换模板和 CI/启动失败协议。
 

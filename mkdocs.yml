@@ -106,11 +106,11 @@ nav:
   - Part VI — 做实验:
       - 20. 消融与 scaling: book/08_experiments.md
       - 21. GPU、多卡与检查点验证: book/09_gpu_validation.md
-   - Frontier Lab — 可选前沿专题:
-       - 专题总览: frontier/index.md
-       - TTT 与线性注意力: frontier/ttt_linear_attention.md
-       - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
-       - Looped Transformer: frontier/loop_transformer.md
+  - Frontier Lab — 可选前沿专题:
+      - 专题总览: frontier/index.md
+      - TTT 与线性注意力: frontier/ttt_linear_attention.md
+      - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
+      - Looped Transformer: frontier/loop_transformer.md
   - 附录:
       - 复现命令: reproducibility.md
       - 验证记录: validation.md
@@ -141,8 +141,8 @@ nav:
       - 19. MoE and expert parallelism: book/en/07_moe.md
       - 20. Ablations, cost, and scaling: book/en/08_experiments.md
       - 21. GPU and checkpoint validation: book/en/09_gpu_validation.md
-       - Frontier Lab (optional):
-           - Overview: frontier/en/index.md
-           - TTT and linear attention: frontier/en/ttt_linear_attention.md
-           - TTT-E2E and long context: frontier/en/ttt_e2e_long_context.md
-           - Looped Transformer: frontier/en/loop_transformer.md
+      - Frontier Lab (optional):
+          - Overview: frontier/en/index.md
+          - TTT and linear attention: frontier/en/ttt_linear_attention.md
+          - TTT-E2E and long context: frontier/en/ttt_e2e_long_context.md
+          - Looped Transformer: frontier/en/loop_transformer.md

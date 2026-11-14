@@ -86,6 +86,7 @@ TTT_INSTALL_CUDA=1 bash scripts/bootstrap_linux.sh
 ~~~text
 experiment.json   # 解析后的模型、内循环、训练和 tokenizer 配置
 environment.json  # Python、JAX、设备和源码摘要
+run_metadata.json # 配置、输入路径、命令行、Git commit 和 manifest 摘要
 metrics.jsonl     # 每步 loss、梯度、速度
 status.json       # running、failed、complete 或 stopped
 latest.json       # 最近检查点

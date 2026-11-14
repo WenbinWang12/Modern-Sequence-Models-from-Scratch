@@ -22,14 +22,16 @@ from .distributed import (
 )
 from .lifecycle import StopSignal, atomic_json, latest_checkpoint
 from .models.ttt_e2e.modeling_ttt_e2e import TTTE2EForCausalLM
-from .provenance import environment_report
+from .provenance import environment_report, run_metadata
 from .training import TrainState, make_optimizer, make_train_step
 
 
 def train(experiment, data_path, output_dir, *, resume=None, initialize_from=None):
-    initialize_distributed()
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    atomic_json(output_dir / "run_metadata.json", run_metadata(experiment, data_path, output_dir))
+    atomic_json(output_dir / "status.json", {"status": "initializing", "stage": "startup"})
+    initialize_distributed()
     training = experiment.training
     model = TTTE2EForCausalLM(experiment.model, training.gradient_checkpointing)
     optimizer = make_optimizer(training)

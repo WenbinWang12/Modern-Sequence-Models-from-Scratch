@@ -18,7 +18,7 @@
 
 1. 先稳定公共模型接口：统一 `AutoConfig`、`AutoModelForCausalLM`、配置 schema 版本和 train/infer/base 的构建协议。
 2. 继续完善已加入的 `ttt/trainer/`：用 `TrainingArguments` 保存运行参数，用 `Trainer` 管理 train/eval/predict、恢复、日志和回调；保留现有 `ttt.train` 作为兼容 CLI。
-3. 将配置、数据 manifest、tokenizer 身份、git commit 和命令行写入统一 run metadata；把初始化失败也纳入 status 生命周期。
+3. 统一 run metadata 已先接入配置、输入路径、manifest 摘要、git commit、命令行和源码摘要；下一步继续补 tokenizer 身份和初始化阶段的完整异常阶段记录。
 4. 增加权重转换模板、格式版本和发布前检查，再补分层 CI 与 H100 多卡 smoke 入口。
 
 每一步都保持现有 Python API 的兼容包装，避免为了外观重写已经有数值验证的核心算子。

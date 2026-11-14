@@ -8,9 +8,12 @@ import os
 import platform
 import socket
 import subprocess
+import sys
 from pathlib import Path
 
 import jax
+
+__all__ = ["source_digest", "git_commit", "artifact_digest", "run_metadata", "environment_report"]
 
 
 def source_digest(root=None):
@@ -25,6 +28,52 @@ def source_digest(root=None):
         digest.update(path.relative_to(root).as_posix().encode())
         digest.update(path.read_bytes())
     return digest.hexdigest()
+
+
+def git_commit(root=None):
+    """返回代码目录当前 commit；不在 Git checkout 时返回 None。"""
+
+    root = Path(root) if root is not None else Path(__file__).resolve().parents[1]
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "HEAD"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    commit = result.stdout.strip()
+    return commit if result.returncode == 0 and commit else None
+
+
+def artifact_digest(path):
+    """记录输入文件或 manifest 的摘要，避免启动时扫描整个语料目录。"""
+
+    source = Path(path).expanduser().resolve()
+    if source.is_dir():
+        manifest = source / "manifest.json"
+        source = manifest if manifest.is_file() else None
+    if source is None or not source.is_file():
+        return None
+    return hashlib.sha256(source.read_bytes()).hexdigest()
+
+
+def run_metadata(experiment, data_path, output_dir):
+    """生成一次运行的身份记录。"""
+
+    root = Path(__file__).resolve().parents[1]
+    return {
+        "schema_version": 1,
+        "command": list(sys.argv),
+        "source_commit": git_commit(root),
+        "source_sha256": source_digest(root),
+        "config": experiment.to_dict(),
+        "data_path": str(Path(data_path).expanduser().resolve()),
+        "data_manifest_sha256": artifact_digest(data_path),
+        "output_dir": str(Path(output_dir).expanduser().resolve()),
+    }
 
 
 def environment_report():
@@ -54,7 +103,9 @@ def environment_report():
         "devices": [str(device) for device in jax.local_devices()],
         "nvidia_smi": driver,
         "pbs_job_id": os.environ.get("PBS_JOBID"),
+        "git_commit": git_commit(),
         "source_sha256": source_digest(),
+        "command": list(sys.argv),
     }
 
 

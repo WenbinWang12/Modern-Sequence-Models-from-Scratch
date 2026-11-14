@@ -79,6 +79,7 @@ A successful tiny run should leave evidence similar to:
 ~~~text
 experiment.json   # resolved model, inner-loop, training, tokenizer configuration
 environment.json  # Python, JAX backend, devices, source summary
+run_metadata.json  # Configuration, input path, command, Git commit, and manifest digest
 metrics.jsonl     # per-step loss, gradients, speed, state statistics
 status.json       # running, failed, complete, or stopped
 latest.json       # pointer to the newest checkpoint

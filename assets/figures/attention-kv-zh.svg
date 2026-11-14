@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">注意力与 KV 缓存</title>
+  <desc id="desc">Prefill 为前缀生成 key 和 value，decode 复用缓存并追加一行。</desc>
+  <defs>
+    <linearGradient id="bgzhakv" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fbff"/><stop offset="1" stop-color="#eef4fb"/></linearGradient>
+    <filter id="shadowzhakv" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#172033" flood-opacity=".14"/></filter>
+    <marker id="arrowzhakv" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#59708a"/></marker>
+    <style>.eyebrow{font:700 13px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:2px;fill:#59708a}.title{font:700 29px Inter,ui-sans-serif,system-ui,sans-serif;fill:#172033}.copy{font:400 14px Inter,ui-sans-serif,system-ui,sans-serif;fill:#52657b}.label{font:700 17px Inter,ui-sans-serif,system-ui,sans-serif;fill:#172033}.small{font:400 12px Inter,ui-sans-serif,system-ui,sans-serif;fill:#52657b}.tag{font:700 11px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:1px;fill:#59708a}.math{font:600 15px Georgia,serif;fill:#172033}</style>
+  </defs>
+  <rect width="1200" height="520" rx="28" fill="url(#bgzhakv)"/>
+  <text x="56" y="48" class="eyebrow">第五部分 · 流式推理</text><text x="56" y="84" class="title">注意力复用历史：一次处理一个 token</text><text x="56" y="112" class="copy">Prefill 一次建立 K/V；decode 只追加一行并读取缓存。</text><path d="M56 143H1144" stroke="#d9e5f1" stroke-width="2"/>
+  <g filter="url(#shadowzhakv)"><rect x="56" y="178" width="300" height="148" rx="18" fill="#dceeff"/><rect x="450" y="178" width="300" height="148" rx="18" fill="#ddf7ee"/><rect x="844" y="178" width="300" height="148" rx="18" fill="#fff0c2"/></g>
+  <g fill="none" stroke="#59708a" stroke-width="2" marker-end="url(#arrowzhakv)"><path d="M365 252H440"/><path d="M759 252H834"/></g>
+  <g><text x="80" y="210" class="tag">01 · PREFILL</text><text x="80" y="243" class="label">x₁ … xL</text><text x="80" y="272" class="small">计算前缀的 q、k、v</text><text x="80" y="296" class="math">K₁:L，V₁:L</text>
+  <text x="474" y="210" class="tag">02 · KV CACHE</text><text x="474" y="243" class="label">复用历史</text><text x="474" y="272" class="small">K、V ∈ R^(L × dₕ)</text><text x="474" y="296" class="small">显存随 L 增长</text>
+  <text x="868" y="210" class="tag">03 · DECODE</text><text x="868" y="243" class="label">xL+1</text><text x="868" y="272" class="small">新 q 读取缓存 K/V</text><text x="868" y="296" class="math">追加 kL+1，vL+1</text></g>
+  <g filter="url(#shadowzhakv)"><rect x="56" y="374" width="1088" height="82" rx="18" fill="#172033"/></g>
+  <text x="82" y="402" class="tag" fill="#8fe0c0">因果性</text><text x="82" y="427" class="small" fill="#d9e5f1">当前位置只能读取前缀，不能读取未来的 key 或 value。</text>
+  <text x="700" y="402" class="tag" fill="#ffd27e">成本</text><text x="700" y="427" class="small" fill="#d9e5f1">Prefill 可并行；decode 少重算，但要保存 O(L dₕ) 的缓存。</text>
+</svg>

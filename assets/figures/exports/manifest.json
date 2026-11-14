@@ -1,0 +1,67 @@
+{
+  "purpose": "publication assets; not model or data test results",
+  "python": "3.12.16",
+  "libraries": {
+    "CairoSVG": "2.8.2",
+    "cairocffi": "1.7.1",
+    "cssselect2": "0.10.1",
+    "tinycss2": "1.5.1",
+    "Pillow": "13.0.0"
+  },
+  "fonts": {
+    "Noto Sans CJK SC": "Noto Sans CJK SC: Regular",
+    "DejaVu Sans Mono": "DejaVu Sans Mono: Book"
+  },
+  "png_scale": 2,
+  "pdf_origin": "SVG vector export, not a compiled TikZ document",
+  "figures": [
+    {
+      "source": "cleaning-views.svg",
+      "source_sha256": "85585931dc4650a608e08e157a6734d4186ffd286caf384c7f799ca05f1194ba",
+      "png": "cleaning-views.png",
+      "png_sha256": "b6b0a2c8cea12b05b8dca0634d23b9d344d9cd92749bb0b461057b095de4e5f4",
+      "pdf": "cleaning-views.pdf",
+      "pdf_sha256": "b0bc0e7b45c713acc4caa1320104afbb707ec530890bb25a6f599ed0cdc615ef"
+    },
+    {
+      "source": "cleaning-views-zh.svg",
+      "source_sha256": "8102f20b17fd340460ce97755ad7867559c2f975423cbf03e40a4dc463885a84",
+      "png": "cleaning-views-zh.png",
+      "png_sha256": "09d092f0c9faad66c71c9e5b9f502340983c40c9f5425ef1993ad0804b37b997",
+      "pdf": "cleaning-views-zh.pdf",
+      "pdf_sha256": "64a462468f64a1600e9c3730a9e7e115bd084dbbcb4ebc5c42e267e14cd9ca6b"
+    },
+    {
+      "source": "dedup-candidates.svg",
+      "source_sha256": "cf04c730270f2100da051a95ff1b6cc46f776bef4e17bb0d050e30bdc1b055cd",
+      "png": "dedup-candidates.png",
+      "png_sha256": "3869583923a02e1e257c0d77002fc508ce26e07e0df9dd24ced5afc6b35af7aa",
+      "pdf": "dedup-candidates.pdf",
+      "pdf_sha256": "08145de9e88a9ed38f806ca2cdab6d024b276dead4038ce20de2f6f32c3ce271"
+    },
+    {
+      "source": "dedup-candidates-zh.svg",
+      "source_sha256": "77c600666d1eaba534bcc693bd5753e32b997e67d14336e817dabac2550d8aa6",
+      "png": "dedup-candidates-zh.png",
+      "png_sha256": "7bf1fecff15dcd221a1b5d4664697b32a1344ec11fb512c6d17fe943433c337d",
+      "pdf": "dedup-candidates-zh.pdf",
+      "pdf_sha256": "16193742027076b86a48a3eb841da863b4065f3e3fc5e9f8c6bd30556026ee43"
+    },
+    {
+      "source": "bpe-learning-vs-encoding.svg",
+      "source_sha256": "37274ef33ad5f06c4dabc6e9b28b1c74d297e0c3e8381ca271cbe19164d2e63d",
+      "png": "bpe-learning-vs-encoding.png",
+      "png_sha256": "4417eb0c6e70393fb5abe24ca3771e44c8a8a1e4f5af57230f8f0b8bf9f40565",
+      "pdf": "bpe-learning-vs-encoding.pdf",
+      "pdf_sha256": "75c1d114811f23e9140f6309930572137aa0fbb61c8256ca480eb0c57e6ea956"
+    },
+    {
+      "source": "bpe-learning-vs-encoding-zh.svg",
+      "source_sha256": "e0cd4e75c353733eca040556a63978dbded9f7e4db04fbd61a58dc99a2a6ffe1",
+      "png": "bpe-learning-vs-encoding-zh.png",
+      "png_sha256": "80ccfc8955fca9da013547b04c8168c76ba90724fa1f9028055c3092f986167a",
+      "pdf": "bpe-learning-vs-encoding-zh.pdf",
+      "pdf_sha256": "3020fce8e1f467f73b50bbbf89e3da7862e19b8dd6f76378f023ea147e687ad8"
+    }
+  ]
+}

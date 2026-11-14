@@ -1,0 +1,4103 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从随机初始化开始构建、训练和验证现代序列模型的双语实验书">
+      
+      
+      
+        <link rel="canonical" href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/book/15_tokenizer/">
+      
+      
+        <link rel="prev" href="../14_split_and_contamination/">
+      
+      
+        <link rel="next" href="../16_packing_and_masks/">
+      
+      
+        
+          <link rel="alternate" href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/" hreflang="zh">
+        
+          <link rel="alternate" href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/book/en/" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>9. Tokenizer 与词表 - Modern Sequence Models — From Scratch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#9-tokenizer" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="Modern Sequence Models — From Scratch" class="md-header__button md-logo" aria-label="Modern Sequence Models — From Scratch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Modern Sequence Models — From Scratch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              9. Tokenizer 与词表
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/" hreflang="zh" class="md-select__link">
+              中文版
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/book/en/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    WenbinWang12/Modern-Sequence-Models-from-Scratch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../notation/" class="md-tabs__link">
+          
+  
+  
+  阅读说明
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../00_why_pretrain/" class="md-tabs__link">
+          
+  
+  
+  序章 — 为什么训练基模
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../01_experiment_contract/" class="md-tabs__link">
+          
+  
+  
+  Part I — 实验契约与工具链
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../10_data_contract/" class="md-tabs__link">
+          
+  
+  
+  Part II — 数据
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../03_configuration/" class="md-tabs__link">
+          
+  
+  
+  Part III — 标准基线
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../04_forward_and_ttt/" class="md-tabs__link">
+          
+  
+  
+  Part IV — 读懂 TTT-E2E
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../06_attention_cache/" class="md-tabs__link">
+          
+  
+  
+  Part V — 扩展模型
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../21_evaluation_protocol/" class="md-tabs__link">
+          
+  
+  
+  Part VI — 做实验
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../frontier/" class="md-tabs__link">
+          
+  
+  
+  Frontier Lab — 可选前沿专题
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reproducibility/" class="md-tabs__link">
+          
+  
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../en/" class="md-tabs__link">
+          
+  
+  
+  English Edition
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Modern Sequence Models — From Scratch" class="md-nav__button md-logo" aria-label="Modern Sequence Models — From Scratch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Modern Sequence Models — From Scratch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    WenbinWang12/Modern-Sequence-Models-from-Scratch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阅读说明
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阅读说明
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    全书统一记号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_prerequisites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数学与深度学习工具箱
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    序章 — 为什么训练基模
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    序章 — 为什么训练基模
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_why_pretrain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    训练系统全景
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part I — 实验契约与工具链
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part I — 实验契约与工具链
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_experiment_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. 实验契约
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. 环境与第一次训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_reproducible_runs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. 仓库与实验记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part II — 数据
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part II — 数据
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_data_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. 预训练数据：分布、质量与可复现性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_data_acquisition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. 数据获取、许可与溯源
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_data_cleaning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. 数据清洗与质量过滤
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../13_deduplication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. 精确与近似去重
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../14_split_and_contamination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. 数据切分与污染
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Tokenizer 与词表
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Tokenizer 与词表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        同一句话，为什么会变成不同长度的输入
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        词表只是分词器的一部分
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bpe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        从四个词开始，完整训练一次 BPE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="从四个词开始，完整训练一次 BPE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        先确定我们到底在数什么
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        第一轮之后，必须重新计算相邻关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merge-rank" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编码时应用 merge rank，不重新学习频次
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        把手算变成可核对的产物
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wordpiece-unigram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WordPiece 与 Unigram：不同的切分决定
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WordPiece 与 Unigram：不同的切分决定">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wordpiece-bert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WordPiece 的一个确定含义：BERT 怎样编码
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unigram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unigram：给不同切分打概率分
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        从字符覆盖到字节覆盖
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="从字符覆盖到字节覆盖">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        字节完整，也不等于原文无损
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        词表怎样固定模型的输入与输出维度
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tokenizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        用仓库脚本训练，并保存可重用的 tokenizer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        接入数据管线之前，检查什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../16_packing_and_masks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Token Packing 与 Mask
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../17_dataset_and_manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Dataset、分片与 manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../18_data_mixture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. 数据混合与确定性采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../19_data_preflight/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. 训练前数据验证
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part III — 标准基线
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part III — 标准基线
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. 配置、词表与维度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../20_baseline_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Causal LM 基线
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part IV — 读懂 TTT-E2E
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part IV — 读懂 TTT-E2E
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_forward_and_ttt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    16. 前向顺序与快权重
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_inner_outer_loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    17. 内循环与外循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part V — 扩展模型
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part V — 扩展模型
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_attention_cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    18. 注意力、缓存与流式推理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_moe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    19. MoE、路由与专家并行
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part VI — 做实验
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part VI — 做实验
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../21_evaluation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    20. 评估与统计协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    21. 消融与 scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_gpu_validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    22. GPU、多卡与检查点验证
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontier Lab — 可选前沿专题
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Frontier Lab — 可选前沿专题
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    专题总览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/ttt_linear_attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT 与线性注意力
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/ttt_e2e_long_context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT-E2E 与长上下文
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/loop_transformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Looped Transformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    复现命令
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    验证记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../industry_alignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工程对齐
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../production_requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    生产要求
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English Edition
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    English Edition
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/notation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notation and conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/00_prerequisites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematics and deep-learning toolkit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/00_why_pretrain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why train a base model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/01_experiment_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Experiment contract
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/01_environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. Environment and first training run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/02_reproducible_runs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Reproducible runs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/10_data_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Pretraining data: distribution, quality, and reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/11_data_acquisition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. Acquisition and provenance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/12_data_cleaning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Cleaning and quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/13_deduplication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/14_split_and_contamination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Splits and contamination
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/15_tokenizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Tokenizer and vocabulary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/16_packing_and_masks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Packing and masks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/17_dataset_and_manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Dataset and manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/18_data_mixture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Mixtures and sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/19_data_preflight/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. Data preflight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/03_configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Configuration, vocabulary, and dimensions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/20_baseline_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Dense baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/04_forward_and_ttt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    16. Forward order and fast weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/05_inner_outer_loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    17. Inner and outer loops
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/06_attention_cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    18. Attention, caches, and streaming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/07_moe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    19. MoE and expert parallelism
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/21_evaluation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    20. Evaluation and statistical protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/08_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    21. Ablations, cost, and scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../en/09_gpu_validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    22. GPU and checkpoint validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_27" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_27" id="__nav_12_27_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontier Lab (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_27_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_27">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Frontier Lab (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/en/ttt_linear_attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT and linear attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/en/ttt_e2e_long_context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT-E2E and long context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontier/en/loop_transformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Looped Transformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        同一句话，为什么会变成不同长度的输入
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        词表只是分词器的一部分
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bpe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        从四个词开始，完整训练一次 BPE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="从四个词开始，完整训练一次 BPE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        先确定我们到底在数什么
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        第一轮之后，必须重新计算相邻关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merge-rank" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编码时应用 merge rank，不重新学习频次
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        把手算变成可核对的产物
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wordpiece-unigram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WordPiece 与 Unigram：不同的切分决定
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WordPiece 与 Unigram：不同的切分决定">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wordpiece-bert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WordPiece 的一个确定含义：BERT 怎样编码
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unigram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unigram：给不同切分打概率分
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        从字符覆盖到字节覆盖
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="从字符覆盖到字节覆盖">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        字节完整，也不等于原文无损
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        词表怎样固定模型的输入与输出维度
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tokenizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        用仓库脚本训练，并保存可重用的 tokenizer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        接入数据管线之前，检查什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="9-tokenizer">9 Tokenizer：从文本到固定维度的词表<a class="headerlink" href="#9-tokenizer" title="Permanent link">&para;</a></h1>
+<h2 id="_1">同一句话，为什么会变成不同长度的输入<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>人读一句话时，会自然地辨认汉字、单词和标点。模型接收的却是一串整数。要把“猫坐下”交给模型，我们必须先约定：是每个汉字占一个位置，还是把“坐下”作为一个整体？英文 <code>cats</code> 是一个位置，还是 <code>cat</code> 与 <code>s</code> 两个位置？这些选择发生在神经网络计算之前，由 <strong>tokenizer（分词器）</strong> 决定。</p>
+<p>这里的“分词”比日常理解的“找出单词”更宽。一个 <strong>token（词元）</strong> 可以是完整单词、单词的一部分、一个汉字，也可以是 UTF-8 编码中的一个字节。对同一段原文，不同 tokenizer 可能产生不同数量的 token。因此，模型能接收 4096 个 token，并不意味着能接收 4096 个汉字或 4096 个英文单词。前面的章节讨论了训练分布；现在要进一步决定，这个分布中的文本怎样变成模型可以处理的离散序列。</p>
+<p>设原文为 <span class="arithmatex">\(u\)</span>，tokenizer 为 <span class="arithmatex">\(\tau\)</span>，输出为</p>
+<div class="arithmatex">\[
+\tau(u)=s=(s_1,\ldots,s_{n_u}),\qquad s_t\in\{0,\ldots,V-1\}.
+\]</div>
+<p>这里 <span class="arithmatex">\(n_u\)</span> 是这段文本产生的 token 数，<span class="arithmatex">\(V\)</span> 是词表大小。稍后构造模型窗口时，仍用全书的 <span class="arithmatex">\(L\)</span> 表示输入位置数；一篇文档可以贡献多个窗口，二者并不相同。<strong>词表（vocabulary）</strong> 保存 token 与整数 ID 的对应关系。例如，把“猫”编成 17、把“坐下”编成 42，就是一种可能的教学约定。17 比 42 小，不表示“猫”的含义更小；它们只是查表时使用的地址。后面的模型训练会学习这些地址所对应的向量。</p>
+<p>Tokenizer 同时影响训练位置数、上下文覆盖和参数量，因此属于模型训练方案的一部分。本章先通过一个可以全部手算的小语料理解 BPE，再解释其他常见方法的区别，最后把分词规则连接到训练脚本、模型维度和数据分片。</p>
+<h2 id="_2">词表只是分词器的一部分<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>假设词表里有 <code>c</code>、<code>a</code>、<code>t</code>、<code>ca</code> 和 <code>cat</code>。输入 <code>cat</code> 时，至少有三种合法切分：<code>c | a | t</code>、<code>ca | t</code> 和 <code>cat</code>。词表告诉我们哪些片段可用，却没有告诉我们应该选哪一种。决定切分的规则，也是 tokenizer 必须保存的内容。</p>
+<p><strong>归一化（normalization）</strong> 决定是否把全角字母转成半角、是否合并某些 Unicode 表示；<strong>预分词（pre-tokenization）</strong> 先划定哪些片段可以在内部继续切分；<strong>编码器（encoder）</strong> 按固定规则把这些片段变成 ID；<strong>解码器（decoder）</strong> 从 ID 恢复文本。特殊 token 则表示文档起止、填充等协议中的控制信息。</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>原始文本 → 归一化 → 预分词 → 按已学规则切分 → 查询词表 → token ID
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>token ID → 查询 token → 解码 → 可恢复的文本
+</span></code></pre></div>
+<p>最后得到的是“可恢复的文本”，因为前面的操作可能已经丢掉信息。例如，归一化若把全角 <code>Ａ</code> 改成 <code>A</code>，解码时就无法判断原文使用了哪种字形。保存词表，却遗漏 normalizer、合并顺序或 decoder，保存的就不是完整的 tokenizer。</p>
+<p>还要区分两种“训练”。<strong>Tokenizer 训练</strong>从文本统计中学习词表及切分规则；<strong>语言模型训练</strong>在编码后的序列上学习 embedding、注意力、MLP 等神经网络参数。下面的 BPE 小实验不需要 GPU，也不需要先建立 Transformer。通常应先训练并冻结 tokenizer，再生成语言模型的训练数据。</p>
+<h2 id="bpe">从四个词开始，完整训练一次 BPE<a class="headerlink" href="#bpe" title="Permanent link">&para;</a></h2>
+<p>BPE 是 byte-pair encoding 的缩写。用于文本分词时，它反复把常见的相邻符号对合并成一个新符号。名字里的 byte 来自算法历史；本节为了手算，使用字符作为起点，稍后再讨论字节。文本子词分词中使用这一方法的经典来源是 <a href="https://aclanthology.org/P16-1162/">Sennrich 等人的原始论文</a>。</p>
+<h3 id="_3">先确定我们到底在数什么<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>下面是一份人为构造的教学语料。四行表示四种词形，频次表示该词在完整语料中出现多少次；不是说四行的权重都相同。</p>
+<table>
+<thead>
+<tr>
+<th>词形</th>
+<th style="text-align: right;">出现次数</th>
+<th>初始符号序列</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cat</code></td>
+<td style="text-align: right;">5</td>
+<td><code>c · a · t · &lt;/w&gt;</code></td>
+</tr>
+<tr>
+<td><code>cats</code></td>
+<td style="text-align: right;">2</td>
+<td><code>c · a · t · s · &lt;/w&gt;</code></td>
+</tr>
+<tr>
+<td><code>cap</code></td>
+<td style="text-align: right;">3</td>
+<td><code>c · a · p · &lt;/w&gt;</code></td>
+</tr>
+<tr>
+<td><code>caps</code></td>
+<td style="text-align: right;">1</td>
+<td><code>c · a · p · s · &lt;/w&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>·</code> 只显示相邻符号之间的分隔，不属于语料。<code>&lt;/w&gt;</code> 是一个不可再拆的<strong>词末标记</strong>，区分“词在这里结束”和“词后面还有字符”。它是教学算法的边界符号，不是模型的 EOS。这个实验按词独立处理，不跨词合并，也不处理句子的空白恢复。</p>
+<p>初始词表有六个符号：<code>c</code>、<code>a</code>、<code>t</code>、<code>p</code>、<code>s</code> 和 <code>&lt;/w&gt;</code>。完整语料有 <span class="arithmatex">\(5+2+3+1=11\)</span> 次词出现。把每个词的符号数乘以频次，初始位置总数为</p>
+<div class="arithmatex">\[
+5\times4+2\times5+3\times4+1\times5=47.
+\]</div>
+<p>47 包括 11 个词末标记，是教学表示中的位置数，不是原文字符数。只有说清计数单位，后面的“缩短多少”才有确定含义。</p>
+<p>设词形 <span class="arithmatex">\(w\)</span> 的频次为 <span class="arithmatex">\(f(w)\)</span>，当前符号序列为
+<span class="arithmatex">\((q_1^{(w)},\ldots,q_{m_w}^{(w)})\)</span>。相邻 pair <span class="arithmatex">\((a,b)\)</span> 的加权次数定义为</p>
+<div class="arithmatex">\[
+C(a,b)=
+\sum_w f(w)
+\sum_{i=1}^{m_w-1}
+\mathbf{1}\!\left[q_i^{(w)}=a,\ q_{i+1}^{(w)}=b\right].
+\]</div>
+<p><span class="arithmatex">\(\mathbf{1}[\cdot]\)</span> 是指示函数：条件成立时取 1，否则取 0。内层数出 pair 在一个词形中出现几次，外层乘词频并汇总。例如 <span class="arithmatex">\((c,a)\)</span> 在四种词形中各出现一次，所以为 <span class="arithmatex">\(5+2+3+1=11\)</span>；<span class="arithmatex">\((a,t)\)</span> 只出现在 <code>cat</code> 和 <code>cats</code>，所以为 <span class="arithmatex">\(5+2=7\)</span>。</p>
+<p>第一轮所有 pair 的计数如下，没有省略低频项：</p>
+<table>
+<thead>
+<tr>
+<th>相邻 pair</th>
+<th>贡献来源</th>
+<th style="text-align: right;">加权次数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(c, a)</code></td>
+<td>四种词形</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr>
+<td><code>(a, t)</code></td>
+<td><code>cat</code>、<code>cats</code></td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td><code>(t, &lt;/w&gt;)</code></td>
+<td><code>cat</code></td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td><code>(a, p)</code></td>
+<td><code>cap</code>、<code>caps</code></td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td><code>(p, &lt;/w&gt;)</code></td>
+<td><code>cap</code></td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>(s, &lt;/w&gt;)</code></td>
+<td><code>cats</code>、<code>caps</code></td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><code>(t, s)</code></td>
+<td><code>cats</code></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><code>(p, s)</code></td>
+<td><code>caps</code></td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>这里数的是相邻位置，不是“两个字符是否出现在同一个词中”。<code>(c,t)</code> 此时不相邻，所以不在表中。</p>
+<h3 id="_4">第一轮之后，必须重新计算相邻关系<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>第一轮选择频次最大的 <code>(c, a)</code>，替换成新符号 <code>ca</code>。四种词形都少一个位置；按词频加权，共减少 11 个位置，得到 <span class="arithmatex">\(47-11=36\)</span>。</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cat   ×5: ca · t · &lt;/w&gt;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cats  ×2: ca · t · s · &lt;/w&gt;
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>cap   ×3: ca · p · &lt;/w&gt;
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>caps  ×1: ca · p · s · &lt;/w&gt;
+</span></code></pre></div>
+<p>现在 <code>(c,a)</code> 已不存在，<code>(a,t)</code> 也不存在，新的相邻 pair 包括 <code>(ca,t)</code>、<code>(ca,p)</code>。继续拿第一张频次表选第二个 pair，就会合并已经不存在的符号。每轮都必须按<strong>当前序列</strong>更新计数。</p>
+<p>下面展开接下来每轮的全部候选。每行表示合并<strong>之前</strong>的计数，冒号后为次数，第一项是本轮选中的 pair。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">轮次</th>
+<th>当前全部 pair 及加权次数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">2</td>
+<td><code>(ca,t):7</code>；<code>(t,&lt;/w&gt;):5</code>；<code>(ca,p):4</code>；<code>(p,&lt;/w&gt;):3</code>；<code>(s,&lt;/w&gt;):3</code>；<code>(t,s):2</code>；<code>(p,s):1</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td><code>(cat,&lt;/w&gt;):5</code>；<code>(ca,p):4</code>；<code>(p,&lt;/w&gt;):3</code>；<code>(s,&lt;/w&gt;):3</code>；<code>(cat,s):2</code>；<code>(p,s):1</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td><code>(ca,p):4</code>；<code>(p,&lt;/w&gt;):3</code>；<code>(s,&lt;/w&gt;):3</code>；<code>(cat,s):2</code>；<code>(p,s):1</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td><code>(cap,&lt;/w&gt;):3</code>；<code>(s,&lt;/w&gt;):3</code>；<code>(cat,s):2</code>；<code>(cap,s):1</code></td>
+</tr>
+</tbody>
+</table>
+<p>第二轮把 <code>ca · t</code> 合成 <code>cat</code>；第三轮把 <code>cat · &lt;/w&gt;</code> 合成 <code>cat&lt;/w&gt;</code>。第三轮只改变词形 <code>cat</code>，不会改变 <code>cats</code>，因为后者的 <code>cat</code> 后面是 <code>s</code>。第四轮把 <code>ca · p</code> 合成 <code>cap</code>。</p>
+<p>第五轮需要处理平局：<code>(cap,&lt;/w&gt;)</code> 与 <code>(s,&lt;/w&gt;)</code> 都是 3。本节规定，先比较频次，频次相同时比较 pair 的 Unicode 字典序：先比较第一个字符串，相同才比较第二个。<code>cap</code> 排在 <code>s</code> 前，所以选 <code>(cap,&lt;/w&gt;)</code>。这是教学实现的规则，不代表所有 BPE 库都采用同一规则。若不固定平局规则，遍历顺序的变化就可能改变词表。</p>
+<p>五轮的完整状态如下。每一步只替换本轮指定的相邻 pair：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>新增 token</th>
+<th><code>cat</code> × 5</th>
+<th><code>cats</code> × 2</th>
+<th><code>cap</code> × 3</th>
+<th><code>caps</code> × 1</th>
+<th style="text-align: right;">加权位置数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初始</td>
+<td>—</td>
+<td><code>c a t &lt;/w&gt;</code></td>
+<td><code>c a t s &lt;/w&gt;</code></td>
+<td><code>c a p &lt;/w&gt;</code></td>
+<td><code>c a p s &lt;/w&gt;</code></td>
+<td style="text-align: right;">47</td>
+</tr>
+<tr>
+<td>第 1 轮</td>
+<td><code>ca</code></td>
+<td><code>ca t &lt;/w&gt;</code></td>
+<td><code>ca t s &lt;/w&gt;</code></td>
+<td><code>ca p &lt;/w&gt;</code></td>
+<td><code>ca p s &lt;/w&gt;</code></td>
+<td style="text-align: right;">36</td>
+</tr>
+<tr>
+<td>第 2 轮</td>
+<td><code>cat</code></td>
+<td><code>cat &lt;/w&gt;</code></td>
+<td><code>cat s &lt;/w&gt;</code></td>
+<td><code>ca p &lt;/w&gt;</code></td>
+<td><code>ca p s &lt;/w&gt;</code></td>
+<td style="text-align: right;">29</td>
+</tr>
+<tr>
+<td>第 3 轮</td>
+<td><code>cat&lt;/w&gt;</code></td>
+<td><code>cat&lt;/w&gt;</code></td>
+<td><code>cat s &lt;/w&gt;</code></td>
+<td><code>ca p &lt;/w&gt;</code></td>
+<td><code>ca p s &lt;/w&gt;</code></td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td>第 4 轮</td>
+<td><code>cap</code></td>
+<td><code>cat&lt;/w&gt;</code></td>
+<td><code>cat s &lt;/w&gt;</code></td>
+<td><code>cap &lt;/w&gt;</code></td>
+<td><code>cap s &lt;/w&gt;</code></td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td>第 5 轮</td>
+<td><code>cap&lt;/w&gt;</code></td>
+<td><code>cat&lt;/w&gt;</code></td>
+<td><code>cat s &lt;/w&gt;</code></td>
+<td><code>cap&lt;/w&gt;</code></td>
+<td><code>cap s &lt;/w&gt;</code></td>
+<td style="text-align: right;">17</td>
+</tr>
+</tbody>
+</table>
+<p>五个新符号加六个基础符号，词表共有 11 项。原来的单字符不能因为暂时不再单独出现就被删除；编码新词时仍可能使用。</p>
+<p>本例没有重叠合并，因此每轮减少的位置数恰好等于选中 pair 的次数。但这不是普遍恒等式。例如 <code>a a a</code> 有两个相邻的 <code>(a,a)</code>，从左到右不重叠替换后只能得到 <code>aa a</code>，仅减少一个位置。脚本明确实现了这一规则，不能把 pair 频次当作所有情况下的实际替换次数。</p>
+<h3 id="merge-rank">编码时应用 merge rank，不重新学习频次<a class="headerlink" href="#merge-rank" title="Permanent link">&para;</a></h3>
+<p>现在来了一个训练语料中没有出现过的词 <code>catt</code>。如果对它重新统计频次并学习词表，表示就会依赖当前输入，模型训练时的 ID 含义也会失去稳定基础。正常编码只应用已学规则。</p>
+<p>给五条规则按学习顺序标上 <strong>merge rank（合并优先序）</strong>。脚本的 rank 从 0 开始：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">rank</th>
+<th>固定规则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td><code>c + a → ca</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td><code>ca + t → cat</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td><code>cat + &lt;/w&gt; → cat&lt;/w&gt;</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td><code>ca + p → cap</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td><code>cap + &lt;/w&gt; → cap&lt;/w&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p>编码先拆成基础符号，找出当前相邻 pair 中拥有规则的那些 pair，应用 rank 最小的规则，再检查新的邻接关系。没有可用规则时停止。</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>c · a · t · t · &lt;/w&gt;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    rank 0
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>ca · t · t · &lt;/w&gt;
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    rank 1
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>cat · t · &lt;/w&gt;
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    没有可用规则，停止
+</span></code></pre></div>
+<p>虽然词表有 <code>cat&lt;/w&gt;</code>，此时也不能用，因为 <code>cat</code> 后面还有一个 <code>t</code>。另一个新词 <code>catcap</code> 会依次使用 rank 0、1、3、4，得到 <code>cat | cap&lt;/w&gt;</code>。两次编码都没有新增 token 或重估语料频次。</p>
+<p>然后再查 ID 表。脚本先按 Unicode 字典序排列基础符号，再按学习顺序追加新符号；因此 <code>catt</code> 的 token 是 <code>cat | t | &lt;/w&gt;</code>，教学 ID 为 <code>[7, 5, 0]</code>。这些数只属于小实验，不能复制到模型配置里。本实验没有 BOS、EOS 或 PAD；ID 0 是词末标记。</p>
+<figure class="book-figure book-figure--diagram">
+<div aria-label="从四种带词频词形学习相邻关系，冻结五条 merge rank，再将新词 catt 编成 cat、t、词末标记，ID 为 7、5、0" class="figure-scroll" role="region" tabindex="0">
+<p><a href="../../assets/figures/bpe-learning-vs-encoding-zh.svg" rel="noopener" target="_blank"><img alt="从四种带词频词形学习相邻关系，冻结五条 merge rank，再将新词 catt 编成 cat、t、词末标记，ID 为 7、5、0" src="../../assets/figures/bpe-learning-vs-encoding-zh.svg" /></a></p>
+</div>
+<figcaption>
+<strong>图 9.1</strong>　先核对 <code>(c,a)</code> 的 11 次来自哪四种词形，再按冻结的 rank 表追踪新词。合并后的色带保留原始位置跨度：第二个 <code>t</code> 阻止 <code>cat</code> 与词末标记相邻，因此 rank 2 不能使用。最后才查 ID 表；ID 与 rank 各有用途。图中数字是前述语料的手算结果。
+</figcaption>
+<div class="figure-downloads">
+<p><a href="../../assets/figures/bpe-learning-vs-encoding-zh.svg" rel="noopener" target="_blank">打开 SVG 原图</a>
+<a download="bpe-learning-vs-encoding-zh.png" href="../../assets/figures/exports/bpe-learning-vs-encoding-zh.png">高清 PNG</a>
+<a download="bpe-learning-vs-encoding-zh.pdf" href="../../assets/figures/exports/bpe-learning-vs-encoding-zh.pdf">矢量 PDF</a>
+<a download="bpe-learning-vs-encoding-zh.tex" href="../../assets/figures/bpe-learning-vs-encoding-zh.tex">TikZ</a>
+<span>窄屏可左右滑动；点图查看原尺寸。</span></p>
+</div>
+</figure>
+<h3 id="_5">把手算变成可核对的产物<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>仓库的 <a href="https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/examples/book/bpe_walkthrough.py"><code>examples/book/bpe_walkthrough.py</code></a> 仅使用 Python 标准库，把计数、合并、训练和编码分别写成函数。两个关键决定直接可见：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 训练：频次优先，同频时按 pair 字典序决定。</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">chosen</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">pair</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="n">counts</span><span class="p">[</span><span class="n">pair</span><span class="p">],</span> <span class="n">pair</span><span class="p">))</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 编码：只在已有规则中选 rank 最小的一项。</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">pair</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidate</span><span class="p">:</span> <span class="n">ranks</span><span class="p">[</span><span class="n">candidate</span><span class="p">])</span>
+</span></code></pre></div>
+<p>在准备好的 Linux 实验环境中，从仓库根目录执行：</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>.venv/bin/python<span class="w"> </span>examples/book/bpe_walkthrough.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>--output<span class="w"> </span>outputs/book/bpe-walkthrough.json
+</span></code></pre></div>
+<p>运行会保存每轮合并前后的序列、全部 pair 次数、最终词表、新词编码轨迹、Python 版本和脚本 SHA-256。<strong>根据理论计算</strong>，五轮 pair 次数应为 <code>[11, 7, 5, 4, 3]</code>，位置数应从 47 变为 <code>[36, 29, 24, 20, 17]</code>。这些是手算预期；你本次运行的证据是生成的 JSON。</p>
+<p>脚本拒绝覆盖已有报告，重新运行时请使用新的输出文件名。它刻意只处理单个词及已知基础字符。输入“猫”会报错，因为初始字母表没有它。这说明，能组合出训练中未见的词，不等于能表示任意文字；正式 tokenizer 的覆盖问题需要另外解决。</p>
+<h2 id="wordpiece-unigram">WordPiece 与 Unigram：不同的切分决定<a class="headerlink" href="#wordpiece-unigram" title="Permanent link">&para;</a></h2>
+<p>理解 BPE 后，应分别问其他方法两个问题：训练保存了什么？编码依据什么选择切分？共享“子词词表”的外观，并不意味着使用同一算法。</p>
+<h3 id="wordpiece-bert">WordPiece 的一个确定含义：BERT 怎样编码<a class="headerlink" href="#wordpiece-bert" title="Permanent link">&para;</a></h3>
+<p>以 BERT 的 WordPiece 编码器为具体对象：从词的左侧开始，选择词表中能匹配的最长片段；词中间的片段带 <code>##</code> 前缀。例如，教学词表有 <code>cat</code> 和 <code>##s</code>，没有 <code>cats</code>，则 <code>cats</code> 被编码为 <code>cat | ##s</code>。<code>##</code> 表示这是后续片段，不是原文里的井号。</p>
+<p>若剩余部分不能完成切分，BERT 的实现会把这个词记为未知词，而不是重新训练规则；具体行为可核对 <a href="https://github.com/google-research/bert/blob/master/tokenization.py">BERT 原始 tokenization.py 中的 WordpieceTokenizer</a>。这里解释的是该实现的<strong>最长匹配编码</strong>。WordPiece 词表训练不能简单等同于前面的最大 pair 次数过程，本章也没有实现完整的 WordPiece 训练器。仓库的正式训练入口仅提供 BPE 和 Unigram。</p>
+<h3 id="unigram">Unigram：给不同切分打概率分<a class="headerlink" href="#unigram" title="Permanent link">&para;</a></h3>
+<p>Unigram 为片段赋予概率。对候选切分 <span class="arithmatex">\(\sigma=(v_1,\ldots,v_K)\)</span>，在片段独立假设下使用乘积：</p>
+<div class="arithmatex">\[
+P(\sigma)=\prod_{j=1}^{K}p(v_j),
+\qquad \sum_{v\in\mathcal V}p(v)=1.
+\]</div>
+<p><span class="arithmatex">\(\mathcal V\)</span> 是片段集合；“独立”是分词模型计算分数的假设，不是在声称自然语言中的词互不相关。这个概率也不是后续神经语言模型给出的条件概率。</p>
+<p>仍用 <code>cat</code>，人为给出五项词表：</p>
+<table>
+<thead>
+<tr>
+<th>片段</th>
+<th style="text-align: right;"><code>c</code></th>
+<th style="text-align: right;"><code>a</code></th>
+<th style="text-align: right;"><code>t</code></th>
+<th style="text-align: right;"><code>ca</code></th>
+<th style="text-align: right;"><code>cat</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(p(v)\)</span></td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">0.35</td>
+</tr>
+</tbody>
+</table>
+<p>概率和为 1。三种合法切分分别得到</p>
+<div class="arithmatex">\[
+\begin{aligned}
+P([\texttt{cat}])&amp;=0.35,\\
+P([\texttt{ca},\texttt{t}])&amp;=0.25\times0.20=0.05,\\
+P([\texttt{c},\texttt{a},\texttt{t}])&amp;=0.10\times0.10\times0.20=0.002.
+\end{aligned}
+\]</div>
+<p>取最大分数得到 <code>cat</code>。若要在这些切分中采样，先按同一原文归一化：总分为 <span class="arithmatex">\(0.402\)</span>，完整 <code>cat</code> 的条件概率是 <span class="arithmatex">\(0.35/0.402\approx0.871\)</span>，而不是直接把 0.35 当作三种候选中的抽样概率。改变片段概率可能改变最佳切分；这里没有 merge rank。</p>
+<p>长字符串不能显式枚举所有切分。由于对数单调递增，最大乘积等价于最大对数和。设 <span class="arithmatex">\(D(j)\)</span> 为前 <span class="arithmatex">\(j\)</span> 个字符的最佳对数分数，空前缀设为 <span class="arithmatex">\(D(0)=0\)</span>，则</p>
+<div class="arithmatex">\[
+D(j)=
+\max_{\substack{0\le i&lt;j\\u_{i+1:j}\in\mathcal V}}
+\left[D(i)+\log p(u_{i+1:j})\right].
+\]</div>
+<p>意思是枚举最后一个片段的起点，把它接在最佳前缀之后。记录每个位置选中的起点，再从末尾回溯，就能恢复切分。对上表，前两个字符的最佳分数为 <span class="arithmatex">\(\log0.25\)</span>；到第三个字符时比较 <span class="arithmatex">\(\log0.35\)</span> 与 <span class="arithmatex">\(\log0.25+\log0.20\)</span>，仍选择整个 <code>cat</code>。无法覆盖的前缀使用负无穷分数。</p>
+<p>上面的概率是教学设定。真实训练需要估计概率并缩减词表。若 <span class="arithmatex">\(\mathcal S(u)\)</span> 是所有能拼成 <span class="arithmatex">\(u\)</span> 的切分，训练希望<strong>最大化</strong>下面的对数似然；若采用最小化损失的写法，则应对整个式子取负号：</p>
+<div class="arithmatex">\[
+\mathcal J_{\mathrm{tok}}
+=\sum_u f(u)\log
+\left[
+\sum_{\sigma\in\mathcal S(u)}
+\prod_{v\in\sigma}p(v)
+\right].
+\]</div>
+<p>先将同一字符串的各切分概率相加，再按文本频次计算对数似然。训练会交替估计分词统计、更新概率，并删除对目标贡献较小的候选，同时保护必要基础字符。原始方法见 <a href="https://aclanthology.org/P18-1007/">Kudo 的 Unigram 子词模型论文</a>。本节解释了分数、最佳切分和训练目标；EM 更新、候选生成及剪枝实现不在此展开，实验交给固定版本的库。</p>
+<p>SentencePiece 是支持 BPE、Unigram 等方法的工具包。把“BPE、Unigram、SentencePiece”列成三个同层级的算法，会混淆方法与实现工具。</p>
+<h2 id="_6">从字符覆盖到字节覆盖<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p>字符 BPE 只能编码初始字母表包含的字符。对中英混合语料，枚举所有可能的字符并不方便。另一条路径是先把文本编码成 UTF-8 字节：每个字节取 0 到 255，共 256 种值。只要这些基础字节都可表示，就能把有效 UTF-8 文本拆回基础单位；高频字节片段还可以通过 BPE 合并，或交给 Unigram 的片段模型。</p>
+<p>这里必须分开看三个操作。<strong>ByteLevel 预分词器</strong>把字节映射为供算法处理的字符表示；<strong>完整初始 alphabet</strong>要求 trainer 保留全部 256 种基础表示，即使训练样本没有出现；<strong>ByteLevel decoder</strong>再把这些表示转回字节与文本。只设置预分词器，不能代替后两步。Tokenizers 0.22.2 的 <a href="https://raw.githubusercontent.com/huggingface/tokenizers/v0.22.2/bindings/python/py_src/tokenizers/trainers/__init__.pyi">BpeTrainer 与 UnigramTrainer API</a> 都支持 <code>initial_alphabet</code>；Unigram 的 <a href="https://github.com/huggingface/tokenizers/blob/v0.22.2/tokenizers/src/models/unigram/trainer.rs">训练源码</a> 把它并入必须保留的字符。</p>
+<p>仓库脚本现在把 <code>ByteLevel.alphabet()</code> 传给两种 trainer，并设置 decoder。这不意味着两种算法相同：BPE 仍学习合并规则，Unigram 仍学习片段分数。这里实现的是完整字节基础表示，也不应与其他 tokenizer 的 <code>&lt;0xXX&gt;</code> 未知字符回退协议混为一谈。</p>
+<p>默认另有四个特殊 token，因此请求词表大小至少为 <span class="arithmatex">\(256+4=260\)</span>。这个下界只保证有地方放基础单位，不保证实际词表恰好等于请求值。语料太少、BPE 可用 pair 不足或库的训练约束，都可能使实际值偏离目标；模型配置必须读取实际产物。</p>
+<h3 id="_7">字节完整，也不等于原文无损<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>脚本使用 NFKC 归一化。原文 <code>Ａ① 猫🙂</code> 归一化后是 <code>A1 猫🙂</code>。解码得到后者，只说明保留了<strong>归一化后的文本</strong>；它无法恢复原来的全角字母和圈号数字。清洗章采用 NFC 时保留的兼容字形，仍会在这一 tokenizer 阶段改变，因此单看上游清洗规则不能断言整个数据流程无损。</p>
+<p>因此，对于没有被当作控制 token 处理的普通文本，关闭额外空白清理后，本章检查的是</p>
+<div class="arithmatex">\[
+\operatorname{decode}\!\left(\operatorname{encode}(u)\right)
+=\operatorname{NFKC}(u),
+\]</div>
+<p>而不是无条件等于 <span class="arithmatex">\(u\)</span>。检查时应关闭自动加入特殊 token，并覆盖训练外的中文、emoji、换行、制表符与兼容字形。若选择 <code>--no-byte-level</code>，脚本改用 Whitespace 预分词；它不保留任意原始空白，也没有完整字节覆盖保证，不能照搬上述预期。若需要保留字形差异，应在训练 tokenizer <strong>之前</strong>重新选择归一化策略。</p>
+<p>仓库还提供无需训练的 <code>ByteTokenizer</code>：字节 0–255 对应 ID 3–258，PAD、BOS、EOS 分别为 0、1、2，总词表为 259。它不做前面的 NFKC 归一化，适合检查数据与模型接口；代价是序列较长，例如一个常见汉字通常占三个 UTF-8 字节。覆盖是否完整与序列是否紧凑，是两个不同问题。</p>
+<h2 id="_8">词表怎样固定模型的输入与输出维度<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p>ID 不是向量，模型先用 embedding 矩阵把它变成向量。设隐藏维度为 <span class="arithmatex">\(d\)</span>，则</p>
+<div class="arithmatex">\[
+E\in\mathbb R^{V\times d},\qquad
+s_t\longmapsto E_{s_t,:}\in\mathbb R^d.
+\]</div>
+<p>每个 token 占一行，所以词表越大，矩阵行数越多。模型经过若干层计算，得到长度为 <span class="arithmatex">\(d\)</span> 的隐藏向量 <span class="arithmatex">\(h\)</span>。为了预测下一个 token，还要为每个词表候选输出分数：</p>
+<div class="arithmatex">\[
+z=hW_{\mathrm{out}},\qquad
+W_{\mathrm{out}}\in\mathbb R^{d\times V},\qquad
+z\in\mathbb R^V.
+\]</div>
+<p>这里将 <span class="arithmatex">\(h\)</span> 写成行向量，<span class="arithmatex">\(z\)</span> 的分量称为 logits。softmax 再把分数转成总和为 1 的概率。因此，<strong>固定词表后，最终分类头的输出维度就固定为 <span class="arithmatex">\(V\)</span></strong>。MLP 的中间宽度可以另选，但在此架构中回到残差流的输出仍为 <span class="arithmatex">\(d\)</span>，最后由词表投影把 <span class="arithmatex">\(d\)</span> 映射到 <span class="arithmatex">\(V\)</span>。</p>
+<p>输入 embedding 与输出投影可以共享权重，称为 <strong>tied embeddings</strong>，即 <span class="arithmatex">\(W_{\mathrm{out}}=E^{\mathsf T}\)</span>。不共享时两个矩阵各有 <span class="arithmatex">\(Vd\)</span> 个参数；共享时只保存一份。下面忽略偏置：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(V\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(d\)</span></th>
+<th style="text-align: right;">单份 embedding 参数量 <span class="arithmatex">\(Vd\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">259</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">4,144</td>
+</tr>
+<tr>
+<td style="text-align: right;">32,000</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">512,000</td>
+</tr>
+<tr>
+<td style="text-align: right;">128,000</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">2,048,000</td>
+</tr>
+<tr>
+<td style="text-align: right;">32,000</td>
+<td style="text-align: right;">768</td>
+<td style="text-align: right;">24,576,000</td>
+</tr>
+<tr>
+<td style="text-align: right;">128,000</td>
+<td style="text-align: right;">768</td>
+<td style="text-align: right;">98,304,000</td>
+</tr>
+</tbody>
+</table>
+<p>大词表可能用更少位置表示常见文本，却需要更大的 embedding 与输出投影，也可能让稀有 token 缺少训练样本。所以选择词表需要同时考虑压缩效果、语言与领域覆盖、模型规模和训练预算，不能只看词表更大或序列更短。</p>
+<h2 id="tokenizer">用仓库脚本训练，并保存可重用的 tokenizer<a class="headerlink" href="#tokenizer" title="Permanent link">&para;</a></h2>
+<p>正式入口是 <a href="https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/scripts/train_tokenizer.py"><code>scripts/train_tokenizer.py</code></a>。下面假设已按环境章节准备好 <code>.tools/uv</code> 和 <code>.venv</code>；只增加 tokenizer 依赖，保留此前的其他 extras：</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>.tools/uv<span class="w"> </span>sync<span class="w"> </span>--frozen<span class="w"> </span>--inexact<span class="w"> </span>--python<span class="w"> </span>.venv/bin/python<span class="w"> </span>--extra<span class="w"> </span>tokenizer
+</span></code></pre></div>
+<p>训练输入应来自清洗、去重、切分后的训练部分，不能把验证或测试数据一起用来选词表。即使不训练神经网络，看到评测文本仍会改变词表与编码长度。还应记录 tokenizer 训练样本中的语言与领域比例：纯英文小样本学出的合并不一定适合中英混合模型。</p>
+<p>准备 <code>data/tokenizer/train.jsonl</code>，每行是包含字符串字段 <code>text</code> 的 JSON 对象。下面是训练入口示例，仓库不会自动提供这份正式语料：</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>.venv/bin/python<span class="w"> </span>scripts/train_tokenizer.py<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>--input<span class="w"> </span>data/tokenizer/train.jsonl<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>--output<span class="w"> </span>outputs/tokenizer-32k<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>--algorithm<span class="w"> </span>bpe<span class="w"> </span>--vocab-size<span class="w"> </span><span class="m">32000</span><span class="w"> </span>--text-key<span class="w"> </span>text
+</span></code></pre></div>
+<p>脚本把 JSONL 字段写成临时文本，统一 CRLF/CR 为 LF，每条记录后加换行，并保留字段原有的内部换行。因此这是按文本文件行读取的 tokenizer 训练语料，临时文件的一行未必对应原 JSONL 的一篇文档。文档边界协议在随后生成模型数据时处理。</p>
+<p>默认启用 byte-level。<code>--algorithm unigram</code> 同时更换 model 与 trainer；<code>--min-frequency</code> 仅作用于 BPE，<code>--max-piece-length</code> 仅作用于 Unigram。关键的覆盖设置为：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">initial_alphabet</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pre_tokenizers</span><span class="o">.</span><span class="n">ByteLevel</span><span class="o">.</span><span class="n">alphabet</span><span class="p">())</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># 两种 trainer 都传入同一套基础字节表示。</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">trainer</span> <span class="o">=</span> <span class="n">trainers</span><span class="o">.</span><span class="n">BpeTrainer</span><span class="p">(</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">vocab_size</span><span class="o">=</span><span class="mi">32_000</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">initial_alphabet</span><span class="o">=</span><span class="n">initial_alphabet</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">special_tokens</span><span class="o">=</span><span class="p">[</span><span class="s2">"&lt;pad&gt;"</span><span class="p">,</span> <span class="s2">"&lt;bos&gt;"</span><span class="p">,</span> <span class="s2">"&lt;eos&gt;"</span><span class="p">,</span> <span class="s2">"&lt;unk&gt;"</span><span class="p">],</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>这是解释配置关系的片段，完整执行入口仍为上面的脚本。脚本同时设置 NFKC、ByteLevel 预分词器与 decoder，保存 Hugging Face tokenizer 目录。<code>tokenizer_metadata.json</code> 记录请求与实际词表大小、特殊 ID、normalizer、decoder、基础字符表大小、库版本、输入摘要和 <code>tokenizer.json</code> 的 SHA-256。</p>
+<p>摘要能核对文件是否相同，却不能保证不同库版本、并行调度或平局实现下重新训练一定逐字节相同。教学 BPE 明确规定了平局规则；库实现则应以固定版本和最终文件为准。脚本拒绝已有输出目录，并在训练前后检查输入及实际训练文本的摘要，发现变化就拒绝保存新 tokenizer；元数据分别记录原输入与转换后的训练文本摘要。每个实验应使用新路径，并归档完整目录及元数据。</p>
+<h2 id="_9">接入数据管线之前，检查什么<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<p>第一类检查是<strong>表示正确性</strong>：ID 在 <span class="arithmatex">\([0,V)\)</span> 内，特殊 ID 不冲突，未知输入处理符合预期，编码解码符合归一化策略。<code>tests/test_tokenizer_training.py</code> 用仅含 ASCII 的小语料训练 BPE 和 Unigram，再检查训练外的中文、emoji、空白与 NFKC 变化。它检验覆盖与接口，不评价语言质量。</p>
+<p>第二类是<strong>编码成本</strong>。对固定原文，设 UTF-8 字节总数为 <span class="arithmatex">\(N_{\mathrm{bytes}}\)</span>，普通 token 总数为 <span class="arithmatex">\(T\)</span>，报告</p>
+<div class="arithmatex">\[
+r_{\mathrm{tok/byte}}=\frac{T}{N_{\mathrm{bytes}}}.
+\]</div>
+<p>比较时要使用同一批原文、相同字节统计口径，并说明是否计入 BOS/EOS。例如同一份 1000 字节文本分别编码为 500 或 800 个 token，比率就是 0.5 或 0.8。前者占用的训练位置更少，但不能据此推断模型质量更好。</p>
+<p>按语言、领域分别计算比率，再看文档长度分布、截断比例、UNK 比例和特殊 token 频率。总体均值可能掩盖中文变长、代码缩进处理错误或小语种频繁落到 UNK 的问题。单 token 交叉熵也不能在不同 tokenizer 之间直接当作同单位的质量分数：它们预测的基本事件已改变。</p>
+<p>第三类是<strong>特殊 token 协议</strong>。BOS 表示序列开始，EOS 表示序列或文档结束，PAD 用于填充，UNK 表示未知项。字符串、ID、添加位置和是否参与损失都要一致。声明 BOS ID，不代表每次 <code>encode</code> 都会自动插入；数据脚本再加入一次，也可能造成重复。</p>
+<p><a href="https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch/blob/main/ttt/data.py"><code>ttt.data</code></a> 提供 <code>ByteTokenizer</code> 和 <code>HuggingFaceTokenizer</code>。后者先调用 <code>encode(add_special_tokens=False)</code>，再按配置手动加入 BOS；EOS 由数据准备阶段追加。当前行为如下，loss mask 的逐位置含义将在下一章展开：</p>
+<table>
+<thead>
+<tr>
+<th>数据路径</th>
+<th>BOS</th>
+<th>EOS</th>
+<th>loss mask</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>普通 NPY</td>
+<td>有 BOS ID 时由 <code>encode</code> 加入</td>
+<td>有 EOS ID 时每篇文档追加</td>
+<td>无单独 mask 文件，目标默认有效</td>
+</tr>
+<tr>
+<td>分片普通 LM</td>
+<td>同上</td>
+<td>同上</td>
+<td>BOS 为 0，其余 token 为 1</td>
+</tr>
+<tr>
+<td>分片监督数据</td>
+<td>prompt 加入，response 不重复加入</td>
+<td>response 后追加</td>
+<td>prompt 为 0，response 与 EOS 为 1</td>
+</tr>
+</tbody>
+</table>
+<p>生成分片时传入固定的本地 tokenizer 目录。下面是两个替代实验；<code>corpus.jsonl</code> 要换成已准备的语料，第二条还要求先完成 tokenizer 训练：</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>.venv/bin/python<span class="w"> </span>-m<span class="w"> </span>ttt.data<span class="w"> </span>--input<span class="w"> </span>corpus.jsonl<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>--output<span class="w"> </span>data/pretrain-byte<span class="w"> </span>--sharded<span class="w"> </span>--tokenizer<span class="w"> </span>byte
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>.venv/bin/python<span class="w"> </span>-m<span class="w"> </span>ttt.data<span class="w"> </span>--input<span class="w"> </span>corpus.jsonl<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span>--output<span class="w"> </span>data/pretrain-bpe<span class="w"> </span>--sharded<span class="w"> </span>--tokenizer<span class="w"> </span>outputs/tokenizer-32k
+</span></code></pre></div>
+<p>两条命令使用不同输出目录。数据 manifest 记录 tokenizer 名称、词表大小、输入与分片摘要；特殊 ID、normalizer、库版本及 tokenizer 文件摘要需要连同训练脚本元数据归档，不能假设 manifest 自动包含所有字段。加载远端 tokenizer 时还要固定 revision 和本地文件；当前 CLI 没有单独暴露 revision 参数。</p>
+<p>Tokenizer 的身份包括词表、切分规则和前后处理配置，不能简化为词表大小。更换 tokenizer 后必须重建 token 分片，并核对实际 <span class="arithmatex">\(V\)</span> 与模型配置。旧 ID 仍在合法范围内，不代表它指向同一个 token；已有 checkpoint 也不能只改 <code>vocab_size</code> 就继续使用。</p>
+<p>现在我们得到了一条有明确含义的 token 流。下一章把它变成模型真正消费的固定窗口：哪些位置作为输入，哪些作为预测目标，跨文档边界怎样影响监督与可见上下文。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2026 Wenbin Wang
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.footnote.tooltips"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid.js"></script>
+      
+    
+  </body>
+</html>

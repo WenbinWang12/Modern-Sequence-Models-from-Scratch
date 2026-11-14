@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+  <title id="title">The pretraining data pipeline</title>
+  <desc id="desc">Raw records are cleaned, split, tokenized, packed, and turned into masked training windows and evidence.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#edf7f5"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#172033" flood-opacity=".13"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#59708a"/></marker>
+    <style>
+      .eyebrow{font:700 13px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:2px;fill:#59708a}.title{font:700 29px Inter,ui-sans-serif,system-ui,sans-serif;fill:#172033}.copy{font:400 14px Inter,ui-sans-serif,system-ui,sans-serif;fill:#52657b}.label{font:700 14px Inter,ui-sans-serif,system-ui,sans-serif;fill:#172033}.small{font:400 12px Inter,ui-sans-serif,system-ui,sans-serif;fill:#52657b}.tag{font:700 11px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:1px;fill:#59708a}
+    </style>
+  </defs>
+  <rect width="1200" height="500" rx="28" fill="url(#bg)"/><text x="56" y="48" class="eyebrow">PART II · DATA</text><text x="56" y="84" class="title">The pipeline defines the learning target</text><text x="56" y="112" class="copy">Every transformation changes the distribution that reaches the loss.</text>
+  <path d="M56 143H1144" stroke="#d4e3e6" stroke-width="2"/>
+  <g filter="url(#shadow)">
+    <rect x="56" y="178" width="190" height="128" rx="18" fill="#dceeff"/><rect x="276" y="178" width="190" height="128" rx="18" fill="#e9e4ff"/><rect x="496" y="178" width="190" height="128" rx="18" fill="#ddf7ee"/><rect x="716" y="178" width="190" height="128" rx="18" fill="#fff0c2"/><rect x="936" y="178" width="208" height="128" rx="18" fill="#ffe0e8"/>
+  </g>
+  <g fill="none" stroke="#59708a" stroke-width="2" marker-end="url(#arrow)"><path d="M249 242H268"/><path d="M469 242H488"/><path d="M689 242H708"/><path d="M909 242H928"/></g>
+  <g><text x="78" y="210" class="tag">01 · RAW</text><text x="78" y="241" class="label">records</text><text x="78" y="267" class="small">text + metadata</text><text x="78" y="287" class="small">source · license</text>
+  <text x="298" y="210" class="tag">02 · CURATE</text><text x="298" y="241" class="label">clean + split</text><text x="298" y="267" class="small">filter · deduplicate</text><text x="298" y="287" class="small">train / val / test</text>
+  <text x="518" y="210" class="tag">03 · ENCODE</text><text x="518" y="241" class="label">tokenizer</text><text x="518" y="267" class="small">IDs · vocabulary</text><text x="518" y="287" class="small">BOS · EOS · fallback</text>
+  <text x="738" y="210" class="tag">04 · FRAME</text><text x="738" y="241" class="label">pack + mask</text><text x="738" y="267" class="small">windows · shift</text><text x="738" y="287" class="small">boundaries · labels</text>
+  <text x="958" y="210" class="tag">05 · OPTIMIZE</text><text x="958" y="241" class="label">training windows</text><text x="958" y="267" class="small">X, Y, M → loss</text><text x="958" y="287" class="small">manifest · hash</text></g>
+  <path d="M151 337C151 365 260 376 340 376H860C940 376 1049 365 1049 337" fill="none" stroke="#59708a" stroke-width="2" stroke-dasharray="5 7"/>
+  <g filter="url(#shadow)"><rect x="56" y="392" width="330" height="62" rx="16" fill="#172033"/><rect x="435" y="392" width="330" height="62" rx="16" fill="#172033"/><rect x="814" y="392" width="330" height="62" rx="16" fill="#172033"/></g>
+  <text x="78" y="419" class="tag" fill="#8fe0c0">CAPABILITY</text><text x="78" y="440" class="small" fill="#d9e5f1">what knowledge and behavior are covered?</text><text x="457" y="419" class="tag" fill="#ffd27e">COST</text><text x="457" y="440" class="small" fill="#d9e5f1">how many useful positions per budget?</text><text x="836" y="419" class="tag" fill="#ff9fb3">VALIDITY</text><text x="836" y="440" class="small" fill="#d9e5f1">can the result be reproduced and trusted?</text>
+</svg>

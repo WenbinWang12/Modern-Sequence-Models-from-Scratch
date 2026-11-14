@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 1110" role="img" aria-labelledby="title desc">
+<title id="title">先找候选，再决定保留谁</title>
+<desc id="desc">四篇精确去重后的文档按两个band形成四个候选对；AB和BC的Jaccard为3/4，AD为2/5，BD为1/3。A和C不构成候选且Jaccard为1/2。按ID顺序只与已保留代表比较，删除B映射到A，保留A、C、D。五篇输入最终三篇保留、一篇精确删除、一篇近似删除。</desc>
+<defs>
+<style>text{font-family:"Noto Sans CJK SC","Noto Sans SC","Microsoft YaHei",Inter,system-ui,sans-serif}.mono{font-family:"DejaVu Sans Mono","Cascadia Code",Consolas,monospace}</style>
+<marker id="arrow-147d73" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#147d73"/></marker>
+<marker id="arrow-5a6c72" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#5a6c72"/></marker>
+<marker id="arrow-a66a24" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#a66a24"/></marker>
+<marker id="arrow-5d61a8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#5d61a8"/></marker>
+<marker id="arrow-d6dfdb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#d6dfdb"/></marker>
+</defs>
+<rect x="0" y="0" width="1160" height="1110" rx="0" fill="#f8f6f0" stroke="none" stroke-width="1.5" opacity="1"/>
+<rect x="0" y="0" width="1160" height="9" rx="0" fill="#147d73" stroke="none" stroke-width="1.5" opacity="1"/>
+<text x="52" y="49" font-size="20" fill="#147d73" font-weight="700" text-anchor="start" xml:space="preserve">07 / 文档去重</text>
+<text x="1108" y="49" font-size="18" fill="#5a6c72" font-weight="500" text-anchor="end" xml:space="preserve">现代序列模型 · 从零开始</text>
+<text x="52" y="108" font-size="37" fill="#18313d" font-weight="700" text-anchor="start" xml:space="preserve">先找候选，再决定保留谁</text>
+<text x="52" y="146" font-size="22" fill="#5a6c72" font-weight="400" text-anchor="start" xml:space="preserve">候选对、达标边、删除文档：这是三种不同的计数。</text>
+<path d="M 52 174 L 1108 174" fill="none" stroke="#d6dfdb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<circle cx="82" cy="213" r="18" fill="#147d73" stroke="none" stroke-width="1.5"/>
+<text x="82" y="220" font-size="20" fill="#ffffff" font-weight="700" text-anchor="middle" xml:space="preserve">1</text>
+<text x="115" y="221" font-size="25" fill="#18313d" font-weight="700" text-anchor="start" xml:space="preserve">签名分带</text>
+<circle cx="638" cy="213" r="18" fill="#5d61a8" stroke="none" stroke-width="1.5"/>
+<text x="638" y="220" font-size="20" fill="#ffffff" font-weight="700" text-anchor="middle" xml:space="preserve">2</text>
+<text x="671" y="221" font-size="25" fill="#18313d" font-weight="700" text-anchor="start" xml:space="preserve">逐对精确复核</text>
+<text x="64" y="261" font-size="20" fill="#5a6c72" font-weight="400" text-anchor="start" xml:space="preserve">精确去重后：d02 → d01</text>
+<rect x="135" y="312" width="356" height="110" rx="20" fill="#dfefe9" stroke="none" stroke-width="1.5" opacity="1"/>
+<rect x="135" y="438" width="356" height="110" rx="20" fill="#e9eaf8" stroke="none" stroke-width="1.5" opacity="1"/>
+<text x="180" y="295" font-size="27" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">A</text>
+<text x="180" y="351" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">a</text>
+<text x="180" y="397" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">b</text>
+<text x="180" y="477" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">c</text>
+<text x="180" y="523" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">c</text>
+<text x="268" y="295" font-size="27" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">B</text>
+<text x="268" y="351" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">a</text>
+<text x="268" y="397" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">b</text>
+<text x="268" y="477" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">d</text>
+<text x="268" y="523" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">c</text>
+<text x="356" y="295" font-size="27" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">C</text>
+<text x="356" y="351" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">b</text>
+<text x="356" y="397" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">b</text>
+<text x="356" y="477" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">d</text>
+<text x="356" y="523" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">c</text>
+<text x="444" y="295" font-size="27" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">D</text>
+<text x="444" y="351" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">a</text>
+<text x="444" y="397" font-size="31" fill="#147d73" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">b</text>
+<text x="444" y="477" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">b</text>
+<text x="444" y="523" font-size="31" fill="#5d61a8" font-weight="600" text-anchor="middle" class="mono" xml:space="preserve">a</text>
+<text x="64" y="352" font-size="22" fill="#5a6c72" font-weight="500" text-anchor="middle" xml:space="preserve">1</text>
+<text x="64" y="398" font-size="22" fill="#5a6c72" font-weight="500" text-anchor="middle" xml:space="preserve">2</text>
+<text x="64" y="478" font-size="22" fill="#5a6c72" font-weight="500" text-anchor="middle" xml:space="preserve">3</text>
+<text x="64" y="524" font-size="22" fill="#5a6c72" font-weight="500" text-anchor="middle" xml:space="preserve">4</text>
+<path d="M 115 316 L 115 418" fill="none" stroke="#147d73" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<path d="M 115 442 L 115 546" fill="none" stroke="#5d61a8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<text x="144" y="583" font-size="21" fill="#147d73" font-weight="600" text-anchor="start" class="mono" xml:space="preserve">band 1  ·  (a,b)</text>
+<text x="144" y="614" font-size="21" fill="#5d61a8" font-weight="600" text-anchor="start" class="mono" xml:space="preserve">band 2  ·  (d,c)</text>
+<text x="424" y="583" font-size="21" fill="#147d73" font-weight="700" text-anchor="middle" class="mono" xml:space="preserve">A B D</text>
+<text x="424" y="614" font-size="21" fill="#5d61a8" font-weight="700" text-anchor="middle" class="mono" xml:space="preserve">B C</text>
+<path d="M 511 410 C 544 410 554 410 587 410" fill="none" stroke="#5a6c72" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-5a6c72)" opacity="1"/>
+<text x="549" y="382" font-size="18" fill="#5a6c72" font-weight="600" text-anchor="middle" xml:space="preserve">检索</text>
+<text x="620" y="261" font-size="20" fill="#5a6c72" font-weight="400" text-anchor="start" xml:space="preserve">阈值 3/4 · 固定教学排列</text>
+<path d="M 702 333 L 836 333" fill="none" stroke="#147d73" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<path d="M 908 333 L 1037 333" fill="none" stroke="#147d73" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<path d="M 684 364 C 714 412 735 452 753 482" fill="none" stroke="#a66a24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 8" opacity="1"/>
+<path d="M 854 365 C 828 409 808 449 788 482" fill="none" stroke="#a66a24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 8" opacity="1"/>
+<circle cx="670" cy="338" r="35" fill="#e5e6df" stroke="none" stroke-width="1.5"/>
+<circle cx="668" cy="333" r="35" fill="#ffffff" stroke="#8da6a4" stroke-width="2"/>
+<text x="668" y="343" font-size="31" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">A</text>
+<circle cx="874" cy="338" r="35" fill="#e5e6df" stroke="none" stroke-width="1.5"/>
+<circle cx="872" cy="333" r="35" fill="#ffffff" stroke="#8da6a4" stroke-width="2"/>
+<text x="872" y="343" font-size="31" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">B</text>
+<circle cx="1075" cy="338" r="35" fill="#e5e6df" stroke="none" stroke-width="1.5"/>
+<circle cx="1073" cy="333" r="35" fill="#ffffff" stroke="#8da6a4" stroke-width="2"/>
+<text x="1073" y="343" font-size="31" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">C</text>
+<circle cx="772" cy="519" r="35" fill="#e5e6df" stroke="none" stroke-width="1.5"/>
+<circle cx="770" cy="514" r="35" fill="#ffffff" stroke="#8da6a4" stroke-width="2"/>
+<text x="770" y="524" font-size="31" fill="#18313d" font-weight="700" text-anchor="middle" xml:space="preserve">D</text>
+<text x="770" y="313" font-size="24" fill="#147d73" font-weight="700" text-anchor="middle" class="mono" xml:space="preserve">3/4</text>
+<text x="973" y="313" font-size="24" fill="#147d73" font-weight="700" text-anchor="middle" class="mono" xml:space="preserve">3/4</text>
+<rect x="651" y="415" width="79" height="34" rx="17" fill="#f9ecd7" stroke="none" stroke-width="1.5" opacity="1"/>
+<text x="690.5" y="439" font-size="20" fill="#a66a24" font-weight="700" text-anchor="middle" xml:space="preserve">2/5</text>
+<rect x="822" y="415" width="79" height="34" rx="17" fill="#f9ecd7" stroke="none" stroke-width="1.5" opacity="1"/>
+<text x="861.5" y="439" font-size="20" fill="#a66a24" font-weight="700" text-anchor="middle" xml:space="preserve">1/3</text>
+<text x="620" y="580" font-size="21" fill="#5a6c72" font-weight="400" text-anchor="start" xml:space="preserve">A–C = 1/2；不是候选对</text>
+<path d="M 621 610 L 658 610" fill="none" stroke="#147d73" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<text x="672" y="618" font-size="20" fill="#147d73" font-weight="600" text-anchor="start" xml:space="preserve">达标</text>
+<path d="M 838 610 L 875 610" fill="none" stroke="#a66a24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 8" opacity="1"/>
+<text x="889" y="618" font-size="20" fill="#a66a24" font-weight="600" text-anchor="start" xml:space="preserve">未达标</text>
+<path d="M 64 652 L 1096 652" fill="none" stroke="#d6dfdb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<circle cx="82" cy="692" r="18" fill="#147d73" stroke="none" stroke-width="1.5"/>
+<text x="82" y="699" font-size="20" fill="#ffffff" font-weight="700" text-anchor="middle" xml:space="preserve">3</text>
+<text x="115" y="700" font-size="25" fill="#18313d" font-weight="700" text-anchor="start" xml:space="preserve">只与已经保留的代表比较</text>
+<text x="64" y="737" font-size="22" fill="#5a6c72" font-weight="400" text-anchor="start" xml:space="preserve">按 ID 顺序处理。相似关系不会自动传递。</text>
+<path d="M 137 803 L 1013 803" fill="none" stroke="#d6dfdb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<circle cx="140" cy="803" r="31" fill="#dfefe9" stroke="#a8ccc0" stroke-width="2"/>
+<text x="140" y="813" font-size="30" fill="#147d73" font-weight="700" text-anchor="middle" xml:space="preserve">A</text>
+<text x="140" y="869" font-size="27" fill="#147d73" font-weight="700" text-anchor="middle" xml:space="preserve">保留</text>
+<text x="140" y="900" font-size="21" fill="#18313d" font-weight="500" text-anchor="middle" class="mono" xml:space="preserve">d01</text>
+<text x="140" y="934" font-size="20" fill="#5a6c72" font-weight="400" text-anchor="middle" xml:space="preserve">第一个代表</text>
+<circle cx="425" cy="803" r="31" fill="#f9ecd7" stroke="#d8bd91" stroke-width="2"/>
+<text x="425" y="813" font-size="30" fill="#a66a24" font-weight="700" text-anchor="middle" xml:space="preserve">B</text>
+<text x="425" y="869" font-size="27" fill="#a66a24" font-weight="700" text-anchor="middle" xml:space="preserve">删除</text>
+<text x="425" y="900" font-size="21" fill="#18313d" font-weight="500" text-anchor="middle" class="mono" xml:space="preserve">d03 → d01</text>
+<text x="425" y="934" font-size="20" fill="#5a6c72" font-weight="400" text-anchor="middle" xml:space="preserve">直接匹配 A</text>
+<circle cx="710" cy="803" r="31" fill="#dfefe9" stroke="#a8ccc0" stroke-width="2"/>
+<text x="710" y="813" font-size="30" fill="#147d73" font-weight="700" text-anchor="middle" xml:space="preserve">C</text>
+<text x="710" y="869" font-size="27" fill="#147d73" font-weight="700" text-anchor="middle" xml:space="preserve">保留</text>
+<text x="710" y="900" font-size="21" fill="#18313d" font-weight="500" text-anchor="middle" class="mono" xml:space="preserve">d04</text>
+<text x="710" y="934" font-size="20" fill="#5a6c72" font-weight="400" text-anchor="middle" xml:space="preserve">B 已不再是代表</text>
+<circle cx="995" cy="803" r="31" fill="#dfefe9" stroke="#a8ccc0" stroke-width="2"/>
+<text x="995" y="813" font-size="30" fill="#147d73" font-weight="700" text-anchor="middle" xml:space="preserve">D</text>
+<text x="995" y="869" font-size="27" fill="#147d73" font-weight="700" text-anchor="middle" xml:space="preserve">保留</text>
+<text x="995" y="900" font-size="21" fill="#18313d" font-weight="500" text-anchor="middle" class="mono" xml:space="preserve">d05</text>
+<text x="995" y="934" font-size="20" fill="#5a6c72" font-weight="400" text-anchor="middle" xml:space="preserve">与 A 只有 2/5</text>
+<path d="M 64 963 L 1096 963" fill="none" stroke="#d6dfdb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="1"/>
+<text x="64" y="1006" font-size="26" fill="#18313d" font-weight="700" text-anchor="start" xml:space="preserve">4 个候选对</text>
+<text x="411" y="1006" font-size="27" fill="#5a6c72" font-weight="500" text-anchor="middle" xml:space="preserve">→</text>
+<text x="461" y="1006" font-size="26" fill="#147d73" font-weight="700" text-anchor="start" xml:space="preserve">2 条达标边</text>
+<text x="802" y="1006" font-size="27" fill="#5a6c72" font-weight="500" text-anchor="middle" xml:space="preserve">→</text>
+<text x="849" y="1006" font-size="26" fill="#a66a24" font-weight="700" text-anchor="start" xml:space="preserve">1 篇近似删除</text>
+<text x="64" y="1059" font-size="22" fill="#5a6c72" font-weight="400" text-anchor="start" xml:space="preserve">文档守恒：5 篇输入 = 3 篇保留 + 1 篇精确删除 + 1 篇近似删除</text>
+</svg>

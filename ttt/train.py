@@ -24,9 +24,10 @@ from .lifecycle import StopSignal, atomic_json, latest_checkpoint
 from .models.ttt_e2e.modeling_ttt_e2e import TTTE2EForCausalLM
 from .provenance import environment_report, run_metadata
 from .training import TrainState, make_optimizer, make_train_step
+from .callbacks import JsonlMetricsCallback, TrainerCallback
 
 
-def train(experiment, data_path, output_dir, *, resume=None, initialize_from=None):
+def train(experiment, data_path, output_dir, *, resume=None, initialize_from=None, callbacks=None):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     atomic_json(output_dir / "run_metadata.json", run_metadata(experiment, data_path, output_dir))
@@ -116,7 +117,11 @@ def train(experiment, data_path, output_dir, *, resume=None, initialize_from=Non
         atomic_json(output_dir / "status.json", {"status": "running", "step": completed})
     extension = ".npz" if training.checkpoint_format == "npz" else ".orbax"
     saved = None
-    log = (output_dir / "metrics.jsonl").open("a", encoding="utf-8") if primary else None
+    active_callbacks: tuple[TrainerCallback, ...] = (
+        (JsonlMetricsCallback(output_dir / "metrics.jsonl"), *(callbacks or ())) if primary else ()
+    )
+    for callback in active_callbacks:
+        callback.on_run_start(output_dir=output_dir, experiment=experiment, step=completed)
     try:
         with StopSignal() as stopping:
             while completed < training.steps:
@@ -145,10 +150,8 @@ def train(experiment, data_path, output_dir, *, resume=None, initialize_from=Non
                     memory = devices[0].memory_stats()
                     if memory:
                         metrics["device_peak_bytes"] = memory.get("peak_bytes_in_use", 0)
-                    message = json.dumps(metrics, ensure_ascii=False)
-                    print(message, flush=True)
-                    log.write(message + "\n")
-                    log.flush()
+                    for callback in active_callbacks:
+                        callback.on_step_end(metrics)
                 stop = stopping.requested
                 if jax.process_count() > 1:
                     from jax.experimental import multihost_utils
@@ -159,6 +162,8 @@ def train(experiment, data_path, output_dir, *, resume=None, initialize_from=Non
                     save_checkpoint(saved, host_state(), experiment, stream.state_dict())
                     if primary:
                         atomic_json(output_dir / "latest.json", {"step": completed, "path": saved.name})
+                    for callback in active_callbacks:
+                        callback.on_checkpoint(saved, completed)
                 if stop:
                     break
             if saved is None:
@@ -174,15 +179,23 @@ def train(experiment, data_path, output_dir, *, resume=None, initialize_from=Non
                         "checkpoint": str(saved),
                     },
                 )
+            for callback in active_callbacks:
+                callback.on_run_end(
+                    "complete" if completed >= training.steps else "stopped",
+                    completed,
+                    saved,
+                )
     except BaseException as error:
+        for callback in active_callbacks:
+            callback.on_exception(error, completed)
         if primary:
             atomic_json(
                 output_dir / "status.json", {"status": "failed", "step": completed, "error_type": type(error).__name__}
             )
         raise
     finally:
-        if log is not None:
-            log.close()
+        for callback in active_callbacks:
+            callback.close()
     return saved
 
 

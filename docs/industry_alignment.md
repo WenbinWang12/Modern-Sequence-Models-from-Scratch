@@ -11,7 +11,7 @@
 | `Trainer`、`TrainingArguments`、callbacks | `ttt/trainer/`、`ttt/train.py`、`ttt/training.py` | Trainer 门面已加入；日志回调、统一评估和完整生命周期仍需继续接入 |
 | YAML 配方与配置覆盖 | `configs/**/*.json`、`ttt/config.py` | 提供 schema 版本、实验覆盖、配置摘要和可读的训练配方 |
 | `toolkit/weight_convert` 与 safetensors 文档 | `ttt/convert_official.py`、`ttt/checkpoint.py` | 提供 official config 模板、格式版本、参数映射和公开发布检查 |
-| `tools/logger.py`、monitor、callback | `print`、`metrics.jsonl` 和零散脚本 | 统一结构化日志、事件级回调、吞吐/显存/编译阶段指标 |
+| `tools/logger.py`、monitor、callback | `ttt/callbacks.py`、`metrics.jsonl` | 基础 callback 生命周期和 JSONL logger 已接入；吞吐/显存/编译监控仍需扩展 |
 | 分层 `tests/ut`、`tests/st` 和 CI | `tests/`、GitHub workflows | 修复依赖安装 CI，分离静态检查、CPU 单测、GPU smoke 和多卡验收 |
 
 ## 计划中的代码改造顺序

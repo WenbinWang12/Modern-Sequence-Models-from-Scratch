@@ -7,11 +7,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from collections.abc import Iterable
 from typing import Any
 
 from ..config import ExperimentConfig, load_experiment
 from ..lifecycle import latest_checkpoint
 from ..train import train as run_training
+from ..callbacks import TrainerCallback
 from .training_args import TrainingArguments
 
 __all__ = ["Trainer", "TrainingResult"]
@@ -33,9 +35,11 @@ class Trainer:
         args: TrainingArguments,
         *,
         experiment: ExperimentConfig | None = None,
+        callbacks: Iterable[TrainerCallback] | None = None,
     ) -> None:
         self.args = args
         self.experiment = experiment or load_experiment(args.config_path)
+        self.callbacks = tuple(callbacks or ())
 
     def _resume_path(self) -> str | Path | None:
         if self.args.auto_resume:
@@ -51,6 +55,7 @@ class Trainer:
             self.args.output_path,
             resume=self._resume_path(),
             initialize_from=self.args.initialize_from,
+            callbacks=self.callbacks,
         )
         return TrainingResult(checkpoint=Path(checkpoint), output_dir=self.args.output_path)
 

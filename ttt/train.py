@@ -120,9 +120,9 @@ def train(experiment, data_path, output_dir, *, resume=None, initialize_from=Non
     active_callbacks: tuple[TrainerCallback, ...] = (
         (JsonlMetricsCallback(output_dir / "metrics.jsonl"), *(callbacks or ())) if primary else ()
     )
-    for callback in active_callbacks:
-        callback.on_run_start(output_dir=output_dir, experiment=experiment, step=completed)
     try:
+        for callback in active_callbacks:
+            callback.on_run_start(output_dir=output_dir, experiment=experiment, step=completed)
         with StopSignal() as stopping:
             while completed < training.steps:
                 started = time.perf_counter()

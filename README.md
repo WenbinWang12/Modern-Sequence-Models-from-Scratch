@@ -69,6 +69,12 @@ print(result.output_dir)
 
 正式训练可设置 `TTT_DATA_INSPECTION_REPORT=outputs/indexed-report.json`，把外部数据检查报告的摘要写入 `run_metadata.json`。
 
+下载一个带固定 SHA256 的公开 WikiText-2 小样本：
+
+```bash
+bash scripts/download_wikitext2_sample.sh data/external/wikitext-2
+```
+
 ```bash
 # JSONL，每行包含 text
 python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --tokenizer byte

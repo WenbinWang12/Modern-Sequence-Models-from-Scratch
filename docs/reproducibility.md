@@ -22,6 +22,14 @@ python3 scripts/check_environment.py --require-gpu --min-gpus 1 --output outputs
 bash scripts/prepare_sample.sh outputs/sample-tokens.npy
 ```
 
+如果需要一个可联网获取的公开小语料来验证下载和清单流程，可以运行：
+
+```bash
+bash scripts/download_wikitext2_sample.sh data/external/wikitext-2
+```
+
+脚本下载公开 GitHub 镜像中的 WikiText-2 train 文件，固定完整文件 SHA256，并生成前 1 MiB 且不含半行的样本和 `metadata.json`。它不会把样本伪装成代表性预训练语料；正式实验仍需单独完成许可、清洗、切分、tokenizer 和去重验收。
+
 正式数据使用带 SHA256 清单的分片格式：
 
 ```bash

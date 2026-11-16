@@ -116,6 +116,18 @@ Suppose a web page contains prose, navigation, and code blocks. An older extract
 
 Write each processing stage to a new location and record its input digest, code and configuration versions, output digest, and counts. These records describe a processing relationship, not merely a list of final filenames. They let us trace training tokens back through cleaned documents and extracted text to the received object. Small experiments can copy files. Large projects can use immutable object storage with manifest references. The principle is traceable identity, not unconditional duplication of every intermediate byte.
 
+## Download a reproducible public sample
+
+To exercise downloading, hashing, and later cleaning before working with a large corpus, the repository provides a small public-data entry point:
+
+~~~bash
+bash scripts/download_wikitext2_sample.sh data/external/wikitext-2
+~~~
+
+The script downloads the WikiText-2 train file from the public [PyTorch examples](https://github.com/pytorch/examples) mirror; the dataset card is [Salesforce/wikitext](https://huggingface.co/datasets/Salesforce/wikitext). It requires a fixed SHA-256 for the complete file, and then creates a first-1-MiB sample with any incomplete final line removed. It writes `metadata.json` with the source URL, dataset card, acquisition time, byte counts, and digests for both objects. It refuses to silently replace an existing complete file with new contents.
+
+This is a pipeline smoke-test sample, not a large-scale pretraining recipe. The mirror file contains pretokenized WikiText-style text and `<unk>` markers; a filename such as `train.txt` does not make it raw web text. Before production use, verify the upstream configuration, splits, license, tokenizer, and cleaning rules. The sample lets us observe the relationship between a source object, its digest, a derived slice, and the metadata that connects them.
+
 ## Use the correct denominator for acquisition losses
 
 Consider an explicitly **hypothetical** acquisition. Of 1,000 requested files, 10 fail to download. Of the 990 downloaded files, 10 cannot be parsed. The remaining 980 files yield 100,000 records, of which 500 lack the text field.

@@ -392,4 +392,14 @@ $$
 
 Tokenizer 的身份包括词表、切分规则和前后处理配置，不能简化为词表大小。更换 tokenizer 后必须重建 token 分片，并核对实际 \(V\) 与模型配置。旧 ID 仍在合法范围内，不代表它指向同一个 token；已有 checkpoint 也不能只改 `vocab_size` 就继续使用。
 
+## 用真实 `.idx/.bin` 做 tokenizer 交叉检查
+
+indexed dataset 检查器只能告诉我们“文件里存了哪些整数”，不能单独证明这些整数来自哪个 tokenizer。把服务器上的 `.idx/.bin` 接入训练前，至少做三层交叉检查：
+
+1. **范围检查。** 记 tokenizer 能产生的最大 ID 加一为 \(V_{\mathrm{tok}}\)，抽样 token 必须满足 \(0\le s_i<V_{\mathrm{tok}}\)。不要把 `sequence_count` 或 `.bin` 字节数误当成词表大小。
+2. **解码检查。** 使用生成这些 ID 的同一个 `tokenizer.json`，并明确 `skip_special_tokens=False`，解码检查器报告中的首尾 ID。若解码结果出现大量未知 token、异常替换字符或空字符串，先停在数据层排查，不要直接启动长作业。
+3. **模型维度检查。** 记模型输出头的行数为 \(V_{\mathrm{model}}\)。若词表为了硬件对齐从 131000 补齐到 131072，必须同时记录 \(V_{\mathrm{tok}}=131000\)、\(V_{\mathrm{model}}=131072\)、补齐规则和特殊 token ID。训练时至少需要 \(V_{\mathrm{model}}\ge V_{\mathrm{tok}}\)；这不等于两个词表的映射已经相同。
+
+服务器上的 `infra/tokenizer.json` 报告 131000 个模型词表项，而 `infra/config.json` 的 `vocab_size` 是 131072。这个差异可能是模型实现为并行 embedding 预留的 padding，也可能是两个文件来自不同版本；仅凭两个数字不能下结论。应继续检查 `added_tokens`、特殊 token、tokenizer 文件摘要和模型配置版本，再把结论写进运行 manifest。解码时不要跳过特殊 token，否则会把“ID 合法但协议不一致”隐藏起来。
+
 现在我们得到了一条有明确含义的 token 流。下一章把它变成模型真正消费的固定窗口：哪些位置作为输入，哪些作为预测目标，跨文档边界怎样影响监督与可见上下文。

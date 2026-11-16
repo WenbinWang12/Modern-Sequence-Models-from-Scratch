@@ -13,7 +13,14 @@ from pathlib import Path
 
 import jax
 
-__all__ = ["source_digest", "git_commit", "artifact_digest", "run_metadata", "environment_report"]
+__all__ = [
+    "source_digest",
+    "git_commit",
+    "artifact_digest",
+    "inspection_report_metadata",
+    "run_metadata",
+    "environment_report",
+]
 
 
 def source_digest(root=None):
@@ -60,11 +67,24 @@ def artifact_digest(path):
     return hashlib.sha256(source.read_bytes()).hexdigest()
 
 
+def inspection_report_metadata(path):
+    """返回一个已存在的外部数据检查报告的身份信息。"""
+
+    report = Path(path).expanduser().resolve()
+    if not report.is_file():
+        raise ValueError(f"数据检查报告不存在：{report}")
+    return {
+        "path": str(report),
+        "bytes": report.stat().st_size,
+        "sha256": artifact_digest(report),
+    }
+
+
 def run_metadata(experiment, data_path, output_dir):
     """生成一次运行的身份记录。"""
 
     root = Path(__file__).resolve().parents[1]
-    return {
+    metadata = {
         "schema_version": 1,
         "command": list(sys.argv),
         "source_commit": git_commit(root),
@@ -74,6 +94,10 @@ def run_metadata(experiment, data_path, output_dir):
         "data_manifest_sha256": artifact_digest(data_path),
         "output_dir": str(Path(output_dir).expanduser().resolve()),
     }
+    report_path = os.environ.get("TTT_DATA_INSPECTION_REPORT")
+    if report_path:
+        metadata["data_inspection_report"] = inspection_report_metadata(report_path)
+    return metadata
 
 
 def environment_report():

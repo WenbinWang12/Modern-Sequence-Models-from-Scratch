@@ -42,9 +42,26 @@ python3 scripts/inspect_indexed_dataset.py \
   --sequences 3 --tokens 32
 ```
 
-输出是 JSON，至少应核对 `magic`、`dtype`、`sequence_count`、`document_count`、`sequence_lengths`、`sequence_offsets` 和 `.bin` 文件大小。对于本书当前服务器上的样例，预期能看到 `magic=MMIDIDX`、`dtype=int32`、每条样本长度为 `4097`；这只说明文件布局可读，不说明 tokenizer 一定匹配。若要把报告保存下来，追加 `--output outputs/indexed-dataset-report.json`。正式训练前还应记录 tokenizer 文件摘要、词表大小、特殊 token ID、数据许可和训练/验证切分。
+如果模型配置的词表大小已知，可以让检查器同时验证抽样 token：
+
+```bash
+python3 scripts/inspect_indexed_dataset.py /path/to/1 --vocab-size 131072
+```
+
+输出是 JSON，至少应核对 `magic`、`dtype`、`sequence_count`、`document_count`、`sequence_lengths`、`sequence_offsets` 和 `.bin` 文件大小。`sequence_lengths` 与 `sequence_offsets` 是抽样记录，抽样条数写在 `sampled_sequence_count`；`last_sequence` 单独记录并校验最后一条序列。提供 `--vocab-size` 后，报告还会记录抽样 token 的范围检查；它只覆盖抽样 token，不等于完整数据扫描。对于本书当前服务器上的样例，预期能看到 `magic=MMIDIDX`、`dtype=int32`、每条样本长度为 `4097`；这只说明文件布局可读，不说明 tokenizer 一定匹配。若要把报告保存下来，追加 `--output outputs/indexed-dataset-report.json`。正式训练前还应记录 tokenizer 文件摘要、词表大小、特殊 token ID、数据许可和训练/验证切分。
 
 检查器不会修改输入文件，也不会把整个数据集载入内存。它只读取索引头、请求的索引记录和对应的少量 token；因此可以先在登录节点完成格式检查，再在 GPU 作业中使用相同路径启动训练。
+
+如果这份检查报告对应即将启动的训练输入，可以把它绑定到运行记录。训练启动时会把报告路径、字节数和 SHA256 写入 `run_metadata.json`；环境变量指向不存在的文件时会直接失败：
+
+```bash
+python3 scripts/inspect_indexed_dataset.py /path/to/1 --output outputs/indexed-report.json
+TTT_DATA_INSPECTION_REPORT=outputs/indexed-report.json \
+  python -m ttt.train --config configs/tiny.json \
+  --data /path/to/converted/manifest.json --output outputs/tiny
+```
+
+这里的 `converted/manifest.json` 表示已经把外部 indexed dataset 接入本仓库 loader 的适配清单；当前训练入口不会把原始 `.idx` 文件误当成 JSON manifest。检查报告的摘要证明“启动时登记了哪份报告”，不替代 tokenizer、词表、许可和采样协议的验收。
 
 ## 从随机初始化开始训练
 

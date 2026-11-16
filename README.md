@@ -67,6 +67,8 @@ print(result.output_dir)
 
 支持一维整数 `.npy` 和带 SHA256 校验的分片清单。分片可以跨文件采样，不需要把整个语料载入内存。Megatron 风格的同名 `.idx/.bin` 数据也可以先用 `scripts/inspect_indexed_dataset.py` 做只读格式检查；完整命令、字段解释和服务器复现顺序见 [可复现实验流程](docs/reproducibility.md)。
 
+正式训练可设置 `TTT_DATA_INSPECTION_REPORT=outputs/indexed-report.json`，把外部数据检查报告的摘要写入 `run_metadata.json`。
+
 ```bash
 # JSONL，每行包含 text
 python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --tokenizer byte

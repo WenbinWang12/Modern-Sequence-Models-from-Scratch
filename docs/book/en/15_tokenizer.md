@@ -392,4 +392,14 @@ The commands use separate output directories. The data manifest records the toke
 
 A tokenizer's identity includes its vocabulary, segmentation rules, and surrounding processing, not just vocabulary size. Replacing it requires rebuilding token shards and checking actual \(V\) against model configuration. Old IDs may remain in range while referring to different tokens. An existing checkpoint cannot be made compatible merely by changing `vocab_size`.
 
+## Cross-check a tokenizer against a real `.idx/.bin` dataset
+
+The indexed-dataset inspector tells us which integers are stored in the files; it cannot by itself prove which tokenizer produced them. Before connecting a server-side `.idx/.bin` pair to training, perform at least three cross-checks:
+
+1. **Range.** Let \(V_{\mathrm{tok}}\) be one larger than the largest ID the tokenizer can produce. Sampled IDs must satisfy \(0\le s_i<V_{\mathrm{tok}}\). Do not confuse `sequence_count` or `.bin` byte size with vocabulary size.
+2. **Decode.** Use the same `tokenizer.json` that produced the IDs and explicitly set `skip_special_tokens=False` while decoding the first and last IDs in the inspection report. A large number of unknown tokens, replacement characters, or empty strings is a data-layer failure to investigate before starting a long run.
+3. **Model dimension.** Let \(V_{\mathrm{model}}\) be the number of rows in the model output head. If a vocabulary with 131000 entries is padded to 131072 for parallel embeddings, record \(V_{\mathrm{tok}}=131000\), \(V_{\mathrm{model}}=131072\), the padding rule, and all special-token IDs. Training requires at least \(V_{\mathrm{model}}\ge V_{\mathrm{tok}}\); this inequality does not establish that the mappings are identical.
+
+On the server, `infra/tokenizer.json` reports 131000 model vocabulary entries while `infra/config.json` sets `vocab_size` to 131072. This may be hardware-alignment padding, or it may mean that the files came from different releases; the two numbers alone do not decide. Inspect `added_tokens`, special tokens, tokenizer digests, and model-configuration revision, then record the conclusion in the run manifest. Do not skip special tokens during this check, or a legal ID with an incompatible protocol can look harmless.
+
 We now have a token stream with defined meaning. The next chapter turns that stream into fixed model windows: which positions become inputs, which become prediction targets, and how document boundaries affect supervision and visible context.

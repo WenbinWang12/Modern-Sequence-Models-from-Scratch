@@ -64,9 +64,13 @@ python3 scripts/inspect_indexed_dataset.py /path/1
 python3 scripts/inspect_indexed_dataset.py /path/1 --sequences 3 --tokens 32
 ```
 
-输出是 JSON，至少应能回答：魔数和版本是否正确、dtype 是什么、sequence/document 数量是多少、前几个 sequence 是否同长、最后一个索引范围是否落在 `.bin` 内。检查器只读文件，不修改数据，也不会把整个数据集加载进内存；正式实验仍需把数据目录、tokenizer 摘要、检查报告和上游发布版本一起写入 manifest。解析出整数 ID 还不等于读懂文本，只有使用生成这些 ID 的同一 tokenizer，才能把 token ID 解码回字符串。
+如果已知模型词表大小，可以附加 `--vocab-size 131072`，让工具检查抽样 token 是否落在 `[0,131072)`；这仍然是抽样检查，不会宣称整个 `.bin` 已被扫描。
+
+输出是 JSON，至少应能回答：魔数和版本是否正确、dtype 是什么、sequence/document 数量是多少、抽样的 sequence 是否同长、最后一个索引范围是否落在 `.bin` 内。`sequence_lengths` 和 `sequence_offsets` 只包含抽样记录，抽样数由 `sampled_sequence_count` 标明；最后一条序列单独放在 `last_sequence` 中。检查器只读文件，不修改数据，也不会把整个数据集加载进内存；正式实验仍需把数据目录、tokenizer 摘要、检查报告和上游发布版本一起写入 manifest。解析出整数 ID 还不等于读懂文本，只有使用生成这些 ID 的同一 tokenizer，才能把 token ID 解码回字符串。
 
 这个布局与本仓库的 `TokenDataset` manifest 不是同一个 schema。两者都需要记录长度、顺序、dtype、词表和摘要，但不能把 `.idx` 当成 JSON manifest，也不能把字节 offset 当成 token offset。接入外部 indexed dataset 时，应先生成一份本仓库认可的适配 manifest，或者在训练入口显式声明使用哪一种 loader，避免“文件能打开”被误认为“训练协议相同”。
+
+检查报告还应和训练运行关联，而不是散落在临时目录。启动训练前设置 `TTT_DATA_INSPECTION_REPORT`，训练器会把报告的路径、大小和 SHA256 写入 `run_metadata.json`；环境变量指向不存在的文件时会拒绝启动。这样可以区分“检查过某个文件”和“这次训练实际登记了哪份检查证据”。
 
 ## 一个跨分片窗口的手算
 

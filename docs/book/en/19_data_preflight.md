@@ -36,7 +36,7 @@ If the input is a public `.idx`/`.bin` pair rather than the `.npy` shards genera
 python3 scripts/inspect_indexed_dataset.py /data/train/1 --sequences 3 --tokens 32
 ~~~
 
-This reads only the index header, a few lengths, and a small token sample; it does not load the corpus into memory. Save at least the magic bytes, index version, dtype, sequence/document counts, sampled lengths and byte offsets, and the `.bin` file size. Check three independent facts: the final indexed range lies inside `.bin`; every pointer is aligned to the dtype's byte width; and sampled token IDs lie in the tokenizer range `[0,V)`. The last check needs `V`, so it cannot be completed from `.idx` alone.
+This reads only the index header, a few lengths, and a small token sample; it does not load the corpus into memory. Save at least the magic bytes, index version, dtype, sequence/document counts, sampled lengths and byte offsets, and the `.bin` file size. Check three independent facts: the final indexed range lies inside `.bin`; every pointer is aligned to the dtype's byte width; and sampled token IDs lie in the tokenizer range `[0,V)`. When `V` is known, pass `--vocab-size V` to check the sampled IDs; the check cannot be completed from `.idx` alone and does not scan every token.
 
 An `.idx` pointer is usually a **byte offset**, while `count` in this repository's manifest is a token count. The units differ. In-range samples do not prove that the tokenizer mapping, document boundaries, or masking protocol match the upstream release. Record the inspection report, external data version, tokenizer digest, and adapter version together with the run so that “the same data” remains an inspectable claim during recovery or reproduction.
 

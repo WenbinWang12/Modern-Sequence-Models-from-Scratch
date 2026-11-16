@@ -60,9 +60,13 @@ Pass `--sequences` and `--tokens` when a larger sample is needed:
 python3 scripts/inspect_indexed_dataset.py /path/1 --sequences 3 --tokens 32
 ```
 
-The JSON report should answer whether the magic and version are recognized, which dtype is used, how many sequences and documents exist, whether the first sequences have the expected lengths, and whether the final indexed range lies inside `.bin`. The inspector is read-only and never loads the whole corpus into memory. A production run should still record the data directory, tokenizer digest, inspection report, and upstream release identifier in its manifest. Integer IDs alone do not reveal their text; decoding requires the same tokenizer that produced them.
+When the model vocabulary size is known, add `--vocab-size 131072` to check whether sampled token IDs lie in `[0,131072)`. This remains a sample check; it does not claim that the whole `.bin` was scanned.
+
+The JSON report should answer whether the magic and version are recognized, which dtype is used, how many sequences and documents exist, whether the sampled sequences have the expected lengths, and whether the final indexed range lies inside `.bin`. `sequence_lengths` and `sequence_offsets` contain only the requested sample, whose size is recorded as `sampled_sequence_count`; the final sequence is reported separately as `last_sequence`. The inspector is read-only and never loads the whole corpus into memory. A production run should still record the data directory, tokenizer digest, inspection report, and upstream release identifier in its manifest. Integer IDs alone do not reveal their text; decoding requires the same tokenizer that produced them.
 
 This layout is not the same schema as the JSON manifest consumed by `TokenDataset`. Both formats need lengths, ordering, dtype, vocabulary metadata, and digests, but an `.idx` file is not a JSON manifest and a byte offset is not a token offset. When adapting an external indexed dataset, create an adapter manifest understood by this repository or declare the indexed-dataset loader explicitly at the training boundary. Being able to open a file does not prove that its sampling and masking protocol matches the experiment.
+
+Bind the inspection evidence to the run instead of leaving it in a temporary directory. Set `TTT_DATA_INSPECTION_REPORT` before training; the trainer records the report path, byte size, and SHA256 in `run_metadata.json`, and refuses to start if the path does not exist. This distinguishes “a file was inspected” from “the current run registered that inspection evidence.”
 
 ## What the loader verifies
 

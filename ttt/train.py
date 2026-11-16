@@ -30,9 +30,19 @@ from .callbacks import JsonlMetricsCallback, TrainerCallback
 def train(experiment, data_path, output_dir, *, resume=None, initialize_from=None, callbacks=None):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    atomic_json(output_dir / "run_metadata.json", run_metadata(experiment, data_path, output_dir))
-    atomic_json(output_dir / "status.json", {"status": "initializing", "stage": "startup"})
-    initialize_distributed()
+    try:
+        atomic_json(output_dir / "run_metadata.json", run_metadata(experiment, data_path, output_dir))
+        atomic_json(output_dir / "status.json", {"status": "initializing", "stage": "startup"})
+        initialize_distributed()
+    except BaseException as error:
+        try:
+            atomic_json(
+                output_dir / "status.json",
+                {"status": "failed", "stage": "startup", "error_type": type(error).__name__},
+            )
+        except OSError:
+            pass
+        raise
     training = experiment.training
     model = TTTE2EForCausalLM(experiment.model, training.gradient_checkpointing)
     optimizer = make_optimizer(training)

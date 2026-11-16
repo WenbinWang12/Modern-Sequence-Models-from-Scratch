@@ -105,6 +105,7 @@ def inspect_indexed_dataset(
     sequence_limit: int = 3,
     token_limit: int = 16,
     document_limit: int = 8,
+    vocab_size: int | None = None,
 ) -> dict[str, object]:
     """读取并返回一个小型、可序列化的数据格式报告。
 
@@ -114,6 +115,8 @@ def inspect_indexed_dataset(
 
     if sequence_limit < 0 or token_limit < 0 or document_limit < 0:
         raise IndexedDatasetError("三个 limit 都必须是非负整数")
+    if vocab_size is not None and vocab_size <= 0:
+        raise IndexedDatasetError("vocab_size 必须是正整数")
     idx_path = idx_path.expanduser().resolve()
     bin_path = bin_path.expanduser().resolve()
     if not idx_path.is_file():
@@ -259,6 +262,29 @@ def inspect_indexed_dataset(
                 )
             last_sequence["end_bytes"] = last_end
 
+    token_validation: dict[str, object] | None = None
+    if vocab_size is not None:
+        sampled_tokens = [
+            token
+            for sequence in sequences
+            for token in sequence["first_tokens"] + sequence["last_tokens"]
+        ]
+        invalid = [
+            token
+            for token in sampled_tokens
+            if not isinstance(token, int) or token < 0 or token >= vocab_size
+        ]
+        if invalid:
+            raise IndexedDatasetError(
+                "抽样 token 超出词表范围："
+                f"前几个非法值为 {invalid[:8]}，vocab_size={vocab_size}"
+            )
+        token_validation = {
+            "vocab_size": vocab_size,
+            "sampled_token_count": len(sampled_tokens),
+            "passed": True,
+        }
+
     return {
         "magic": "MMIDIDX",
         "format": "MMIDIDX",
@@ -268,6 +294,8 @@ def inspect_indexed_dataset(
         "item_size_bytes": item_size,
         "sequence_count": sequence_count,
         "document_count": document_count,
+        "sampled_sequence_count": sampled_sequences,
+        "sampled_document_count": sampled_documents,
         "sequence_lengths": lengths,
         "sequence_offsets": pointers,
         "index": {
@@ -281,6 +309,7 @@ def inspect_indexed_dataset(
         },
         "sequences": sequences,
         "last_sequence": last_sequence,
+        "token_validation": token_validation,
         "documents": {
             "first_indices": first_documents,
             "last_indices": last_documents,
@@ -320,6 +349,11 @@ def _build_parser() -> argparse.ArgumentParser:
         default=8,
         help="报告首尾多少个 document index（默认：8）",
     )
+    parser.add_argument(
+        "--vocab-size",
+        type=int,
+        help="可选：校验抽样 token 是否位于 [0, vocab_size) 内",
+    )
     parser.add_argument("--output", type=Path, help="可选的 JSON 报告路径")
     return parser
 
@@ -337,6 +371,7 @@ def main(argv: list[str] | None = None) -> int:
             sequence_limit=args.sequences,
             token_limit=args.tokens,
             document_limit=args.documents,
+            vocab_size=args.vocab_size,
         )
     except (OSError, IndexedDatasetError, struct.error) as exc:
         parser.exit(2, f"错误：{exc}\n")

@@ -96,6 +96,19 @@ bash scripts/run_gpu_train.sh \
 
 训练目录应包含 `experiment.json`、`environment.json`、`metrics.jsonl`、`status.json`、`latest.json` 和检查点。第一步可能包含 XLA 编译时间，不能用来估计稳定吞吐。
 
+### CPU pilot：验证完整训练闭环
+
+没有 GPU 时，可以使用仓库提供的约 1.02M 参数 CPU 配置验证较长训练、恢复和评估入口：
+
+```bash
+JAX_PLATFORM_NAME=cpu python3 -m ttt.train \
+  --config configs/runs/cpu_pilot_1m.json \
+  --data data/public/wikitext2/train-shards/manifest.json \
+  --output outputs/cpu-pilot-1m
+```
+
+该配置使用 WikiText-2 的训练切分、byte tokenizer、5,000 步和约 5.12M 个调度 token。它是 CPU 工程 pilot，不是与大模型公平比较的配方；正式结论仍需要更大模型、更多数据、独立验证/测试集和匹配的计算预算。
+
 ## 恢复和改变训练阶段
 
 自动从输出目录中的 `latest.json` 恢复：

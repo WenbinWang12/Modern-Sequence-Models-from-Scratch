@@ -128,6 +128,18 @@ bash scripts/download_wikitext2_sample.sh data/external/wikitext-2
 
 这个入口是管线冒烟样本，不是大规模预训练配方。该镜像文件含有 WikiText 风格的预分词文本和 `<unk>` 标记，不能因为文件名叫 `train.txt` 就把它当成原始网页文本；正式使用前还要确认上游配置、切分、许可、tokenizer 和清洗规则。样本的用途是让读者先观察“来源对象 → 摘要 → 截取对象 → metadata”的关系。
 
+下载文件按行保存，而仓库的数据准备入口接收 JSONL。转换时不要手写一个没有来源记录的临时文件：
+
+~~~bash
+python3 scripts/lines_to_jsonl.py \
+  --input data/external/wikitext-2/train.prefix-1MiB-complete-lines.txt \
+  --output data/external/wikitext-2/train-512.jsonl \
+  --limit 512 \
+  --report data/external/wikitext-2/train-512.report.json
+~~~
+
+转换器严格按 UTF-8 读取，跳过空行，拒绝覆盖已有输出，并记录输入/输出摘要、处理行数和保留记录数。生成的 JSONL 才是 `ttt.data` 可以继续处理的输入对象；这一步仍然没有完成 tokenizer、清洗或许可验收。
+
 ## 用正确的分母解释获取损耗
 
 最后看一个明确标为**假设**的数量例子。计划获取 1,000 个文件，其中 10 个未下载成功；已下载的 990 个文件中，10 个无法解析；剩下 980 个文件共解析出 100,000 条记录，其中 500 条缺少正文字段。

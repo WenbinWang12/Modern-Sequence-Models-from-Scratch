@@ -30,6 +30,18 @@ bash scripts/download_wikitext2_sample.sh data/external/wikitext-2
 
 脚本下载公开 GitHub 镜像中的 WikiText-2 train 文件，固定完整文件 SHA256，并生成前 1 MiB 且不含半行的样本和 `metadata.json`。它不会把样本伪装成代表性预训练语料；正式实验仍需单独完成许可、清洗、切分、tokenizer 和去重验收。
 
+该文件是按行保存的文本，而 `ttt.data` 的输入约定是 JSONL。转换时也要保存统计和摘要：
+
+```bash
+python3 scripts/lines_to_jsonl.py \
+  --input data/external/wikitext-2/train.prefix-1MiB-complete-lines.txt \
+  --output data/external/wikitext-2/train-512.jsonl \
+  --limit 512 \
+  --report data/external/wikitext-2/train-512.report.json
+```
+
+脚本拒绝覆盖已有输出，空行不会变成训练记录，并记录输入/输出 SHA256。转换后的 JSONL 才能交给后面的 `ttt.data` 生成 token manifest。
+
 正式数据使用带 SHA256 清单的分片格式：
 
 ```bash

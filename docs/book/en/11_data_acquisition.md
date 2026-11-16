@@ -128,6 +128,18 @@ The script downloads the WikiText-2 train file from the public [PyTorch examples
 
 This is a pipeline smoke-test sample, not a large-scale pretraining recipe. The mirror file contains pretokenized WikiText-style text and `<unk>` markers; a filename such as `train.txt` does not make it raw web text. Before production use, verify the upstream configuration, splits, license, tokenizer, and cleaning rules. The sample lets us observe the relationship between a source object, its digest, a derived slice, and the metadata that connects them.
 
+The downloaded file is line-oriented text, while this repository's data preparation entry point expects JSONL. Convert it with a recorded report instead of creating an untracked temporary file:
+
+~~~bash
+python3 scripts/lines_to_jsonl.py \
+  --input data/external/wikitext-2/train.prefix-1MiB-complete-lines.txt \
+  --output data/external/wikitext-2/train-512.jsonl \
+  --limit 512 \
+  --report data/external/wikitext-2/train-512.report.json
+~~~
+
+The converter reads UTF-8 strictly, skips blank lines, refuses to overwrite existing outputs, and records input/output digests, consumed lines, and retained records. The resulting JSONL is the object that `ttt.data` can process next; this step still does not complete tokenizer, cleaning, or licensing review.
+
 ## Use the correct denominator for acquisition losses
 
 Consider an explicitly **hypothetical** acquisition. Of 1,000 requested files, 10 fail to download. Of the 990 downloaded files, 10 cannot be parsed. The remaining 980 files yield 100,000 records, of which 500 lack the text field.

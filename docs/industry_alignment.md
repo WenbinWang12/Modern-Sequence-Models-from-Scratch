@@ -1,42 +1,22 @@
-# 与 teleai 模型包的工程对齐
+# 工程接口与生产规范
 
-`F:/teleai/IndexShare/From_YZH/mindformers_formal_v1.0_simlarity_production` 采用的是模型框架组织方式，代表代码要被训练器、推理器、配置系统、权重转换工具和测试系统共同调用。当前 TTT 的算法实现已具备研究验证能力，但原来的入口主要面向直接导入 Python 类，工程接口还不完整。
+研究模型要成为可复现的软件，需要同时被配置系统、训练入口、推理入口、检查点工具和测试系统调用。本页记录仓库当前的公共接口、责任边界和仍需补齐的工程工作，不讨论具体外部项目。
 
-本轮还对照了 `F:/teleai/MLA_SWA` 的实验目录和 `mindformers` 正式包。这里借鉴的是责任边界和公开接口，不复制 MindSpore、Ascend 或 teleai 的运行时依赖；TTT 的计算后端仍然是 JAX，目标硬件是 NVIDIA GPU。
+## 当前接口
 
-| teleai 中的工程习惯 | TTT 当前对应物 | 仍需补齐的生产规范 |
+| 工程责任 | 当前实现 | 后续工作 |
 |---|---|---|
-| `models/<model>/configuration_*.py`、`modeling_*.py` | `ttt/models/ttt_e2e/` | 文件头许可证、完整类型注解、稳定公共 API 和更细的模块文档 |
-| `models/auto` 与注册器 | `ttt/models/auto.py`、`registry.py` | 让 train/infer/base 三种入口都通过同一注册协议构建，减少硬编码导入 |
-| `Trainer`、`TrainingArguments`、callbacks | `ttt/trainer/`、`ttt/train.py`、`ttt/training.py` | Trainer 门面已加入；日志回调、统一评估和完整生命周期仍需继续接入 |
-| YAML 配方与配置覆盖 | `configs/**/*.json`、`ttt/config.py` | 提供 schema 版本、实验覆盖、配置摘要和可读的训练配方 |
-| `toolkit/weight_convert` 与 safetensors 文档 | `ttt/convert_official.py`、`ttt/checkpoint.py` | 提供 official config 模板、格式版本、参数映射和公开发布检查 |
-| `tools/logger.py`、monitor、callback | `ttt/callbacks.py`、`metrics.jsonl` | 基础 callback 生命周期和 JSONL logger 已接入；吞吐/显存/编译监控仍需扩展 |
-| 分层 `tests/ut`、`tests/st` 和 CI | `tests/`、GitHub workflows | 修复依赖安装 CI，分离静态检查、CPU 单测、GPU smoke 和多卡验收 |
+| 模型配置与构建 | `ttt/models/ttt_e2e/`、`AutoConfig`、`AutoModelForCausalLM` | 稳定 schema 版本、配置摘要和更多模型插件 |
+| 训练与恢复 | `ttt/train.py`、`ttt/trainer/`、`TrainingArguments` | 统一评估、预测和完整生命周期 |
+| 回调与日志 | `ttt/callbacks.py`、`metrics.jsonl` | 增加吞吐、显存、编译和数据读取监控 |
+| 实验配置 | `configs/**/*.json`、`ttt/config.py` | 配置覆盖、继承和运行前 schema 检查 |
+| 检查点 | `ttt/checkpoint.py`、`ttt/convert_official.py` | 格式版本、参数映射和发布前完整性检查 |
+| 分布式训练 | `ttt/distributed.py`、Orbax | 多机故障处理、拓扑记录和更完整的恢复演练 |
+| 测试与 CI | `tests/`、GitHub workflows | 分离静态检查、CPU 单测、GPU smoke 和多卡验收 |
 
-## 计划中的代码改造顺序
+## 代码组织
 
-1. 先稳定公共模型接口：统一 `AutoConfig`、`AutoModelForCausalLM`、配置 schema 版本和 train/infer/base 的构建协议。
-2. 继续完善已加入的 `ttt/trainer/`：用 `TrainingArguments` 保存运行参数，用 `Trainer` 管理 train/eval/predict、恢复、日志和回调；保留现有 `ttt.train` 作为兼容 CLI。
-3. 统一 run metadata 已先接入配置、输入路径、manifest 摘要、git commit、命令行和源码摘要；下一步继续补 tokenizer 身份和初始化阶段的完整异常阶段记录。
-4. 增加权重转换模板、格式版本和发布前检查，再补分层 CI 与 H100 多卡 smoke 入口。
-
-每一步都保持现有 Python API 的兼容包装，避免为了外观重写已经有数值验证的核心算子。
-
-## 已对齐的接口
-
-| 框架习惯 | TTT 当前实现 |
-|---|---|
-| `configuration_<model>.py` | `models/ttt_e2e/configuration_ttt_e2e.py` |
-| 基础模型配置基类 | `models/base_config.py` 的 `PretrainedConfig` |
-| 基础模型类 | `models/base_model.py` 的 `PreTrainedModel` |
-| 模型注册表 | `models/registry.py` |
-| 自动构建入口 | `models/auto.py` 的 `AutoConfig`、`AutoModelForCausalLM` |
-| 训练/推理入口分开 | `modeling_ttt_e2e_train.py`、`modeling_ttt_e2e_infer.py` |
-| 预训练目录配置 | `config.save_pretrained(path)` 写入 `config.json` |
-| 统一导出 | `models/__init__.py` 与 `models/ttt_e2e/__init__.py` |
-
-## 推荐调用方式
+模型包提供配置、基础模型、注册表和自动构建入口：
 
 ```python
 from ttt.models import AutoConfig, AutoModelForCausalLM
@@ -46,17 +26,17 @@ model = AutoModelForCausalLM.from_config(config, mode="train")
 inference_model = AutoModelForCausalLM.from_config(config, mode="infer")
 ```
 
-`mode="train"` 和 `mode="infer"` 只选择模型入口和梯度检查点策略，不改变参数结构。现有的 `TTTE2EConfig(...)`、`TTTE2EForCausalLM(...)` 直接导入方式继续兼容。
+`mode="train"` 和 `mode="infer"` 选择不同的执行入口与梯度检查点策略，但不改变参数结构。已有的直接类导入方式继续兼容。
 
-## 仍需继续对齐的部分
+训练器门面保存配置、数据路径、恢复策略和回调；底层 `ttt.train` 保留命令行兼容入口。运行目录记录 `run_metadata.json`、`environment.json`、`status.json`、`metrics.jsonl` 和检查点，使一次运行可以被审阅和恢复。
 
-当前项目与完整 MindFormers 工程还有明确差距：
+## 仍需补齐
 
-- 训练器仍是 JAX/Optax 的项目内入口，没有接入通用 Trainer 注册系统。
-- `from_pretrained` 已支持项目自己的 NPZ/Orbax 检查点；统一的 safetensors 权重格式和跨框架权重协议仍需补充。
-- 配置实验仍以 JSON 为主，没有引入 YAML 组合、继承和运行覆盖机制。
-- 模型实现仍集中在 `modeling_ttt_e2e.py`，训练与推理入口已经分开，但底层前向代码还没有完全拆成 `Model`、`ForCausalLM`、训练头和推理头。
-- 当前注册表只覆盖 TTT-E2E，尚未形成多模型插件发现和版本兼容策略。
-- 文件头版权、发布许可证、API 文档生成和分层 CI 还需要按项目实际许可证补齐，不能直接复制 teleai 的版权声明。
+- 统一 tokenizer 身份、数据检查报告和初始化失败阶段的记录。
+- 增加权重格式版本、跨格式参数映射和发布前检查。
+- 完善配置组合、运行覆盖和解析后摘要。
+- 将模型前向、训练头、推理头和状态管理拆成更清晰的模块边界。
+- 建立多模型插件发现、版本兼容和分层 CI 策略。
+- 根据项目实际许可证补齐文件版权、API 文档和发布检查。
 
-后续审计应先确认这些框架边界，再进入注意力、MoE 和内循环的数值细节。这样可以把算法研究代码和生产集成接口分开检查。
+这些工作与模型算子数值正确性分开验收：工程接口通过不代表训练质量已经得到证明，训练 loss 下降也不代表恢复、分布式和发布流程完整。

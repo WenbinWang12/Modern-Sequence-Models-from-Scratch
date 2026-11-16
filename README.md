@@ -6,7 +6,7 @@ From-scratch implementations and experiments for modern sequence models.
 
 当前验证结果、对应代码摘要和 PBS 作业号见 [验证记录](docs/validation.md)。官方 3B 权重与 128K 复现本轮暂缓。
 
-模型包的工程接口和 teleai 的对照见 [工程对齐说明](docs/industry_alignment.md)。推荐通过 `AutoConfig` 和 `AutoModelForCausalLM` 构建模型；直接导入原有类的方式继续兼容。
+模型包的公共接口和生产规范见 [工程接口说明](docs/industry_alignment.md)。推荐通过 `AutoConfig` 和 `AutoModelForCausalLM` 构建模型；直接导入原有类的方式继续兼容。
 
 从随机初始化开始训练的步骤见 [from-scratch 训练指南](docs/training_from_scratch.md)，贡献代码请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 

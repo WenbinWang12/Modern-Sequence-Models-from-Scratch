@@ -115,6 +115,7 @@ nav:
       - Looped Transformer: frontier/loop_transformer.md
   - 附录:
       - 复现命令: reproducibility.md
+      - TTT 技术报告: technical_report.md
       - CPU Pilot 训练曲线: reports/cpu_pilot_1m.md
       - 验证记录: validation.md
       - 工程对齐: industry_alignment.md

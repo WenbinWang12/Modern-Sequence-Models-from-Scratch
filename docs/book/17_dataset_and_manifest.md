@@ -34,6 +34,40 @@ Manifest 把这些隐含条件写成数据版本。当前 loader 期待的核心
 
 当前 `TokenDataset` 还会计算分片端点，并让任意全局 start 经过 `searchsorted` 找到物理 shard。窗口跨 shard 时，代码按各分片的局部 offset 取值。这是让大数据不必完整载入内存的关键，但跨 shard 的窗口仍然是同一条逻辑 token 流。
 
+## 真实语料中的 `.idx` 与 `.bin`
+
+前面的 manifest 是本仓库教学 loader 使用的格式。公开预训练语料还常见另一种布局：一个 `.bin` 保存连续的 token ID，旁边的 `.idx` 保存如何把这条连续数组切成样本。`.bin` 不是文本文件，而是定长整数的字节流；用 `vim` 打开看到乱码是正常现象，并不表示编码损坏。
+
+以 Megatron 风格的 `MMIDIDX` 文件为例，`.idx` 开头有一个固定魔数 `MMIDIDX\0\0`，随后记录格式版本、元素 dtype、sequence 数量和 document 数量。文件后面依次存放每个 sequence 的长度、每个 sequence 在 `.bin` 中的字节起点，以及 document 到 sequence 的边界索引。若 dtype 是 little-endian `int32`，一个 token 占 4 个字节；因此长度为 4097 的 sequence 在 `.bin` 中占 `4097 × 4 = 16388` 字节。这里的 offset 是字节 offset，不是 token 下标，不能直接拿来当数组元素索引。
+
+这里的字段顺序来自 [Megatron Core 的 IndexedDataset 实现](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/datasets/indexed_dataset.py)。我们采用它来解释已有文件，不把外部实现的全部采样、缓存和多模态行为默认为本仓库已经实现。
+
+| `.idx` 字段 | 含义 | 例子 |
+|---|---|---:|
+| magic | 文件格式标识 | `MMIDIDX` |
+| version | 索引格式版本 | `1` |
+| dtype | token 存储类型 | `int32` |
+| sequence_count | 可采样 sequence 数量 | `49130` |
+| document_count | 文档边界数量 | `49131` |
+| sizes | 每个 sequence 的 token 数 | `4097` |
+| pointers | 每个 sequence 在 `.bin` 中的字节起点 | `0, 16388, ...` |
+
+检查这类数据时，先看索引，不要扫描整个百 GB 文件。仓库提供的只读检查器会读取文件头、前几个 length/offset 和少量 token，并检查 `.bin` 大小是否足以覆盖索引声明的最后一个 sequence：
+
+```bash
+python3 scripts/inspect_indexed_dataset.py /path/1
+```
+
+需要增加抽样数量时，再显式传入 `--sequences` 和 `--tokens`：
+
+```bash
+python3 scripts/inspect_indexed_dataset.py /path/1 --sequences 3 --tokens 32
+```
+
+输出是 JSON，至少应能回答：魔数和版本是否正确、dtype 是什么、sequence/document 数量是多少、前几个 sequence 是否同长、最后一个索引范围是否落在 `.bin` 内。检查器只读文件，不修改数据，也不会把整个数据集加载进内存；正式实验仍需把数据目录、tokenizer 摘要、检查报告和上游发布版本一起写入 manifest。解析出整数 ID 还不等于读懂文本，只有使用生成这些 ID 的同一 tokenizer，才能把 token ID 解码回字符串。
+
+这个布局与本仓库的 `TokenDataset` manifest 不是同一个 schema。两者都需要记录长度、顺序、dtype、词表和摘要，但不能把 `.idx` 当成 JSON manifest，也不能把字节 offset 当成 token offset。接入外部 indexed dataset 时，应先生成一份本仓库认可的适配 manifest，或者在训练入口显式声明使用哪一种 loader，避免“文件能打开”被误认为“训练协议相同”。
+
 ## 一个跨分片窗口的手算
 
 把两个分片写成最小例子：

@@ -30,6 +30,40 @@ The current loader accepts a version-one manifest with the following essential s
 
 The vocabulary field matters even when every integer is in range. Suppose two vocabularies both contain 259 entries, but ID 68 means A in one and B in the other. Every stored ID can be legal and every file digest can match while the model receives different meanings. <code>vocab_size</code> checks vocabulary-size agreement, not the identity of equally sized mappings. The tokenizer version, special-token IDs, and tokenizer-file digest must also be recorded in the experiment record.
 
+## Real corpora: `.idx` and `.bin`
+
+The manifest above is the schema used by this book's teaching loader. Public pretraining corpora often use a different layout: a `.bin` file stores a contiguous stream of token IDs, while a companion `.idx` file describes how that stream is divided into samples. A `.bin` file is not a text file. It is a byte stream of fixed-width numbers, so seeing replacement characters or control symbols in `vim` is expected and does not indicate a broken encoding.
+
+Megatron-style `MMIDIDX` files begin with the fixed magic bytes `MMIDIDX\0\0`, followed by a format version, an element dtype, the number of sequences, and the number of documents. The remaining index stores one length per sequence, one byte offset per sequence in the `.bin`, and document-to-sequence boundary indices. With little-endian `int32` tokens, each token occupies 4 bytes; a sequence of 4097 tokens therefore occupies `4097 × 4 = 16388` bytes. These pointers are byte offsets, not token indices, so they cannot be used directly as array positions.
+
+The field order comes from [Megatron Core's IndexedDataset implementation](https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/datasets/indexed_dataset.py). We use it to interpret the observed files; the external implementation's sampling, caching, and multimodal behavior is not implicitly part of this repository.
+
+| `.idx` field | Meaning | Example |
+|---|---|---:|
+| magic | File-format marker | `MMIDIDX` |
+| version | Index-format version | `1` |
+| dtype | Token storage type | `int32` |
+| sequence_count | Number of sample sequences | `49130` |
+| document_count | Number of document boundaries | `49131` |
+| sizes | Token count for each sequence | `4097` |
+| pointers | Byte start of each sequence in `.bin` | `0, 16388, ...` |
+
+Inspect the index before scanning a multi-gigabyte or multi-terabyte corpus. The repository provides a read-only inspector that reads the header, a few lengths and offsets, and a small number of token values. It also checks that the `.bin` is large enough for the range declared by the index:
+
+```bash
+python3 scripts/inspect_indexed_dataset.py /path/1
+```
+
+Pass `--sequences` and `--tokens` when a larger sample is needed:
+
+```bash
+python3 scripts/inspect_indexed_dataset.py /path/1 --sequences 3 --tokens 32
+```
+
+The JSON report should answer whether the magic and version are recognized, which dtype is used, how many sequences and documents exist, whether the first sequences have the expected lengths, and whether the final indexed range lies inside `.bin`. The inspector is read-only and never loads the whole corpus into memory. A production run should still record the data directory, tokenizer digest, inspection report, and upstream release identifier in its manifest. Integer IDs alone do not reveal their text; decoding requires the same tokenizer that produced them.
+
+This layout is not the same schema as the JSON manifest consumed by `TokenDataset`. Both formats need lengths, ordering, dtype, vocabulary metadata, and digests, but an `.idx` file is not a JSON manifest and a byte offset is not a token offset. When adapting an external indexed dataset, create an adapter manifest understood by this repository or declare the indexed-dataset loader explicitly at the training boundary. Being able to open a file does not prove that its sampling and masking protocol matches the experiment.
+
 ## What the loader verifies
 
 <code>TokenDataset.__init__</code> performs several checks with different purposes:

@@ -30,6 +30,22 @@ python -m ttt.data --input corpus.jsonl --output data/pretrain --sharded --token
 
 数据文件、tokenizer 文件和许可信息不随仓库提交。训练恢复时会校验数据指纹、序列长度、batch size 和随机种子。
 
+### 检查已有的 `.idx/.bin` 数据
+
+公开语料或集群共享目录中常见的 Megatron indexed dataset 由同名的 `.idx` 和 `.bin` 两个文件组成。`.idx` 保存版本、整数类型、样本数量、每条样本的长度和字节偏移；`.bin` 只保存连续的 token ID。它不是文本文件，所以用 `vim` 打开出现乱码是正常的。先读取索引，再只读取少量 token，可以避免扫描数百 GB 的语料。
+
+仓库提供只读检查器，不依赖 NumPy：
+
+```bash
+python3 scripts/inspect_indexed_dataset.py \
+  --idx /path/to/1.idx --bin /path/to/1.bin \
+  --sequences 3 --tokens 32
+```
+
+输出是 JSON，至少应核对 `magic`、`dtype`、`sequence_count`、`document_count`、`sequence_lengths`、`sequence_offsets` 和 `.bin` 文件大小。对于本书当前服务器上的样例，预期能看到 `magic=MMIDIDX`、`dtype=int32`、每条样本长度为 `4097`；这只说明文件布局可读，不说明 tokenizer 一定匹配。若要把报告保存下来，追加 `--output outputs/indexed-dataset-report.json`。正式训练前还应记录 tokenizer 文件摘要、词表大小、特殊 token ID、数据许可和训练/验证切分。
+
+检查器不会修改输入文件，也不会把整个数据集载入内存。它只读取索引头、请求的索引记录和对应的少量 token；因此可以先在登录节点完成格式检查，再在 GPU 作业中使用相同路径启动训练。
+
 ## 从随机初始化开始训练
 
 单卡或单进程 GPU：

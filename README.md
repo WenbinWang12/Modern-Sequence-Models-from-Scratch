@@ -47,24 +47,25 @@ tiny 的四步训练用于检查流程，不代表语言能力或召回能力。
 
 代码也提供接近业界 Trainer 的 Python 门面，CLI 仍保持兼容：
 
-NaN
-NaN
-0
-NaN
-NaN
-NaN
-NaN
-NaN
-NaN
-NaN
-NaN
-NaN
-NaN
-NaN
+```python
+from ttt.trainer import Trainer, TrainingArguments
+
+trainer = Trainer(
+    TrainingArguments(
+        config="configs/tiny.json",
+        data="outputs/tokens.npy",
+        output_dir="outputs/trainer-api",
+    )
+)
+result = trainer.train()
+print(result.output_dir)
+```
+
+训练过程会记录 `run_metadata.json`、`status.json`、`metrics.jsonl` 和检查点，便于在远端机器上恢复和审阅。
 
 ## 数据
 
-支持一维整数 `.npy` 和带 SHA256 校验的分片清单。分片可以跨文件采样，不需要把整个语料载入内存。
+支持一维整数 `.npy` 和带 SHA256 校验的分片清单。分片可以跨文件采样，不需要把整个语料载入内存。Megatron 风格的同名 `.idx/.bin` 数据也可以先用 `scripts/inspect_indexed_dataset.py` 做只读格式检查；完整命令、字段解释和服务器复现顺序见 [可复现实验流程](docs/reproducibility.md)。
 
 ```bash
 # JSONL，每行包含 text

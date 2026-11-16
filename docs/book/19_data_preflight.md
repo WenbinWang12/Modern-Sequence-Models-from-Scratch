@@ -28,6 +28,18 @@
 
 前三行主要对应 <code>ttt/dataset.py</code> 中的 <code>TokenDataset</code>；采样状态对应 <code>ttt/data.py</code> 中的 <code>BatchStream</code>。这些检查并没有组成一个覆盖全表的 <code>ttt.preflight</code> 命令。把尚未实现的分析单独列出来，能避免读者把 loader 成功误解成全部验收通过。
 
+## 外部 indexed dataset 还要检查什么
+
+如果输入不是本仓库生成的 `.npy` 分片，而是公开语料常见的 `.idx`/`.bin` 对，先用只读检查器确认物理格式：
+
+~~~bash
+python3 scripts/inspect_indexed_dataset.py /data/train/1 --sequences 3 --tokens 32
+~~~
+
+这一步只读取索引头、少量长度和 token，不把完整语料搬进内存。报告至少应保存魔数、索引版本、dtype、sequence/document 数、抽查的 length/byte offset，以及 `.bin` 的文件大小。重点检查三件事：索引声明的最后一个区间是否落在 `.bin` 内；每个 offset 是否按 dtype 的字节宽度对齐；抽出的 token ID 是否落在 tokenizer 的 `[0,V)` 范围内。最后一项需要知道 `V`，所以不能只凭 `.idx` 自身完成。
+
+`.idx` 的 pointer 通常是**字节偏移**，而本仓库 manifest 中的 `count` 是 token 数；两者单位不同。即使抽查的整数都在范围内，也还没有证明 tokenizer 映射相同、文档边界被正确保留，或训练 loader 的 mask 与原发布方一致。将检查报告、外部数据版本、tokenizer 文件摘要和适配器版本一起写入运行目录，才能在恢复或复现实验时解释“同一份数据”具体指什么。
+
 ## 从已有样例生成一份小报告
 
 下面的命令使用仓库自带的四条 JSONL 教学记录。在目标 Linux 节点、已完成环境安装的仓库根目录运行。第一次先生成分片；生成器拒绝覆盖已有 manifest，重复检查时直接运行第二段即可，改变数据则使用新目录。

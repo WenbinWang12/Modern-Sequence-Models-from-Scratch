@@ -53,6 +53,8 @@ def convert_lines(
         resolved_report = report_path.expanduser().resolve()
         if resolved_report.exists():
             raise FileExistsError(f"报告文件已存在：{resolved_report}")
+        if resolved_report == output_path:
+            raise ValueError("报告路径不能与 JSONL 输出路径相同。")
     if not input_path.is_file():
         raise FileNotFoundError(f"找不到输入文件：{input_path}")
     if output_path.exists():
@@ -90,8 +92,10 @@ def convert_lines(
     output_sha256 = file_sha256(output_path)
     report: dict[str, object] = {
         "input": str(input_path),
+        "input_bytes": input_path.stat().st_size,
         "input_sha256": input_after,
         "output": str(output_path),
+        "output_bytes": output_path.stat().st_size,
         "output_sha256": output_sha256,
         "records": records,
         "blank_lines": blank_lines,

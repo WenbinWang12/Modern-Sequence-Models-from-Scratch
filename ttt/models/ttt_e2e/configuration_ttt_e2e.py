@@ -125,8 +125,8 @@ class TTTE2EConfig(PretrainedConfig):
                 raise ValueError(f"{name} 必须是布尔值。")
         for name in ("rope_theta", "rms_norm_eps", "initializer_range"):
             _positive_float(name, getattr(self, name))
-        if self.attention_backend not in ("reference", "chunked", "cudnn"):
-            raise ValueError("attention_backend 必须为 reference、chunked 或 cudnn。")
+        if self.attention_backend not in ("reference", "chunked", "blocked", "cudnn"):
+            raise ValueError("attention_backend 必须为 reference、chunked、blocked 或 cudnn。")
 
         kv_heads = self.num_key_value_heads
         if kv_heads is None:

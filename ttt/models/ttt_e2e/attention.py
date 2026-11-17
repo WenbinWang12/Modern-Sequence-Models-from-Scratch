@@ -5,7 +5,7 @@ from typing import NamedTuple
 import jax
 import jax.numpy as jnp
 
-from .kernels import chunked_attention, reference_attention
+from .kernels import blocked_sliding_attention, chunked_attention, reference_attention
 from .layers import init_linear, init_norm, linear, rms_norm
 
 
@@ -104,6 +104,12 @@ def attention(params, hidden, config, layer_type, *, cache=None, position=0):
     window = config.sliding_window if sliding else None
     if config.attention_backend == "reference":
         output = reference_attention(query, keys, values, positions, key_positions, window)
+    elif config.attention_backend == "blocked":
+        # 稠密计算：无缓存的长序列滑窗按块并行，其余情况（全注意力、带缓存的块内前向）直接稠密。
+        if cache is None and window is not None and count > window:
+            output = blocked_sliding_attention(query, keys, values, positions, window)
+        else:
+            output = reference_attention(query, keys, values, positions, key_positions, window)
     elif config.attention_backend == "cudnn":
         if cache is not None:
             raise ValueError("cudnn 路径仅用于无缓存前向；内循环及推理应使用 chunked。")

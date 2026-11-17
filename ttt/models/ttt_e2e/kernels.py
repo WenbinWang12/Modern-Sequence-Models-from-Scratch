@@ -13,6 +13,37 @@ def reference_attention(query, key, value, query_positions, key_positions, windo
     return jnp.einsum("hts,shd->thd", weights, value)
 
 
+def blocked_sliding_attention(query, key, value, positions, window):
+    """无缓存的滑窗注意力：按 window 切块，每块只与上一块和本块的键做稠密注意力。
+
+    位置 p 的查询只能看到 (p - window, p] 内的键，这些键必然落在查询所在块及其前一块中，
+    因此结果与 reference_attention 完全一致，但计算量从 O(T^2) 降为 O(T * window)，
+    且各块之间没有串行依赖。
+    """
+    length, heads, dimension = query.shape
+    pad = (-length) % window
+    blocks = (length + pad) // window
+
+    def split(values):
+        return jnp.pad(values, ((0, pad), (0, 0), (0, 0))).reshape(blocks, window, heads, dimension)
+
+    def with_previous(values, fill):
+        return jnp.concatenate((jnp.concatenate((jnp.full_like(values[:1], fill), values[:-1])), values), axis=1)
+
+    # 补齐的查询沿用连续位置，保证每行至少有一个可见键；补齐的键标记为 -1，永远不可见。
+    query_positions = (positions[0] + jnp.arange(length + pad, dtype=positions.dtype)).reshape(blocks, window)
+    key_positions = jnp.pad(positions, (0, pad), constant_values=-1).reshape(blocks, window)
+    output = jax.vmap(reference_attention, in_axes=(0, 0, 0, 0, 0, None))(
+        split(query),
+        with_previous(split(key), 0),
+        with_previous(split(value), 0),
+        query_positions,
+        with_previous(key_positions, -1),
+        window,
+    )
+    return output.reshape(-1, heads, dimension)[:length]
+
+
 def chunked_attention(
     query, key, value, query_positions, key_positions, *, window=None, query_block=128, key_block=256
 ):

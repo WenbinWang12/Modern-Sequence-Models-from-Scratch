@@ -49,8 +49,35 @@ class HuggingFaceTokenizer:
         return self.tokenizer.decode(tokens, skip_special_tokens=True)
 
 
+class TiktokenTokenizer:
+    """tiktoken 编码器，例如 ``tiktoken:gpt2``；文档分隔符同时充当 BOS 和 EOS。"""
+
+    def __init__(self, name):
+        try:
+            import tiktoken
+        except ImportError as error:
+            raise ImportError("请安装 tiktoken：pip install tiktoken。") from error
+        self.encoding = tiktoken.get_encoding(name)
+        self.name = f"tiktoken:{name}"
+        self.vocab_size = self.encoding.n_vocab
+        self.bos_token_id = self.encoding.eot_token
+        self.eos_token_id = self.encoding.eot_token
+        self.pad_token_id = self.encoding.eot_token
+
+    def encode(self, text, *, add_bos=True):
+        tokens = self.encoding.encode_ordinary(text)
+        return ([self.bos_token_id] if add_bos else []) + tokens
+
+    def decode(self, tokens):
+        return self.encoding.decode([int(token) for token in tokens if int(token) != self.eos_token_id])
+
+
 def load_tokenizer(name):
-    return ByteTokenizer() if name == "byte" else HuggingFaceTokenizer(name)
+    if name == "byte":
+        return ByteTokenizer()
+    if name.startswith("tiktoken:"):
+        return TiktokenTokenizer(name.split(":", 1)[1])
+    return HuggingFaceTokenizer(name)
 
 
 class BatchStream:

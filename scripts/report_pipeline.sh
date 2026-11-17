@@ -13,6 +13,15 @@ python=${TTT_PYTHON:-.venv/bin/python}
 tasks="hellaswag piqa arc_easy arc_challenge winogrande lambada_openai sciq openbookqa wikitext blimp mmlu pg19"
 mkdir -p logs outputs/benchmarks-v2 outputs/queue
 
+# 同一计划只能有一个流水线。锁文件本身可以保留，flock 会在进程退出时自动释放，
+# 因此进程被系统终止后仍能直接重新执行命令，不会留下需要人工清理的锁目录。
+lock_file="outputs/.report_pipeline_${plan}.lock"
+exec 9>"$lock_file"
+if ! flock -n 9; then
+  echo "report pipeline already running for plan=$plan" >&2
+  exit 1
+fi
+
 log() { echo "$(date -Is) [gpu$gpu] $*"; }
 
 complete() { grep -q '"status": "complete"' "outputs/$1/status.json" 2>/dev/null; }

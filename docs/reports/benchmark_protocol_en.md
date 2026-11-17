@@ -1,0 +1,69 @@
+# Benchmark protocol and current status
+
+A benchmark number is meaningful only when it is tied to a checkpoint, data revision, tokenizer, prompt, number of shots, context limit, adaptation setting, and valid sample count. This page records the evaluation tiers used in the project and the protocol already run on H200.
+
+## Evaluation tiers
+
+| Tier | Tasks | Question | Status |
+| --- | --- | --- | --- |
+| Training health | held-out NLL/PPL, mixture proportions, repetition | Did the model learn the target distribution and remain stable? | Measured |
+| Knowledge and commonsense | MMLU, ARC-E/ARC-C, OpenBookQA, PIQA, HellaSwag, WinoGrande | Does a small model transfer knowledge and commonsense judgments? | MMLU diagnostic script ready |
+| Mathematics | GSM8K, MATH, AIME/AMC | Can the model perform multi-step symbolic reasoning? | Run after tokenizer and scale are fixed |
+| Code | HumanEval, MBPP, LiveCodeBench | Does generated code execute correctly and generalize across time? | Planned |
+| Hard reasoning | BBH, GPQA, TruthfulQA | Long-chain reasoning, expert knowledge, and factuality | Planned |
+| Long context | RULER, LongBench, DROP | Retrieval and composition as context grows | Synthetic probe exists; suite pending |
+| Chinese | CMMLU, C-Eval | Chinese knowledge and exam-style reasoning | After bilingual tokenizer freeze |
+
+These tiers are complementary. A lower PPL does not imply a higher GSM8K score, and MMLU answer selection does not replace execution-based code evaluation. A release table should cover knowledge/commonsense, mathematics or code, and long context, together with held-out NLL.
+
+## Current MMLU diagnostic
+
+`scripts/eval_mmlu_loglikelihood.py` reads MMLU test CSV files and constructs:
+
+```text
+question
+
+A. choice_0
+B. choice_1
+C. choice_2
+D. choice_3
+Answer:
+```
+
+For each option it scores the continuation ` space + letter` and selects the largest conditional log likelihood:
+
+\[
+\hat y=\arg\max_{c\in\{A,B,C,D\}}
+\log p_\theta(\text{space}+c\mid\text{prompt}).
+\]
+
+The protocol uses the byte tokenizer, a 512-token limit, and no TTT session adaptation. Invalid rows and prompts exceeding the fixed context are counted as `skipped`; they are never silently truncated. JSON output includes per-subject correct, valid, skipped, and accuracy counts, plus data and checkpoint hashes.
+
+This is an engineering diagnostic for the current 15M, byte-token, non-instruction-tuned model. It is not directly comparable with vendor scores using subword tokenizers, few-shot prompts, or instruction tuning. A formal result requires a frozen tokenizer, scale, training corpus, and prompt template, at least three seeds, and a Wilson or bootstrap confidence interval.
+
+The H200 command is:
+
+```bash
+CUDA_VISIBLE_DEVICES=5 JAX_PLATFORMS=cuda PYTHONPATH=. \
+  .venv/bin/python scripts/eval_mmlu_loglikelihood.py \
+  --checkpoint outputs/h200-15m-ttt-mixture-85-15/step_00010000.orbax \
+  --data-dir /home/wang.21020/mmlu-data/mmlu \
+  --subjects abstract_algebra high_school_mathematics college_physics computer_security professional_law \
+  --limit 100 --output outputs/benchmarks/mmlu_ttt_mixture_5x100.json
+```
+
+Run the baseline on GPU7 by changing the checkpoint and device. Keep the experiment configuration, dataset hash, script hash, and checkpoint metadata with every result.
+
+## Contamination and comparability
+
+Before formal evaluation, compare the training corpus, tokenizer training text, and benchmark questions/answers with exact matching, NFC-normalized matching, long-substring matching, and approximate matching. Fix the revision, split, prompt, shot count, normalization, timeout rule, and repeat count for every benchmark. Closed models are external references; unequal protocols must not be reported as a victory.
+
+## Release gate
+
+The current results remain pilot evidence. Before entering the main technical-report table, add:
+
+1. Same-seed, same-token-budget paired plain and TTT results;
+2. At least three seeds and uncertainty intervals;
+3. A mathematics or code benchmark beyond MMLU;
+4. A public long-context benchmark;
+5. Contamination audit, complete version information, and reproducible commands.

@@ -154,3 +154,4 @@ nav:
           - TTT and linear attention: frontier/en/ttt_linear_attention.md
           - TTT-E2E and long context: frontier/en/ttt_e2e_long_context.md
           - Looped Transformer: frontier/en/loop_transformer.md
+      - English benchmark protocol: reports/benchmark_protocol_en.md

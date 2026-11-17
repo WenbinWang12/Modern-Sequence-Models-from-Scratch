@@ -18,7 +18,11 @@
 
 ## 2. 当前 MMLU 诊断协议
 
-仓库中的 `scripts/eval_mmlu_loglikelihood.py` 使用 MMLU test split 的 CSV 文件，对每道题构造：
+仓库中的 `scripts/eval_mmlu_loglikelihood.py` 使用 MMLU test split 的 CSV 文件，对每道题构造；`scripts/eval_hellaswag_loglikelihood.py` 使用 HellaSwag validation 的四个 completion 做同类 continuation 评分。
+
+### MMLU 协议
+
+对每道题构造：
 
 ```text
 question
@@ -53,6 +57,8 @@ CUDA_VISIBLE_DEVICES=5 JAX_PLATFORMS=cuda PYTHONPATH=. \
 ```
 
 baseline 只替换 checkpoint 路径和 `CUDA_VISIBLE_DEVICES=7`。评测结果必须同时保存 checkpoint 的实验配置、数据集压缩摘要、脚本 commit 和下载文件 SHA256；否则只能算临时观察，不能进入论文主表。
+
+在 H200 15M 混合数据配对实验中，五个 MMLU 科目各取最多 100 题：baseline 为 116/392（29.59%），TTT no-adapt 为 104/392（26.53%）。HellaSwag validation 前 100 题中，baseline 和 TTT no-adapt 均为 32/100（32%）。这些数字都是 byte-token、非 instruction-tuned 小模型的诊断结果，不是发布榜单分数。
 
 ## 3. 污染与可比性检查
 

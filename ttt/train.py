@@ -9,6 +9,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from .callbacks import JsonlMetricsCallback, TrainerCallback
 from .checkpoint import load_checkpoint, save_checkpoint
 from .config import load_experiment
 from .data import BatchStream
@@ -24,7 +25,6 @@ from .lifecycle import StopSignal, atomic_json, latest_checkpoint
 from .models.ttt_e2e.modeling_ttt_e2e import TTTE2EForCausalLM
 from .provenance import environment_report, run_metadata
 from .training import TrainState, make_optimizer, make_train_step
-from .callbacks import JsonlMetricsCallback, TrainerCallback
 
 
 def train(experiment, data_path, output_dir, *, resume=None, initialize_from=None, callbacks=None):

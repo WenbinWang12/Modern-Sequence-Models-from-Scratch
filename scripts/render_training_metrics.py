@@ -113,7 +113,7 @@ def render_metrics(input_path: Path, output_path: Path) -> dict[str, object]:
     ]
     content = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{_WIDTH}" height="{_HEIGHT}" viewBox="0 0 {_WIDTH} {_HEIGHT}" role="img" aria-labelledby="title desc">',
-        "<title id=\"title\">Training metrics</title>",
+        '<title id="title">Training metrics</title>',
         f'<desc id="desc">Training metrics from step {records[0]["step"]:g} through {records[-1]["step"]:g}.</desc>',
         "<style>text{font-family:Inter,Arial,sans-serif;fill:#334155}.panel-title{font-size:18px;font-weight:600}.tick{font-size:12px;fill:#64748b}.value{font-size:13px;fill:#334155}.missing{font-size:16px;fill:#b91c1c}.axis{stroke:#cbd5e1;stroke-width:1}</style>",
         f'<rect width="{_WIDTH}" height="{_HEIGHT}" fill="#f8fafc"/>',

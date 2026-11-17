@@ -67,9 +67,10 @@ def convert_lines(
     blank_lines = 0
     consumed_lines = 0
     try:
-        with input_path.open("r", encoding="utf-8", newline="") as source, temporary.open(
-            "w", encoding="utf-8", newline="\n"
-        ) as target:
+        with (
+            input_path.open("r", encoding="utf-8", newline="") as source,
+            temporary.open("w", encoding="utf-8", newline="\n") as target,
+        ):
             for raw_line in source:
                 consumed_lines += 1
                 text = raw_line.rstrip("\r\n")

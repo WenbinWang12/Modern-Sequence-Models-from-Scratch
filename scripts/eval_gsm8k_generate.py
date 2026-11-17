@@ -46,7 +46,9 @@ def _predicted_answer(text: str) -> str | None:
     return _normalize(numbers[-1]) if numbers else None
 
 
-def evaluate(checkpoint_path: Path, data_path: Path, *, limit: int | None, max_new_tokens: int, no_adapt: bool) -> dict[str, object]:
+def evaluate(
+    checkpoint_path: Path, data_path: Path, *, limit: int | None, max_new_tokens: int, no_adapt: bool
+) -> dict[str, object]:
     checkpoint = load_checkpoint(checkpoint_path, load_optimizer=False)
     experiment = checkpoint.experiment
     tokenizer = load_tokenizer(experiment.tokenizer)
@@ -113,7 +115,9 @@ def main() -> int:
     parser.add_argument("--no-adapt", action="store_true")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    result = evaluate(args.checkpoint, args.data, limit=args.limit, max_new_tokens=args.max_new_tokens, no_adapt=args.no_adapt)
+    result = evaluate(
+        args.checkpoint, args.data, limit=args.limit, max_new_tokens=args.max_new_tokens, no_adapt=args.no_adapt
+    )
     rendered = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-﻿"""用无适配的 continuation log-likelihood 评估 MMLU。
+"""用无适配的 continuation log-likelihood 评估 MMLU。
 
 该脚本只实现可复核的零样本字母选择协议：问题和四个选项组成提示，
 分别计算 `` A``、`` B``、`` C``、`` D`` 的条件对数概率，取分数最高者。
@@ -85,14 +85,16 @@ def evaluate_subjects(
     tokenizer = ByteTokenizer()
     max_length = min(experiment.model.max_position_embeddings, 512)
     evaluate = jax.jit(
-        lambda tokens: sequence_loss(
-            model,
-            checkpoint.state.params,
-            tokens,
-            inner,
-            jnp.ones((max_length - 1,), dtype=jnp.float32),
-            return_logits=True,
-        ).logits
+        lambda tokens: (
+            sequence_loss(
+                model,
+                checkpoint.state.params,
+                tokens,
+                inner,
+                jnp.ones((max_length - 1,), dtype=jnp.float32),
+                return_logits=True,
+            ).logits
+        )
     )
     per_subject: dict[str, dict[str, object]] = {}
     total_correct = total_count = total_skipped = 0
@@ -110,10 +112,7 @@ def evaluate_subjects(
                 continue
             prompt = _prompt(row)
             try:
-                scores = [
-                    _score_choice(evaluate, tokenizer, prompt, label, max_length=max_length)
-                    for label in LABELS
-                ]
+                scores = [_score_choice(evaluate, tokenizer, prompt, label, max_length=max_length) for label in LABELS]
             except ValueError:
                 skipped += 1
                 continue

@@ -18,7 +18,11 @@ from ttt.training import TrainConfig, TrainState, make_train_step
 def _reference_nll(model, params, tokens, weights):
     # 独立从未加权 logits 构造全局分子；只测试未做适应的预测目标。
     logits = sequence_loss(
-        model, params, tokens, InnerLoopConfig(enabled=False), return_logits=True,
+        model,
+        params,
+        tokens,
+        InnerLoopConfig(enabled=False),
+        return_logits=True,
     ).logits
     log_probs = jax.nn.log_softmax(logits.astype(jnp.float32), axis=-1)
     losses = -jnp.take_along_axis(log_probs, tokens[1:, None], axis=-1)[:, 0]
@@ -140,7 +144,12 @@ def test_pmap_sparse_binary_targets_preserve_global_mean():
     environment = dict(os.environ, JAX_PLATFORMS="cpu", XLA_FLAGS="--xla_force_host_platform_device_count=2")
     environment.pop("JAX_NUM_CPU_DEVICES", None)
     result = subprocess.run(
-        [sys.executable, "-c", program], cwd=Path(__file__).resolve().parents[1],
-        env=environment, capture_output=True, text=True, timeout=180, check=False,
+        [sys.executable, "-c", program],
+        cwd=Path(__file__).resolve().parents[1],
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=180,
+        check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr

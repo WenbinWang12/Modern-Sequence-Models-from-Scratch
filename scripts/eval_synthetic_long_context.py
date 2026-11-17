@@ -94,7 +94,9 @@ def main() -> int:
         "samples_per_length": args.samples,
         "seed": args.seed,
         "max_new_tokens": args.max_new_tokens,
-        "results": _run_mode(model, checkpoint.state.params, inner, tokenizer, args.lengths, args.samples, args.seed, args.max_new_tokens),
+        "results": _run_mode(
+            model, checkpoint.state.params, inner, tokenizer, args.lengths, args.samples, args.seed, args.max_new_tokens
+        ),
     }
     rendered = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output:

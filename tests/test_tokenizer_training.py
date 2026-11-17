@@ -23,7 +23,11 @@ def test_hand_counted_bpe_and_frozen_encoding():
     bpe = _load_module("examples/book/bpe_walkthrough.py")
     model = bpe.learn_bpe(bpe.WORD_COUNTS, 5)
     assert [step["pair"] for step in model["steps"]] == [
-        ("c", "a"), ("ca", "t"), ("cat", "</w>"), ("ca", "p"), ("cap", "</w>"),
+        ("c", "a"),
+        ("ca", "t"),
+        ("cat", "</w>"),
+        ("ca", "p"),
+        ("cap", "</w>"),
     ]
     assert [step["pair_count"] for step in model["steps"]] == [11, 7, 5, 4, 3]
     assert [step["positions_after"] for step in model["steps"]] == [36, 29, 24, 20, 17]
@@ -70,8 +74,16 @@ def test_training_retains_unseen_bytes_and_normalized_roundtrip(tmp_path, algori
     training = _load_module("scripts/train_tokenizer.py")
     source = tmp_path / "ascii.jsonl"
     source.write_text(json.dumps({"text": "cat cats cap caps " * 10}) + "\n", encoding="utf-8")
-    args = argparse.Namespace(input=[source], output=tmp_path / algorithm, algorithm=algorithm,
-                              vocab_size=280, min_frequency=2, max_piece_length=16, text_key="text", byte_level=True)
+    args = argparse.Namespace(
+        input=[source],
+        output=tmp_path / algorithm,
+        algorithm=algorithm,
+        vocab_size=280,
+        min_frequency=2,
+        max_piece_length=16,
+        text_key="text",
+        byte_level=True,
+    )
     output = training.train(args)
     tokenizer = transformers.PreTrainedTokenizerFast.from_pretrained(output, local_files_only=True)
     # 训练集只有 ASCII；覆盖中文、emoji、控制空白以及有损的 NFKC 变化。
@@ -117,8 +129,16 @@ def test_training_rejects_source_changed_after_jsonl_conversion(tmp_path, monkey
         return files
 
     monkeypatch.setattr(training, "_write_training_text", convert_then_change_source)
-    args = argparse.Namespace(input=[source], output=tmp_path / "tokenizer", algorithm="bpe",
-                              vocab_size=280, min_frequency=2, max_piece_length=16, text_key="text", byte_level=True)
+    args = argparse.Namespace(
+        input=[source],
+        output=tmp_path / "tokenizer",
+        algorithm="bpe",
+        vocab_size=280,
+        min_frequency=2,
+        max_piece_length=16,
+        text_key="text",
+        byte_level=True,
+    )
     with pytest.raises(RuntimeError, match="输入语料在训练期间发生变化"):
         training.train(args)
     assert not args.output.exists()

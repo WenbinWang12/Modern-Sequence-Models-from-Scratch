@@ -48,14 +48,16 @@ def evaluate(checkpoint_path: Path, data_path: Path, *, limit: int | None = None
     tokenizer = ByteTokenizer()
     max_length = min(experiment.model.max_position_embeddings, 512)
     evaluate_logits = jax.jit(
-        lambda tokens: sequence_loss(
-            model,
-            checkpoint.state.params,
-            tokens,
-            inner,
-            jnp.ones((max_length - 1,), dtype=jnp.float32),
-            return_logits=True,
-        ).logits
+        lambda tokens: (
+            sequence_loss(
+                model,
+                checkpoint.state.params,
+                tokens,
+                inner,
+                jnp.ones((max_length - 1,), dtype=jnp.float32),
+                return_logits=True,
+            ).logits
+        )
     )
     rows = [json.loads(line) for line in data_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     if limit is not None:
@@ -65,7 +67,9 @@ def evaluate(checkpoint_path: Path, data_path: Path, *, limit: int | None = None
         try:
             endings = row["endings"]
             label = int(row["label"])
-            scores = [_score(evaluate_logits, tokenizer, row["ctx"], ending, max_length=max_length) for ending in endings]
+            scores = [
+                _score(evaluate_logits, tokenizer, row["ctx"], ending, max_length=max_length) for ending in endings
+            ]
             prediction = max(range(len(scores)), key=scores.__getitem__)
             correct += int(prediction == label)
         except (KeyError, TypeError, ValueError, IndexError):

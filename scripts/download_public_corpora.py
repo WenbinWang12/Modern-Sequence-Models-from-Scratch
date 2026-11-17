@@ -87,7 +87,9 @@ def download_pg19(output: Path, splits: tuple[str, ...], workers: int) -> None:
                 records[name] = record
                 if index % 2000 == 0 or index == len(names):
                     print(
-                        json.dumps({"split": split, "done": index, "total": len(names), "seconds": time.time() - started}),
+                        json.dumps(
+                            {"split": split, "done": index, "total": len(names), "seconds": time.time() - started}
+                        ),
                         flush=True,
                     )
         manifest["splits"][split] = {
@@ -96,7 +98,11 @@ def download_pg19(output: Path, splits: tuple[str, ...], workers: int) -> None:
             "records": records,
         }
     (output / "source_manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
-    print(json.dumps({name: {k: v for k, v in split.items() if k != "records"} for name, split in manifest["splits"].items()}))
+    print(
+        json.dumps(
+            {name: {k: v for k, v in split.items() if k != "records"} for name, split in manifest["splits"].items()}
+        )
+    )
 
 
 def download_fineweb(output: Path, indices: list[int]) -> None:

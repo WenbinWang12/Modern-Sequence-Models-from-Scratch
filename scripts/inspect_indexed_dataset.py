@@ -42,9 +42,7 @@ def _read_exact(handle: BinaryIO, size: int) -> bytes:
 
     data = handle.read(size)
     if len(data) != size:
-        raise IndexedDatasetError(
-            f"文件提前结束：需要 {size} 字节，实际读取 {len(data)} 字节"
-        )
+        raise IndexedDatasetError(f"文件提前结束：需要 {size} 字节，实际读取 {len(data)} 字节")
     return data
 
 
@@ -144,8 +142,7 @@ def inspect_indexed_dataset(
         actual_index_bytes = idx_path.stat().st_size
         if actual_index_bytes < expected_index_bytes:
             raise IndexedDatasetError(
-                "索引文件长度不足："
-                f"需要至少 {expected_index_bytes} 字节，实际 {actual_index_bytes} 字节"
+                f"索引文件长度不足：需要至少 {expected_index_bytes} 字节，实际 {actual_index_bytes} 字节"
             )
 
         sampled_sequences = min(sequence_limit, sequence_count)
@@ -203,18 +200,12 @@ def inspect_indexed_dataset(
     with bin_path.open("rb") as data_file:
         for index, (length, pointer) in enumerate(zip(lengths, pointers)):
             if length < 0 or pointer < 0:
-                raise IndexedDatasetError(
-                    f"第 {index} 条序列的 length/pointer 不能为负数：{length}, {pointer}"
-                )
+                raise IndexedDatasetError(f"第 {index} 条序列的 length/pointer 不能为负数：{length}, {pointer}")
             if pointer % item_size:
-                raise IndexedDatasetError(
-                    f"第 {index} 条序列的字节 offset 未按 dtype 对齐：{pointer}"
-                )
+                raise IndexedDatasetError(f"第 {index} 条序列的字节 offset 未按 dtype 对齐：{pointer}")
             end = pointer + length * item_size
             if end > bin_bytes:
-                raise IndexedDatasetError(
-                    f"第 {index} 条序列超出 bin 文件：[{pointer}, {end}) > {bin_bytes}"
-                )
+                raise IndexedDatasetError(f"第 {index} 条序列超出 bin 文件：[{pointer}, {end}) > {bin_bytes}")
             first_count = min(token_limit, length)
             last_count = min(token_limit, length)
             first_tokens = _read_tokens(
@@ -245,40 +236,22 @@ def inspect_indexed_dataset(
             last_length = last_sequence["length"]
             last_pointer = last_sequence["offset_bytes"]
             if last_length < 0 or last_pointer < 0:
-                raise IndexedDatasetError(
-                    "最后一条序列的 length/pointer 不能为负数："
-                    f"{last_length}, {last_pointer}"
-                )
+                raise IndexedDatasetError(f"最后一条序列的 length/pointer 不能为负数：{last_length}, {last_pointer}")
             if last_pointer % item_size:
-                raise IndexedDatasetError(
-                    "最后一条序列的字节 offset 未按 dtype 对齐："
-                    f"{last_pointer}"
-                )
+                raise IndexedDatasetError(f"最后一条序列的字节 offset 未按 dtype 对齐：{last_pointer}")
             last_end = last_pointer + last_length * item_size
             if last_end > bin_bytes:
-                raise IndexedDatasetError(
-                    "最后一条序列超出 bin 文件："
-                    f"[{last_pointer}, {last_end}) > {bin_bytes}"
-                )
+                raise IndexedDatasetError(f"最后一条序列超出 bin 文件：[{last_pointer}, {last_end}) > {bin_bytes}")
             last_sequence["end_bytes"] = last_end
 
     token_validation: dict[str, object] | None = None
     if vocab_size is not None:
         sampled_tokens = [
-            token
-            for sequence in sequences
-            for token in sequence["first_tokens"] + sequence["last_tokens"]
+            token for sequence in sequences for token in sequence["first_tokens"] + sequence["last_tokens"]
         ]
-        invalid = [
-            token
-            for token in sampled_tokens
-            if not isinstance(token, int) or token < 0 or token >= vocab_size
-        ]
+        invalid = [token for token in sampled_tokens if not isinstance(token, int) or token < 0 or token >= vocab_size]
         if invalid:
-            raise IndexedDatasetError(
-                "抽样 token 超出词表范围："
-                f"前几个非法值为 {invalid[:8]}，vocab_size={vocab_size}"
-            )
+            raise IndexedDatasetError(f"抽样 token 超出词表范围：前几个非法值为 {invalid[:8]}，vocab_size={vocab_size}")
         token_validation = {
             "vocab_size": vocab_size,
             "sampled_token_count": len(sampled_tokens),
@@ -320,9 +293,7 @@ def inspect_indexed_dataset(
 def _build_parser() -> argparse.ArgumentParser:
     """创建命令行解析器。"""
 
-    parser = argparse.ArgumentParser(
-        description="只读检查 Megatron MMIDIDX 的 .idx/.bin 数据集"
-    )
+    parser = argparse.ArgumentParser(description="只读检查 Megatron MMIDIDX 的 .idx/.bin 数据集")
     parser.add_argument(
         "prefix",
         nargs="?",

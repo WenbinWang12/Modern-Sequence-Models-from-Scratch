@@ -76,7 +76,8 @@ def main_arms(seed=0):
     size = dict(hidden=768, intermediate=2048, layers=12, heads=12, window=512, chunk=256, suffix=3)
     arms = {}
     for kind in ("full", "swa", "ck", "ttt"):
-        training = training_config(steps=12000, batch=16, length=4096, seed=seed, checkpointing=kind == "full")
+        # 梯度检查点只改变显存/速度的取舍，不改变数值；全注意力不开会超出单卡显存。
+        training = training_config(steps=12000, batch=16, length=4096, seed=seed, checkpointing=kind in ("full", "ck"))
         arms[kind] = experiment(model_config(kind=kind, **size), training, inner_enabled=kind == "ttt")
     return arms
 

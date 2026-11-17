@@ -77,6 +77,7 @@ def main() -> None:
     parser.add_argument("--include-partial", action="store_true")
     parser.add_argument("--windows-per-document", type=int)
     parser.add_argument("--max-windows", type=int)
+    parser.add_argument("--stream", action="store_true", help="忽略文档边界，把语料当作一条连续 token 流切窗")
     parser.add_argument("--no-adapt", action="store_true")
     parser.add_argument("--inner-learning-rate", type=float)
     parser.add_argument("--sliding-window", type=int, help="评测时覆盖滑窗长度")
@@ -114,6 +115,9 @@ def main() -> None:
     manifest, tokens, starts = load_corpus(args.data)
     if manifest["vocab_size"] != config.vocab_size:
         raise ValueError("评测数据的词表与模型不一致。")
+    if args.stream:
+        # 与训练采样一致：窗口可以跨越文档边界，文档之间只有 EOT 分隔。
+        starts = np.asarray([0, tokens.size], dtype=np.int64)
     windows = enumerate_windows(
         starts,
         args.window,
@@ -171,6 +175,7 @@ def main() -> None:
         "window": args.window,
         "bin": args.bin,
         "include_partial": args.include_partial,
+        "stream": args.stream,
         "adapt": bool(inner.enabled and config.use_fast_mlp),
         "inner_learning_rate": inner.learning_rate,
         "eval_overrides": {key: (list(value) if isinstance(value, tuple) else value) for key, value in changes.items()},
@@ -198,7 +203,9 @@ def main() -> None:
         document=np.asarray([document for document, _, _ in windows], dtype=np.int32),
         position=np.asarray([position for _, position, _ in windows], dtype=np.int64),
     )
-    print(json.dumps({key: value for key, value in summary.items() if key != "nll_by_position_bin"}, ensure_ascii=False))
+    print(
+        json.dumps({key: value for key, value in summary.items() if key != "nll_by_position_bin"}, ensure_ascii=False)
+    )
 
 
 if __name__ == "__main__":

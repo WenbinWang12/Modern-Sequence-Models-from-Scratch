@@ -44,7 +44,9 @@ def train(args: argparse.Namespace) -> Path:
         from tokenizers import Tokenizer, decoders, models, normalizers, pre_tokenizers, trainers
         from transformers import PreTrainedTokenizerFast
     except ImportError as error:
-        raise SystemExit("请先安装 tokenizer 依赖：uv sync --extra tokenizer，或 pip install transformers tokenizers。") from error
+        raise SystemExit(
+            "请先安装 tokenizer 依赖：uv sync --extra tokenizer，或 pip install transformers tokenizers。"
+        ) from error
 
     special_tokens = ["<pad>", "<bos>", "<eos>", "<unk>"]
     if args.algorithm not in ("bpe", "unigram"):
@@ -150,7 +152,11 @@ def main() -> None:
     parser.add_argument("--byte-level", action=argparse.BooleanOptionalAction, default=True)
     args = parser.parse_args()
     output_dir = train(args)
-    print(json.dumps({"output": str(output_dir), "metadata": str(output_dir / "tokenizer_metadata.json")}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {"output": str(output_dir), "metadata": str(output_dir / "tokenizer_metadata.json")}, ensure_ascii=False
+        )
+    )
 
 
 if __name__ == "__main__":

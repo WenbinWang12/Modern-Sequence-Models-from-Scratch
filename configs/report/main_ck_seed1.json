@@ -50,7 +50,7 @@
     "inner_lr_start": 0.1,
     "checkpoint_every": 1000,
     "checkpoint_format": "orbax",
-    "gradient_checkpointing": false,
+    "gradient_checkpointing": true,
     "log_every": 20,
     "seed": 1
   },

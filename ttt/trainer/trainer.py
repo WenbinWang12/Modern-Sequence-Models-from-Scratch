@@ -5,15 +5,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from collections.abc import Iterable
 from typing import Any
 
+from ..callbacks import TrainerCallback
 from ..config import ExperimentConfig, load_experiment
 from ..lifecycle import latest_checkpoint
 from ..train import train as run_training
-from ..callbacks import TrainerCallback
 from .training_args import TrainingArguments
 
 __all__ = ["Trainer", "TrainingResult"]
@@ -62,9 +62,7 @@ class Trainer:
     def evaluate(self, *args: Any, **kwargs: Any) -> Any:
         """评估入口预留给统一评估协议。"""
 
-        raise NotImplementedError(
-            "统一评估协议正在接入；当前请使用 ttt.eval_retrieval 或评估章节中的显式入口。"
-        )
+        raise NotImplementedError("统一评估协议正在接入；当前请使用 ttt.eval_retrieval 或评估章节中的显式入口。")
 
     def predict(self, *args: Any, **kwargs: Any) -> Any:
         """推理入口预留给统一生成协议。"""

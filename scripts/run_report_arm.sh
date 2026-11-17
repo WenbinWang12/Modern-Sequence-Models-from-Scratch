@@ -12,6 +12,14 @@ python=${TTT_PYTHON:-.venv/bin/python}
 mkdir -p "outputs/$name"
 export CUDA_VISIBLE_DEVICES=$gpu
 export JAX_PLATFORMS=cuda
-export XLA_PYTHON_CLIENT_MEM_FRACTION=${XLA_PYTHON_CLIENT_MEM_FRACTION:-0.92}
+if [ -z "${XLA_PYTHON_CLIENT_MEM_FRACTION:-}" ]; then
+  # 开启梯度检查点的臂峰值显存低于 50 GiB，只预占不到一半显存，其余留给同卡的评测进程；
+  # 不开检查点的臂（约 85 GiB）独占整张卡。
+  if grep -q '"gradient_checkpointing": true' "$config"; then
+    export XLA_PYTHON_CLIENT_MEM_FRACTION=0.45
+  else
+    export XLA_PYTHON_CLIENT_MEM_FRACTION=0.92
+  fi
+fi
 export PYTHONPATH=.
 exec "$python" -m ttt.train --config "$config" --data "$data" --output "outputs/$name" --auto-resume

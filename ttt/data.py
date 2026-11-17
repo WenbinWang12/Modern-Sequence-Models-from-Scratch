@@ -8,8 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
-from .dataset import TokenDataset, prepare_sharded_data
 from .data_mixture import MixtureBatchStream
+from .dataset import TokenDataset, prepare_sharded_data
 
 
 class ByteTokenizer:

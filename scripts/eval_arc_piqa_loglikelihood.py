@@ -100,14 +100,16 @@ def evaluate(checkpoint_path: Path, data_path: Path, task: str, *, limit: int | 
     tokenizer = ByteTokenizer()
     max_length = min(experiment.model.max_position_embeddings, 512)
     evaluate_logits = jax.jit(
-        lambda tokens: sequence_loss(
-            model,
-            checkpoint.state.params,
-            tokens,
-            inner,
-            jnp.ones((max_length - 1,), dtype=jnp.float32),
-            return_logits=True,
-        ).logits
+        lambda tokens: (
+            sequence_loss(
+                model,
+                checkpoint.state.params,
+                tokens,
+                inner,
+                jnp.ones((max_length - 1,), dtype=jnp.float32),
+                return_logits=True,
+            ).logits
+        )
     )
     with data_path.open(encoding="utf-8") as handle:
         rows = [json.loads(line) for line in handle if line.strip()]

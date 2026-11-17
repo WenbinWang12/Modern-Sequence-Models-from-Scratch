@@ -1,0 +1,24 @@
+{
+  "recipe": "/home/wang.21020/modern-sequence-run/configs/data/wikitext2_shakespeare_85_15.json",
+  "recipe_sha256": "f033e8e281813f7652e1d489193e3e7ce9dc5846419807165d83c5a8dc4aa610",
+  "source_names": [
+    "wikitext2",
+    "tiny_shakespeare"
+  ],
+  "target_probabilities": [
+    0.85,
+    0.15
+  ],
+  "observed_counts": [
+    68075,
+    11925
+  ],
+  "observed_probabilities": [
+    0.8509375,
+    0.1490625
+  ],
+  "windows": 80000,
+  "batches": 10000,
+  "batch_size": 8,
+  "seed": 0
+}

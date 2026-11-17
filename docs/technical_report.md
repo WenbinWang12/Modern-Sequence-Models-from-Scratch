@@ -436,3 +436,15 @@ TTT 模型达到“可发表/可发布”之前，必须同时满足：
 | TTT adapt | 5 | 推理适应额外计算 | 同上 | 2.6642 | 2.6109 |
 
 这组结果有两个同时成立的结论：TTT 的 no-adapt checkpoint 略差于 plain baseline；启用会话内适应后，test PPL 比 plain baseline 低约 0.0755。代价是训练吞吐约低 2.9 倍、状态和显存更大。由于这是单 seed、单数据集、byte tokenizer 的配对 pilot，不能写成普适架构优势；下一步需要 Muon/AdamW、多 seed、子词 tokenizer、更大数据和标准 benchmark。
+
+### 18.1 公开数据混合与 benchmark 诊断（measured）
+
+为避免把单一 WikiText-2 的结果误认为通用能力，我们又运行了一个固定配比的公开数据实验：WikiText-2 train 窗口 85%，Tiny Shakespeare 窗口 15%，`with_replacement`，seed 0，其他模型配置和 40.96M scheduled tokens 不变。80,000 个窗口的实测来源比例为 85.09375%/14.90625%。
+
+| 模型 | valid PPL | test PPL | MMLU 5 科目诊断 |
+|---|---:|---:|---:|
+| plain baseline | 2.7555 | 2.6966 | 29.59% (392 valid) |
+| TTT no-adapt | 2.7664 | 2.7105 | 26.53% (392 valid) |
+| TTT adapt | 2.6765 | 2.6223 | not run |
+
+PPL 是每个 split 128 个随机窗口、约 65k 有效 token；MMLU 是零样本答案字母 continuation log-likelihood，byte tokenizer、最大 512 token、TTT 适配关闭。该 MMLU 结果属于 diagnostic：模型只有约 15M 参数且没有 instruction tuning，且 professional_law 由于上下文上限跳过 95/100 题，不能和公开厂商榜单比较，也不能据此宣称 TTT 的通用能力下降或提升。正式 benchmark release 仍需 tokenizer 冻结、多 seed、污染审计和数学/代码/长上下文任务。

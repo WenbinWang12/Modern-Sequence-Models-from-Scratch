@@ -1,0 +1,49 @@
+{
+  "protocol": "MMLU test split; zero-shot answer-letter continuation log-likelihood; byte tokenizer; no adaptation",
+  "checkpoint": "outputs/h200-15m-baseline-mixture-85-15/step_00010000.orbax",
+  "subjects": [
+    "abstract_algebra",
+    "high_school_mathematics",
+    "college_physics",
+    "computer_security",
+    "professional_law"
+  ],
+  "limit_per_subject": 100,
+  "max_length": 512,
+  "correct": 116,
+  "samples": 392,
+  "skipped": 108,
+  "accuracy": 0.29591836734693877,
+  "per_subject": {
+    "abstract_algebra": {
+      "correct": 37,
+      "samples": 100,
+      "skipped": 0,
+      "accuracy": 0.37
+    },
+    "high_school_mathematics": {
+      "correct": 27,
+      "samples": 99,
+      "skipped": 1,
+      "accuracy": 0.2727272727272727
+    },
+    "college_physics": {
+      "correct": 25,
+      "samples": 98,
+      "skipped": 2,
+      "accuracy": 0.25510204081632654
+    },
+    "computer_security": {
+      "correct": 26,
+      "samples": 90,
+      "skipped": 10,
+      "accuracy": 0.28888888888888886
+    },
+    "professional_law": {
+      "correct": 1,
+      "samples": 5,
+      "skipped": 95,
+      "accuracy": 0.2
+    }
+  }
+}

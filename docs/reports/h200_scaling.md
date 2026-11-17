@@ -26,3 +26,19 @@
 TTT 在 no-adapt 状态下略差于 plain baseline；启用会话内适应后，test PPL 改善约 0.0755。这个收益伴随约 2.9 倍训练吞吐成本和更高状态/显存开销，因此只能报告为当前配对实验结果，不能外推成普适优势。
 
 完整 checkpoint、metrics、评测 JSON 和环境报告保存在 H200 机器的独立输出目录；仓库中的图由远端原始 JSONL 指标生成。
+
+## 85/15 混合数据配对实验
+
+随后使用同一个 15M 配置和 40,960,000 token 预算，把训练来源改成版本化 recipe：WikiText-2 train 窗口占 85%，Tiny Shakespeare 窗口占 15%，`with_replacement`，seed 仍为 0。采样器审计了 80,000 个窗口，实际来源比例为 68,075/11,925，即 85.09375%/14.90625%。TTT 在 GPU5、plain baseline 在 GPU7 独立运行，仍没有跨卡通信。
+
+| 模型 | validation PPL | test PPL | MMLU 诊断准确率 |
+|---|---:|---:|---:|
+| Plain baseline | 2.7555 | 2.6966 | 29.59% (392 有效样本) |
+| TTT no-adapt | 2.7664 | 2.7105 | 26.53% (392 有效样本) |
+| TTT adapt | 2.6765 | 2.6223 | — |
+
+PPL 使用 WikiText-2 validation/test，各 128 个随机窗口、约 65k 有效 token；MMLU 使用五个科目、每科最多 100 题、byte tokenizer、512 token 上限和 no-adapt。由于这是 15M 非 instruction-tuned byte 模型，MMLU 只作诊断，不能与厂商榜单直接比较；professional_law 中有 95/100 题因固定上下文上限被跳过，已经计入总审计而没有静默截断。
+
+混合 recipe SHA256 为 `f033e8e281813f7652e1d489193e3e7ce9dc5846419807165d83c5a8dc4aa610`；MMLU 压缩包 SHA256 为 `91d1fe0e3a0dde2e8d8af25f537ee0ec6c6378a499845c80f78f67cbe2d38e9e`。原始 JSON 结果保存在 H200 的 `outputs/benchmarks/` 目录，后续应在多 seed、固定 tokenizer 和更大模型上重复后再进入论文主表。
+
+仓库也保存了本次远端运行导出的 [来源比例审计](../assets/reports/h200_mixture_source_probe.json)、[baseline MMLU](../assets/reports/mmlu_baseline_mixture_5x100.json)、[TTT MMLU](../assets/reports/mmlu_ttt_mixture_5x100.json)、[baseline valid PPL](../assets/reports/ppl_baseline_mixture_valid.json)、[baseline test PPL](../assets/reports/ppl_baseline_mixture_test.json)、[TTT no-adapt valid PPL](../assets/reports/ppl_ttt_mixture_noadapt_valid.json)、[TTT no-adapt test PPL](../assets/reports/ppl_ttt_mixture_noadapt_test.json)、[TTT adapt valid PPL](../assets/reports/ppl_ttt_mixture_adapt_valid.json) 和 [TTT adapt test PPL](../assets/reports/ppl_ttt_mixture_adapt_test.json)。

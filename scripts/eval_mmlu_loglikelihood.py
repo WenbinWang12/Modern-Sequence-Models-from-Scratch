@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 from dataclasses import replace
@@ -25,6 +26,14 @@ from ttt.models.ttt_e2e.modeling_ttt_e2e import TTTE2EForCausalLM
 __all__ = ["evaluate_subjects", "main"]
 
 LABELS = ("A", "B", "C", "D")
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(8 * 1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def _prompt(row: list[str]) -> str:
@@ -87,8 +96,10 @@ def evaluate_subjects(
     )
     per_subject: dict[str, dict[str, object]] = {}
     total_correct = total_count = total_skipped = 0
+    data_hashes: dict[str, str] = {}
     for subject in subjects:
         path = data_dir / "test" / f"{subject}_test.csv"
+        data_hashes[subject] = _sha256(path)
         rows = list(csv.reader(path.open(encoding="utf-8")))
         if limit is not None:
             rows = rows[:limit]
@@ -118,9 +129,15 @@ def evaluate_subjects(
         total_correct += correct
         total_count += evaluated
         total_skipped += skipped
+    metadata_path = checkpoint_path / "metadata.json" if checkpoint_path.is_dir() else checkpoint_path
     return {
+        "protocol_version": "mmlu_loglikelihood_v1",
         "protocol": "MMLU test split; zero-shot answer-letter continuation log-likelihood; byte tokenizer; no adaptation",
         "checkpoint": str(checkpoint_path),
+        "checkpoint_metadata_sha256": _sha256(metadata_path) if metadata_path.is_file() else None,
+        "script_sha256": _sha256(Path(__file__).resolve()),
+        "data_dir": str(data_dir.resolve()),
+        "data_sha256": data_hashes,
         "subjects": subjects,
         "limit_per_subject": limit,
         "max_length": max_length,

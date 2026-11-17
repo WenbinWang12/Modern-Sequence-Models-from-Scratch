@@ -42,11 +42,20 @@ def _score(evaluate, tokenizer: ByteTokenizer, prompt: str, continuation: str, *
 
 def _arc_row(row: dict[str, object]) -> tuple[str, list[str], int]:
     question = row["question"]
-    stem = str(question["stem"])
-    choices = question["choices"]
-    texts = [str(choice["text"]) for choice in choices]
-    labels = [str(choice.get("label", "")) for choice in choices]
-    answer = str(question.get("answerKey", ""))
+    if isinstance(question, str):
+        stem = question
+        choices = row["choices"]
+        if not isinstance(choices, dict):
+            raise ValueError("ARC choices 格式无效")
+        texts = [str(value) for value in choices["text"]]
+        labels = [str(value) for value in choices["label"]]
+        answer = str(row.get("answerKey", ""))
+    else:
+        stem = str(question["stem"])
+        choices = question["choices"]
+        texts = [str(choice["text"]) for choice in choices]
+        labels = [str(choice.get("label", "")) for choice in choices]
+        answer = str(question.get("answerKey", ""))
     if answer in labels:
         index = labels.index(answer)
     elif answer.upper() in ("A", "B", "C", "D"):

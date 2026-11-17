@@ -60,6 +60,8 @@ baseline 只替换 checkpoint 路径和 `CUDA_VISIBLE_DEVICES=7`。评测结果�
 
 在 H200 15M 混合数据配对实验中，五个 MMLU 科目各取最多 100 题：baseline 为 116/392（29.59%），TTT no-adapt 为 104/392（26.53%）。HellaSwag validation 前 100 题中，baseline 和 TTT no-adapt 均为 32/100（32%）。这些数字都是 byte-token、非 instruction-tuned 小模型的诊断结果，不是发布榜单分数。
 
+长上下文目前提供 `scripts/eval_synthetic_long_context.py`，它在 256/512/1024/2048 等长度生成随机 key-value 文档，使用 greedy generation 读取目标值，分别报告 adapt/no-adapt 的 exact match。它是 RULER/LongBench 的工程前置检查，不是公开套件分数；正式运行仍需固定 RULER/LongBench revision、任务集合、上下文长度、答案归一化、污染审计和多 seed。
+
 ARC 与 PIQA 使用 `scripts/eval_arc_piqa_loglikelihood.py`。ARC 输入为官方 JSONL 的 `question.stem`、`choices`、`answerKey` 字段，PIQA 输入为 `goal`、`sol1`、`sol2`、`label` 字段；脚本将答案文本作为 continuation 评分，并记录超过 512 token 的跳过样本。它们与 MMLU 一样先作为小规模诊断，正式结果仍需完整 split、多 seed 和污染审计。
 
 ## 3. 污染与可比性检查

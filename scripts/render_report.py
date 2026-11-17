@@ -945,7 +945,7 @@ def prune_references(text):
 
 def add_draft_banner(text, lang):
     """草稿模式下只要还有缺数据的位置，就在页首声明，避免半成品看起来像定稿。"""
-    pending = text.count("«?»") + text.count("draft: table")
+    pending = draft_marker_count(text)
     if not pending:
         return text
     banner = {
@@ -961,6 +961,19 @@ def add_draft_banner(text, lang):
     }[lang]
     marker = "## 摘要" if lang == "zh" else "## Abstract"
     return text.replace(marker, banner + "\n" + marker, 1)
+
+
+def draft_marker_count(text):
+    """统计模板渲染后仍然存在的草稿占位符。
+
+    表格和表达式的占位符由渲染器生成，章节正文中的 ``To be written`` 和
+    ``（待补）`` 则来自模板本身。两类占位符都必须进入草稿提示，否则结果
+    表补齐后仍可能把未完成的正文误当成定稿。
+    """
+    return sum(
+        text.count(marker)
+        for marker in ("«?»", "draft: table", "To be written", "（待补）")
+    )
 
 
 def main() -> None:
@@ -980,6 +993,12 @@ def main() -> None:
         for _ in range(3):  # 允许被包含的文件再包含别的文件，最多三层
             source = INCLUDE.sub(lambda match: (args.templates / match.group(1)).read_text(encoding="utf-8"), source)
         text = render(source, results, lang, allow_missing=args.allow_missing)
+        pending = draft_marker_count(text)
+        if pending and not args.allow_missing:
+            raise ValueError(
+                f"{output} still contains {pending} draft placeholder(s). "
+                "Use --allow-missing only for an explicitly labelled draft."
+            )
         text = add_draft_banner(text, lang)
         output.write_bytes(text.encode("utf-8"))
         print(f"rendered {output} ({len(text.splitlines())} lines)")

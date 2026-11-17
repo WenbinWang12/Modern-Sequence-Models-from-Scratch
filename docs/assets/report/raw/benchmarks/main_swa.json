@@ -1,0 +1,169 @@
+{
+  "protocol_version": "zero_shot_loglikelihood_v1",
+  "model": {
+    "kind": "ttt_checkpoint",
+    "checkpoint": "outputs/main-swa/step_00012000.orbax",
+    "step": 12000,
+    "adapt": false,
+    "max_length": 4096,
+    "prefix_token": "always <|endoftext|>"
+  },
+  "limit": null,
+  "script_sha256": "96d0398623afd77b1896fe6771a89bf15d5cec1e19e7067f60a55507d6020f36",
+  "inputs": {
+    "hellaswag": {
+      "path": "data/benchmarks/hellaswag.jsonl",
+      "sha256": "d5c08c3e5771307e73886dc9d2744df8ca5f372a7857f32fe77df8c58942f950",
+      "rows": 10042
+    },
+    "piqa": {
+      "path": "data/benchmarks/piqa.jsonl",
+      "sha256": "61533005e22f175534909b1ec8eacb6da03c233933558d1bafb15787453b1f55",
+      "rows": 1838
+    },
+    "arc_easy": {
+      "path": "data/benchmarks/arc_easy.jsonl",
+      "sha256": "874354cf372667530bd6cbd2d78dca2d657c5e2e746f53cf01d1e9d3a90cbc3d",
+      "rows": 2376
+    },
+    "arc_challenge": {
+      "path": "data/benchmarks/arc_challenge.jsonl",
+      "sha256": "03227c30fd557ad1416c2cb955eeb6dc79eeb21e0679456a1ccd42eaccc0ff87",
+      "rows": 1172
+    },
+    "winogrande": {
+      "path": "data/benchmarks/winogrande.jsonl",
+      "sha256": "69f3d7f3a900d775339b04c7de672609c40fca573e50f594f2ae66d8782505be",
+      "rows": 1267
+    },
+    "lambada_openai": {
+      "path": "data/benchmarks/lambada_openai.jsonl",
+      "sha256": "9acdcb12e8c2ef4eb3d0958b547a8c7076488df2d6ff460377881ab3841f3d97",
+      "rows": 5153
+    },
+    "sciq": {
+      "path": "data/benchmarks/sciq.jsonl",
+      "sha256": "cd0a2c8be9b2eafc95bd1bab6d2ae553826c1f3b7ddbe5e415e130c30abddddd",
+      "rows": 1000
+    },
+    "openbookqa": {
+      "path": "data/benchmarks/openbookqa.jsonl",
+      "sha256": "bbaca15e985ba386b2f73e9659fce608cf7722a35343864dbe7115cbbda341ab",
+      "rows": 500
+    }
+  },
+  "results": {
+    "hellaswag": {
+      "samples": 10042,
+      "choices_per_question": 4.0,
+      "acc": 0.27076279625572597,
+      "acc_ci95": [
+        0.2621607319399272,
+        0.27954017794677194
+      ],
+      "acc_norm": 0.27076279625572597,
+      "acc_norm_ci95": [
+        0.2621607319399272,
+        0.27954017794677194
+      ]
+    },
+    "piqa": {
+      "samples": 1838,
+      "choices_per_question": 2.0,
+      "acc": 0.5843307943416758,
+      "acc_ci95": [
+        0.5616468240452128,
+        0.6066629935644359
+      ],
+      "acc_norm": 0.5794341675734495,
+      "acc_norm_ci95": [
+        0.5567233650018651,
+        0.6018136244885136
+      ]
+    },
+    "arc_easy": {
+      "samples": 2376,
+      "choices_per_question": 3.9987373737373737,
+      "acc": 0.43223905723905726,
+      "acc_ci95": [
+        0.4124451205641669,
+        0.4522517487140229
+      ],
+      "acc_norm": 0.38215488215488214,
+      "acc_norm_ci95": [
+        0.3628217596172881,
+        0.40186844782304193
+      ]
+    },
+    "arc_challenge": {
+      "samples": 1172,
+      "choices_per_question": 3.999146757679181,
+      "acc": 0.189419795221843,
+      "acc_ci95": [
+        0.16801476622977696,
+        0.21285414722889207
+      ],
+      "acc_norm": 0.22610921501706485,
+      "acc_norm_ci95": [
+        0.2030776549086313,
+        0.2509303704216785
+      ]
+    },
+    "winogrande": {
+      "samples": 1267,
+      "choices_per_question": 2.0,
+      "acc": 0.5217048145224941,
+      "acc_ci95": [
+        0.49417518822658474,
+        0.5491032235833656
+      ]
+    },
+    "lambada_openai": {
+      "samples": 5153,
+      "acc": 0.17679021928973412,
+      "acc_ci95": [
+        0.16661604900732627,
+        0.18744592350059744
+      ],
+      "perplexity": 382.44028604071644
+    },
+    "sciq": {
+      "samples": 1000,
+      "choices_per_question": 4.0,
+      "acc": 0.701,
+      "acc_ci95": [
+        0.6718992775111103,
+        0.7285623655776965
+      ],
+      "acc_norm": 0.607,
+      "acc_norm_ci95": [
+        0.5763739069246411,
+        0.63680716675945
+      ]
+    },
+    "openbookqa": {
+      "samples": 500,
+      "choices_per_question": 4.0,
+      "acc": 0.138,
+      "acc_ci95": [
+        0.1105180088988837,
+        0.17100201359528017
+      ],
+      "acc_norm": 0.254,
+      "acc_norm_ci95": [
+        0.21782025491518664,
+        0.2939309205918972
+      ]
+    }
+  },
+  "seconds": {
+    "hellaswag": 16.646214611129835,
+    "piqa": 0.3242799211293459,
+    "arc_easy": 0.5992001569829881,
+    "arc_challenge": 0.3741833590902388,
+    "winogrande": 0.18397978018037975,
+    "lambada_openai": 9.934564744122326,
+    "sciq": 7.322891495190561,
+    "openbookqa": 0.13120538787916303
+  }
+}

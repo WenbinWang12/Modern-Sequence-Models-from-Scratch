@@ -1,0 +1,35 @@
+{
+  "recipe": "/home/wang.21020/modern-sequence-run/configs/data/fineweb_pg19_50_50.json",
+  "recipe_sha256": "af3a30b8482fa5b99fcbfedb237a2ffb1b8bee5db1cbba0749889c3ae7807d50",
+  "config": "configs/report/main_ttt.json",
+  "seed": 0,
+  "steps": 12000,
+  "batch_size": 16,
+  "sequence_length": 4096,
+  "windows": 192000,
+  "target_probabilities": {
+    "fineweb_edu": 0.5,
+    "pg19": 0.5
+  },
+  "coverage_block_tokens": 1024,
+  "sources": {
+    "fineweb_edu": {
+      "corpus_tokens": 2254686265,
+      "windows": 96316,
+      "window_fraction": 0.5016458333333333,
+      "sampled_tokens": 394510336,
+      "sampled_tokens_over_corpus": 0.17497349503745702,
+      "corpus_fraction_seen": 0.19670067302709593,
+      "seen_blocks_sampled_more_than_once": 0.10463306734641102
+    },
+    "pg19": {
+      "corpus_tokens": 3066539608,
+      "windows": 95684,
+      "window_fraction": 0.49835416666666665,
+      "sampled_tokens": 391921664,
+      "sampled_tokens_over_corpus": 0.1278058378823979,
+      "corpus_fraction_seen": 0.1476060117515531,
+      "seen_blocks_sampled_more_than_once": 0.07817325029240031
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "config": "configs/report/bench_swa.json",
+  "overrides": [
+    "training.batch_size=32"
+  ],
+  "device": "cuda:0",
+  "parameters": 123571200,
+  "fast_parameters": 0,
+  "batch_size": 32,
+  "sequence_length": 4096,
+  "inner_enabled": false,
+  "first_loss": 10.973369598388672,
+  "last_loss": 10.799028396606445,
+  "compile_and_first_step_seconds": 9.954935902031139,
+  "median_step_seconds": 0.8078987270127982,
+  "tokens_per_second": 162238.15636476877,
+  "peak_bytes_in_use": 31542574336
+}

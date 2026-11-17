@@ -78,6 +78,14 @@
 
 表 4　重复段上的损失降低量（nat，方括号内为 95% 置信区间；PG-19 test 每本书前 4 个窗口，共 400 个）。
 
+<div class="report-table" markdown>
+
+{% table niah %}
+
+</div>
+
+表 5　单针检索：在干草堆文本里藏一句“One of the special magic numbers for &lt;键&gt; is: &lt;7 位数字&gt;.”，然后提问这个键对应的数字。表中是答案的每 token 对数似然比“针被换成无关键值对”时降低了多少（nat，越大说明越用到了针）。干草堆为 PG-19 test 的书籍正文，针均匀放在 10 个深度上；提示词和针的句式取自 RULER。
+
 {% include parts/results_4_6.zh.md %}
 
 ### 4.7 公开 benchmark 与公开模型
@@ -88,7 +96,15 @@
 
 </div>
 
-表 5　本报告四个模型的零样本准确率（%）。HellaSwag、PIQA、ARC、OpenBookQA 报告按候选项长度归一化的准确率，其余为普通准确率；“平均”是十项的算术平均。
+表 6　本报告四个模型的零样本准确率（%）。HellaSwag、PIQA、ARC、OpenBookQA 报告按候选项长度归一化的准确率，其余为普通准确率；“平均”是十项的算术平均。
+
+<div class="report-table" markdown>
+
+{% table reference_models %}
+
+</div>
+
+表 7　用于对照的公开模型。训练数据一列摘自各自的模型卡片或论文（2026 年 11 月核对）；它们的训练量比本报告的模型大一到三个数量级。
 
 <div class="report-table" markdown>
 
@@ -96,7 +112,7 @@
 
 </div>
 
-表 6　用同一脚本、同一协议评测的公开模型（%）。参数量由加载的权重直接统计。
+表 8　用同一脚本、同一协议评测的公开模型（%）。参数量由加载的权重直接统计。
 
 <div class="report-table" markdown>
 
@@ -104,7 +120,7 @@
 
 </div>
 
-表 7　语言建模指标（越低越好）。WikiText-103 test 和 PG-19 test 按各模型的最大上下文切成互不重叠的窗口计算，与 lm-evaluation-harness 的做法相同；词级困惑度按空白分词的词数归一化，可以跨 tokenizer 比较。
+表 9　语言建模指标（越低越好）。WikiText-103 test 和 PG-19 test 按各模型的最大上下文切成互不重叠的窗口计算，与 lm-evaluation-harness 的做法相同；词级困惑度按空白分词的词数归一化，可以跨 tokenizer 比较。
 
 {% include parts/results_4_7.zh.md %}
 
@@ -122,7 +138,7 @@
 
 </div>
 
-表 8　消融结果（PG-19 validation，上下文 2,048）。“关闭更新时”是同一个检查点在评测时不做测试时更新的损失。
+表 10　消融结果（PG-19 validation，上下文 2,048）。“关闭更新时”是同一个检查点在评测时不做测试时更新的损失。
 
 {% include parts/results_4_8.zh.md %}
 
@@ -134,7 +150,7 @@
 
 </div>
 
-表 9　三个随机种子（初始化和数据顺序同时改变）下的 PG-19 validation 损失。同一种子下各模型读到的数据相同，所以差值按种子配对。
+表 11　三个随机种子（初始化和数据顺序同时改变）下的 PG-19 validation 损失。同一种子下各模型读到的数据相同，所以差值按种子配对。
 
 <div class="report-table" markdown>
 
@@ -142,7 +158,7 @@
 
 </div>
 
-表 10　三种模型规模在相同的 1.64 亿训练 token 下的 PG-19 validation 损失（上下文 2,048，窗口 256）。
+表 12　三种模型规模在相同的 1.64 亿训练 token 下的 PG-19 validation 损失（上下文 2,048，窗口 256）。
 
 <figure markdown="span" class="report-figure">
   ![模型规模与训练量](assets/report/fig_scaling.light.svg#only-light)
@@ -160,7 +176,7 @@
 
 </div>
 
-表 11　单张 H200 上的训练成本（batch 16 × 4,096 token，随机输入，取 4–5 步的中位数）。全注意力和无更新对照开启了逐层梯度检查点，否则全注意力超出单卡显存。
+表 13　单张 H200 上的训练成本（batch 16 × 4,096 token，随机输入，取 4–5 步的中位数）。全注意力和无更新对照开启了逐层梯度检查点，否则全注意力超出单卡显存。
 
 <figure markdown="span" class="report-figure">
   ![训练与前向吞吐](assets/report/fig_cost.light.svg#only-light)
@@ -174,7 +190,7 @@
 
 </div>
 
-表 12　单个推理会话在读入不同长度的上下文之后保存的状态，以及随后逐 token 解码的速度（批大小 1）。状态大小由实际分配的数组统计。
+表 14　单个推理会话在读入不同长度的上下文之后保存的状态，以及随后逐 token 解码的速度（批大小 1）。状态大小由实际分配的数组统计。
 
 {% include parts/results_4_10.zh.md %}
 
@@ -186,7 +202,7 @@
 
 </div>
 
-表 13　评测题目与训练语料的逐字重合检查。对每道题取规范化（小写、压缩空白）后的题干前 80 个字符，在全部训练原文（{{ GB(r.audits.corpora["fineweb-edu-train"].utf8_bytes + r.audits.corpora["pg19-train"].utf8_bytes) }} GB）中做精确匹配。
+表 15　评测题目与训练语料的逐字重合检查。对每道题取规范化（小写、压缩空白）后的题干前 80 个字符，在全部训练原文（{{ GB(r.audits.corpora["fineweb-edu-train"].utf8_bytes + r.audits.corpora["pg19-train"].utf8_bytes) }} GB）中做精确匹配。
 
 {% include parts/results_5.zh.md %}
 

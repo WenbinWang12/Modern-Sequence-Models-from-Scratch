@@ -1,0 +1,16 @@
+{
+  "config": "configs/report/bench_full.json",
+  "overrides": [],
+  "device": "cuda:0",
+  "parameters": 123571200,
+  "fast_parameters": 0,
+  "batch_size": 16,
+  "sequence_length": 4096,
+  "inner_enabled": false,
+  "first_loss": 10.975574493408203,
+  "last_loss": 10.7230863571167,
+  "compile_and_first_step_seconds": 14.347521258052438,
+  "median_step_seconds": 0.7983715750742704,
+  "tokens_per_second": 82087.09083098726,
+  "peak_bytes_in_use": 48754944000
+}

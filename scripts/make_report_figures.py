@@ -1018,6 +1018,17 @@ def collect_provenance(runs, results):
         results["provenance"] = provenance
 
 
+def collect_niah(directory, results):
+    """单针检索：准确率，以及“针在场 vs 不在场”的答案对数似然差。"""
+    table = {}
+    for path in sorted(directory.glob("*.json")):
+        name = path.stem.replace("main_", "")
+        report = read_json(path)
+        table[name] = {"model": report["model"], "results": report["results"]}
+    if table:
+        results["niah"] = table
+
+
 def collect_sessions(evals, results):
     table = {path.stem[len("profile_") :]: read_json(path) for path in sorted(evals.glob("profile_*.json"))}
     if table:
@@ -1035,6 +1046,7 @@ def copy_raw(args):
         ],
         "benchmarks/lm-eval": (args.benchmarks / "lm-eval").rglob("results_*.json"),
         "audits": args.audits.glob("*.json"),
+        "niah": args.niah.glob("*.json"),
     }
     for name, paths in groups.items():
         target = args.output / "raw" / name
@@ -1049,6 +1061,7 @@ def main() -> None:
     parser.add_argument("--evals", type=Path, default=Path("outputs/evals"))
     parser.add_argument("--benchmarks", type=Path, default=Path("outputs/benchmarks-v2"))
     parser.add_argument("--audits", type=Path, default=Path("outputs/audits"))
+    parser.add_argument("--niah", type=Path, default=Path("outputs/niah"))
     parser.add_argument("--data", type=Path, default=Path("data/tokens"))
     parser.add_argument("--output", type=Path, default=Path("docs/assets/report"))
     args = parser.parse_args()
@@ -1063,6 +1076,7 @@ def main() -> None:
     collect_audits(args.audits, args.data, results)
     collect_provenance(args.runs, results)
     collect_sessions(args.evals, results)
+    collect_niah(args.niah, results)
     copy_raw(args)
     for mode, theme in THEMES.items():
         scratch = results if mode == "light" else {}

@@ -8,7 +8,7 @@ set -uo pipefail
 gpu=$1
 tasks="hellaswag piqa arc_easy arc_challenge winogrande lambada_openai sciq openbookqa wikitext blimp mmlu pg19"
 out=outputs/benchmarks-v2/reference
-mkdir -p "$out" outputs/benchmarks-v2/lm-eval logs
+mkdir -p "$out" outputs/benchmarks-v2/lm-eval outputs/niah logs
 
 [ -x .venv-ref/bin/python ] || {
   uv venv .venv-ref --python 3.12
@@ -26,6 +26,15 @@ run() { # run <hub-id> [extra eval_benchmarks.py args]
     --text-dir data/raw/pg19/test --output "$target" "$@" && touch "$target.done"
 }
 
+niah() { # 公开模型的单针检索，上下文长度不超过它自己的上限
+  local name=$1 target
+  shift
+  target=outputs/niah/$(echo "$name" | tr '/' '_').json
+  [ -f "$target" ] && return 0
+  CUDA_VISIBLE_DEVICES=$gpu TOKENIZERS_PARALLELISM=false .venv-ref/bin/python scripts/eval_niah.py \
+    --hf-model "$name" --device cuda --output "$target" "$@" >>"logs/niah_$(basename "$target" .json).log" 2>&1
+}
+
 run gpt2
 run distilgpt2
 run gpt2-medium
@@ -35,6 +44,11 @@ run EleutherAI/gpt-neo-125m
 run facebook/opt-125m --always-prefix # OPT 的 tokenizer 默认在开头加 BOS，这里沿用它的用法
 run HuggingFaceTB/SmolLM-135M
 run HuggingFaceTB/SmolLM2-135M
+
+# 同一套单针检索协议：公开模型里既有 1K 上下文的 GPT-2，也有 8K 上下文的 SmolLM2。
+niah gpt2
+niah EleutherAI/pythia-160m
+niah HuggingFaceTB/SmolLM2-135M
 
 # 交叉核对：参考实现在 CPU 上评测 GPT-2（124M）。
 [ -x .venv-lmeval/bin/python ] || {

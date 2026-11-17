@@ -1,0 +1,2056 @@
+{
+ "benchmarks": {
+  "main_swa": {
+   "model": {
+    "kind": "ttt_checkpoint",
+    "checkpoint": "outputs/main-swa/step_00012000.orbax",
+    "step": 12000,
+    "adapt": false,
+    "max_length": 4096,
+    "prefix_token": "always <|endoftext|>"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.27076279625572597,
+     "acc_ci95": [
+      0.2621607319399272,
+      0.27954017794677194
+     ],
+     "acc_norm": 0.27076279625572597,
+     "acc_norm_ci95": [
+      0.2621607319399272,
+      0.27954017794677194
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.5843307943416758,
+     "acc_ci95": [
+      0.5616468240452128,
+      0.6066629935644359
+     ],
+     "acc_norm": 0.5794341675734495,
+     "acc_norm_ci95": [
+      0.5567233650018651,
+      0.6018136244885136
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.43223905723905726,
+     "acc_ci95": [
+      0.4124451205641669,
+      0.4522517487140229
+     ],
+     "acc_norm": 0.38215488215488214,
+     "acc_norm_ci95": [
+      0.3628217596172881,
+      0.40186844782304193
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.189419795221843,
+     "acc_ci95": [
+      0.16801476622977696,
+      0.21285414722889207
+     ],
+     "acc_norm": 0.22610921501706485,
+     "acc_norm_ci95": [
+      0.2030776549086313,
+      0.2509303704216785
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5217048145224941,
+     "acc_ci95": [
+      0.49417518822658474,
+      0.5491032235833656
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.17679021928973412,
+     "acc_ci95": [
+      0.16661604900732627,
+      0.18744592350059744
+     ],
+     "perplexity": 382.44028604071644
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.701,
+     "acc_ci95": [
+      0.6718992775111103,
+      0.7285623655776965
+     ],
+     "acc_norm": 0.607,
+     "acc_norm_ci95": [
+      0.5763739069246411,
+      0.63680716675945
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.138,
+     "acc_ci95": [
+      0.1105180088988837,
+      0.17100201359528017
+     ],
+     "acc_norm": 0.254,
+     "acc_norm_ci95": [
+      0.21782025491518664,
+      0.2939309205918972
+     ]
+    }
+   }
+  },
+  "EleutherAI_gpt-neo-125m": {
+   "model": {
+    "kind": "huggingface",
+    "model": "EleutherAI/gpt-neo-125m",
+    "revision": null,
+    "parameters": 125198592,
+    "max_length": 2048,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.28669587731527585,
+     "acc_ci95": [
+      0.27793399797286544,
+      0.2956208886376078
+     ],
+     "acc_norm": 0.3040231029675364,
+     "acc_norm_ci95": [
+      0.2951026384268618,
+      0.313093447870716
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.6305767138193689,
+     "acc_ci95": [
+      0.6082605875611925,
+      0.6523481622860051
+     ],
+     "acc_norm": 0.6245919477693145,
+     "acc_norm_ci95": [
+      0.6022163278163926,
+      0.6464478543294752
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.4372895622895623,
+     "acc_ci95": [
+      0.4174608138550485,
+      0.45732076081855566
+     ],
+     "acc_norm": 0.3939393939393939,
+     "acc_norm_ci95": [
+      0.37447864847045714,
+      0.4137425382258398
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.19112627986348124,
+     "acc_ci95": [
+      0.16963903917704676,
+      0.2146316934384428
+     ],
+     "acc_norm": 0.23122866894197952,
+     "acc_norm_ci95": [
+      0.2079920763450836,
+      0.2562214064556877
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5043409629044988,
+     "acc_ci95": [
+      0.47683902169584386,
+      0.5318166606661463
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.3735687948767708,
+     "acc_ci95": [
+      0.36045947150905044,
+      0.38686648171155136
+     ],
+     "perplexity": 30.26548669561005
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.766,
+     "acc_ci95": [
+      0.7387721670475355,
+      0.7911919974381493
+     ],
+     "acc_norm": 0.691,
+     "acc_norm_ci95": [
+      0.6616750359751813,
+      0.7188631422833365
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.16,
+     "acc_ci95": [
+      0.13047637235016407,
+      0.19470817916369149
+     ],
+     "acc_norm": 0.262,
+     "acc_norm_ci95": [
+      0.22537626941723765,
+      0.30225291664246134
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 272031,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 3.0825291542556332,
+     "token_perplexity": 21.813502401047923,
+     "word_perplexity": 32.285032034609486,
+     "bits_per_byte": 0.9374174521173134,
+     "max_length": 2048
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.7926865671641791,
+     "acc_ci95": [
+      0.7896002758370749,
+      0.7957392979260783
+     ],
+     "macro_acc": 0.7926865671641791
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.2313060817547358,
+     "acc_ci95": [
+      0.22440578275211634,
+      0.23835335331508148
+     ],
+     "macro_acc": 0.23283645013090845
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10583382,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.0650282233289996,
+     "token_perplexity": 21.43506694759118,
+     "word_perplexity": 105.2366529707769,
+     "bits_per_byte": 1.1562934629728392,
+     "max_length": 2048
+    }
+   }
+  },
+  "EleutherAI_pythia-160m": {
+   "model": {
+    "kind": "huggingface",
+    "model": "EleutherAI/pythia-160m",
+    "revision": null,
+    "parameters": 162322944,
+    "max_length": 2048,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.2846046604262099,
+     "acc_ci95": [
+      0.27586297713628,
+      0.2935110750291979
+     ],
+     "acc_norm": 0.30252937661820356,
+     "acc_norm_ci95": [
+      0.29362197873957613,
+      0.3115877972401478
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.6169749727965179,
+     "acc_ci95": [
+      0.5945288265674027,
+      0.6389331785040451
+     ],
+     "acc_norm": 0.6164309031556039,
+     "acc_norm_ci95": [
+      0.5939799402636936,
+      0.6383961950167243
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.43476430976430974,
+     "acc_ci95": [
+      0.4149527047564615,
+      0.4547865172194354
+     ],
+     "acc_norm": 0.39646464646464646,
+     "acc_norm_ci95": [
+      0.37697811276701165,
+      0.4162854266269925
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.18771331058020477,
+     "acc_ci95": [
+      0.16639118056939056,
+      0.21107591373245793
+     ],
+     "acc_norm": 0.23890784982935154,
+     "acc_norm_ci95": [
+      0.2153729944351513,
+      0.26414867457131225
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5059194948697711,
+     "acc_ci95": [
+      0.4784136699579109,
+      0.5333895332629845
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.32815835435668544,
+     "acc_ci95": [
+      0.31547034692066667,
+      0.34110237998162485
+     ],
+     "perplexity": 38.18429465833383
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.74,
+     "acc_ci95": [
+      0.7119317744345645,
+      0.766231381492369
+     ],
+     "acc_norm": 0.671,
+     "acc_norm_ci95": [
+      0.6412729638759754,
+      0.6994182847219649
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.158,
+     "acc_ci95": [
+      0.1286526978644355,
+      0.19256235101126623
+     ],
+     "acc_norm": 0.276,
+     "acc_norm_ci95": [
+      0.23863813294339814,
+      0.31677757158337744
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 277199,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 3.0550080545643774,
+     "token_perplexity": 21.221356455005402,
+     "word_perplexity": 33.414927993549746,
+     "bits_per_byte": 0.9466980065456392,
+     "max_length": 2048
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.7823582089552239,
+     "acc_ci95": [
+      0.779217538750082,
+      0.7854665028843563
+     ],
+     "macro_acc": 0.782358208955224
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.23052271756160092,
+     "acc_ci95": [
+      0.22363090218174628,
+      0.23756193399060374
+     ],
+     "macro_acc": 0.2322085221833766
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10303668,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.1600487544423985,
+     "token_perplexity": 23.571745128343704,
+     "word_perplexity": 107.0916085378453,
+     "bits_per_byte": 1.160632587451974,
+     "max_length": 2048
+    }
+   }
+  },
+  "EleutherAI_pythia-70m": {
+   "model": {
+    "kind": "huggingface",
+    "model": "EleutherAI/pythia-70m",
+    "revision": null,
+    "parameters": 70426624,
+    "max_length": 2048,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.26628161720772753,
+     "acc_ci95": [
+      0.25772701573551215,
+      0.2750149631976254
+     ],
+     "acc_norm": 0.27394941246763593,
+     "acc_norm_ci95": [
+      0.2653142782221753,
+      0.2827574270092787
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.5946681175190425,
+     "acc_ci95": [
+      0.5720483016731165,
+      0.616893041966102
+     ],
+     "acc_norm": 0.5843307943416758,
+     "acc_norm_ci95": [
+      0.5616468240452128,
+      0.6066629935644359
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.3661616161616162,
+     "acc_ci95": [
+      0.34702115470619394,
+      0.38573415231532376
+     ],
+     "acc_norm": 0.34385521885521886,
+     "acc_norm_ci95": [
+      0.32502193558488784,
+      0.3631925892735494
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.17747440273037543,
+     "acc_ci95": [
+      0.15666451252174857,
+      0.20039166683917697
+     ],
+     "acc_norm": 0.22440273037542663,
+     "acc_norm_ci95": [
+      0.20144063940350437,
+      0.24916556676998491
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5130228887134964,
+     "acc_ci95": [
+      0.48550296883962313,
+      0.540464078246347
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.18494081117795458,
+     "acc_ci95": [
+      0.17457629288502707,
+      0.19577472024413184
+     ],
+     "perplexity": 142.55528749154882
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.612,
+     "acc_ci95": [
+      0.5814239245764211,
+      0.6417188815228144
+     ],
+     "acc_norm": 0.556,
+     "acc_norm_ci95": [
+      0.5250491625099077,
+      0.5865222405397102
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.124,
+     "acc_ci95": [
+      0.09794609113930344,
+      0.15578741288778383
+     ],
+     "acc_norm": 0.248,
+     "acc_norm_ci95": [
+      0.21216420834594762,
+      0.2876784592466748
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 277199,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 3.5207708975252183,
+     "token_perplexity": 33.81048283747902,
+     "word_perplexity": 57.053023487169355,
+     "bits_per_byte": 1.0910304426893902,
+     "max_length": 2048
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.7384029850746269,
+     "acc_ci95": [
+      0.7350614572107045,
+      0.7417171767372225
+     ],
+     "macro_acc": 0.7384029850746269
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.22902720410197977,
+     "acc_ci95": [
+      0.22215167909447092,
+      0.23605094818771505
+     ],
+     "macro_acc": 0.2304164668516249
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10303668,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.582973158548155,
+     "token_perplexity": 35.980357284101046,
+     "word_perplexity": 200.17382977694064,
+     "bits_per_byte": 1.3159655850026597,
+     "max_length": 2048
+    }
+   }
+  },
+  "HuggingFaceTB_SmolLM-135M": {
+   "model": {
+    "kind": "huggingface",
+    "model": "HuggingFaceTB/SmolLM-135M",
+    "revision": null,
+    "parameters": 134515008,
+    "max_length": 2048,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.3514240191196973,
+     "acc_ci95": [
+      0.3421448704745837,
+      0.3608167965762222
+     ],
+     "acc_norm": 0.4250149372634933,
+     "acc_norm_ci95": [
+      0.4153767111631165,
+      0.4347105108806214
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.6844396082698585,
+     "acc_ci95": [
+      0.6628272706975888,
+      0.7052825884615779
+     ],
+     "acc_norm": 0.6855277475516867,
+     "acc_norm_ci95": [
+      0.6639328853925538,
+      0.7063487133486731
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.6153198653198653,
+     "acc_ci95": [
+      0.5955860895778496,
+      0.634681350284113
+     ],
+     "acc_norm": 0.5618686868686869,
+     "acc_norm_ci95": [
+      0.5418346077813043,
+      0.5817030333125224
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.25853242320819114,
+     "acc_ci95": [
+      0.23428367886572402,
+      0.2843589104441753
+     ],
+     "acc_norm": 0.28924914675767915,
+     "acc_norm_ci95": [
+      0.26401249434578833,
+      0.3158628397868798
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5311760063141279,
+     "acc_ci95": [
+      0.5036452434296269,
+      0.5585182935337564
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.3751212885697652,
+     "acc_ci95": [
+      0.36199981540696446,
+      0.3884288122176821
+     ],
+     "perplexity": 32.39095721211231
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.837,
+     "acc_ci95": [
+      0.8128247624397997,
+      0.858596002340936
+     ],
+     "acc_norm": 0.745,
+     "acc_norm_ci95": [
+      0.7170834253930005,
+      0.7710414629490774
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.222,
+     "acc_ci95": [
+      0.18776935138162992,
+      0.26046978191499315
+     ],
+     "acc_norm": 0.34,
+     "acc_norm_ci95": [
+      0.29983885845371416,
+      0.3826009304939827
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 291942,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 2.711363752881443,
+     "token_perplexity": 15.049785714908234,
+     "word_perplexity": 26.573807875900513,
+     "bits_per_byte": 0.8848951373008699,
+     "max_length": 2048
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.7976119402985075,
+     "acc_ci95": [
+      0.794552638579372,
+      0.8006371166902495
+     ],
+     "macro_acc": 0.7976119402985076
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.2520296254094858,
+     "acc_ci95": [
+      0.24491683000396694,
+      0.2592780578269323
+     ],
+     "macro_acc": 0.24813397388582575
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10352345,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.1184111081156063,
+     "token_perplexity": 22.610425565484654,
+     "word_perplexity": 102.91378375315708,
+     "bits_per_byte": 1.1507506424726262,
+     "max_length": 2048
+    }
+   }
+  },
+  "HuggingFaceTB_SmolLM2-135M": {
+   "model": {
+    "kind": "huggingface",
+    "model": "HuggingFaceTB/SmolLM2-135M",
+    "revision": null,
+    "parameters": 134515008,
+    "max_length": 8192,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.3543118900617407,
+     "acc_ci95": [
+      0.3450142564810948,
+      0.3637209438508952
+     ],
+     "acc_norm": 0.4314877514439355,
+     "acc_norm_ci95": [
+      0.42182870375685433,
+      0.44119919633091687
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.6838955386289445,
+     "acc_ci95": [
+      0.6622745137485508,
+      0.7047494756195858
+     ],
+     "acc_norm": 0.6844396082698585,
+     "acc_norm_ci95": [
+      0.6628272706975888,
+      0.7052825884615779
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.6435185185185185,
+     "acc_ci95": [
+      0.6240424476843243,
+      0.6625312639687024
+     ],
+     "acc_norm": 0.5862794612794613,
+     "acc_norm_ci95": [
+      0.5663527015763121,
+      0.6059276822620177
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.2832764505119454,
+     "acc_ci95": [
+      0.2582201546691383,
+      0.3097488124146581
+     ],
+     "acc_norm": 0.29436860068259385,
+     "acc_norm_ci95": [
+      0.2689816947362459,
+      0.32109909686688376
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.526440410418311,
+     "acc_ci95": [
+      0.49890898140086176,
+      0.553811992985805
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.4281001358431981,
+     "acc_ci95": [
+      0.4146487671150697,
+      0.4416586245476056
+     ],
+     "perplexity": 19.047053401074276
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.842,
+     "acc_ci95": [
+      0.8180901541085861,
+      0.8632923430872941
+     ],
+     "acc_norm": 0.784,
+     "acc_norm_ci95": [
+      0.7574334101291272,
+      0.8083929910510775
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.222,
+     "acc_ci95": [
+      0.18776935138162992,
+      0.26046978191499315
+     ],
+     "acc_norm": 0.332,
+     "acc_norm_ci95": [
+      0.2921404418575132,
+      0.3744213365375685
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 291942,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 2.519644660858835,
+     "token_perplexity": 12.424181081274297,
+     "word_perplexity": 21.073245139922903,
+     "bits_per_byte": 0.8223246717636471,
+     "max_length": 8192
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.8028805970149254,
+     "acc_ci95": [
+      0.7998509503015248,
+      0.8058755142765308
+     ],
+     "macro_acc": 0.8028805970149253
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.24234439538527275,
+     "acc_ci95": [
+      0.23532809677087885,
+      0.24950162872372006
+     ],
+     "macro_acc": 0.24103552061416503
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10352345,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 2.8005848301369403,
+     "token_perplexity": 16.45426690891919,
+     "word_perplexity": 64.17467091975793,
+     "bits_per_byte": 1.0334669422488791,
+     "max_length": 8192
+    }
+   }
+  },
+  "distilgpt2": {
+   "model": {
+    "kind": "huggingface",
+    "model": "distilgpt2",
+    "revision": null,
+    "parameters": 81912576,
+    "max_length": 1024,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.2731527584146584,
+     "acc_ci95": [
+      0.26452583897509224,
+      0.281953167420173
+     ],
+     "acc_norm": 0.27504481179047996,
+     "acc_norm_ci95": [
+      0.2663984392478132,
+      0.2838632268834002
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.6099020674646355,
+     "acc_ci95": [
+      0.5873955856599185,
+      0.6319501121281397
+     ],
+     "acc_norm": 0.5984766050054406,
+     "acc_norm_ci95": [
+      0.5758830117789626,
+      0.6206594203974656
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.39941077441077444,
+     "acc_ci95": [
+      0.37989484476305374,
+      0.4192514394449423
+     ],
+     "acc_norm": 0.36574074074074076,
+     "acc_norm_ci95": [
+      0.34660565638861895,
+      0.38530925851661413
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.18771331058020477,
+     "acc_ci95": [
+      0.16639118056939056,
+      0.21107591373245793
+     ],
+     "acc_norm": 0.2295221843003413,
+     "acc_norm_ci95": [
+      0.20635337780287624,
+      0.25445828584107455
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5035516969218626,
+     "acc_ci95": [
+      0.4760518000146703,
+      0.531030121917867
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.24975742286046962,
+     "acc_ci95": [
+      0.2381278394534897,
+      0.2617598300445395
+     ],
+     "perplexity": 96.85136330364831
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.716,
+     "acc_ci95": [
+      0.6872658654245983,
+      0.7430809749096418
+     ],
+     "acc_norm": 0.626,
+     "acc_norm_ci95": [
+      0.5955817549893309,
+      0.6554539018723092
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.15,
+     "acc_ci95": [
+      0.12137595769138819,
+      0.18396108063169836
+     ],
+     "acc_norm": 0.268,
+     "acc_norm_ci95": [
+      0.23105397343634806,
+      0.30848372053781226
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 272031,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 3.5216466355814706,
+     "token_perplexity": 33.840104932704975,
+     "word_perplexity": 52.96194550261758,
+     "bits_per_byte": 1.0709559751695115,
+     "max_length": 1024
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.7954328358208955,
+     "acc_ci95": [
+      0.7923615070476766,
+      0.7984702891312043
+     ],
+     "macro_acc": 0.7954328358208954
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.22895598917533114,
+     "acc_ci95": [
+      0.2220812430002621,
+      0.2359789933823922
+     ],
+     "macro_acc": 0.23056015096125132
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10583382,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.8933604834017923,
+     "token_perplexity": 49.07552722729911,
+     "word_perplexity": 370.3933634466657,
+     "bits_per_byte": 1.4687849337532952,
+     "max_length": 1024
+    }
+   }
+  },
+  "facebook_opt-125m": {
+   "model": {
+    "kind": "huggingface",
+    "model": "facebook/opt-125m",
+    "revision": null,
+    "parameters": 125239296,
+    "max_length": 2048,
+    "prefix_token": "always",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.2923720374427405,
+     "acc_ci95": [
+      0.2835565007016171,
+      0.30134636511670077
+     ],
+     "acc_norm": 0.3158733320055766,
+     "acc_norm_ci95": [
+      0.30685313760305905,
+      0.32503434388282576
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.6284004352557128,
+     "acc_ci95": [
+      0.6060622569552867,
+      0.650203013727791
+     ],
+     "acc_norm": 0.6196953210010882,
+     "acc_norm_ci95": [
+      0.5972736988488252,
+      0.6416176551777728
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.4313973063973064,
+     "acc_ci95": [
+      0.41160937599729475,
+      0.4514067090483259
+     ],
+     "acc_norm": 0.4010942760942761,
+     "acc_norm_ci95": [
+      0.3815618815238202,
+      0.420945971149314
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.18686006825938567,
+     "acc_ci95": [
+      0.16557964770313244,
+      0.21018653702030587
+     ],
+     "acc_norm": 0.22440273037542663,
+     "acc_norm_ci95": [
+      0.20144063940350437,
+      0.24916556676998491
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5138121546961326,
+     "acc_ci95": [
+      0.4862910104211901,
+      0.5412497970942327
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.38870560838346596,
+     "acc_ci95": [
+      0.37548396272752077,
+      0.40209306593251787
+     ],
+     "perplexity": 23.139375590105626
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.784,
+     "acc_ci95": [
+      0.7574334101291272,
+      0.8083929910510775
+     ],
+     "acc_norm": 0.704,
+     "acc_norm_ci95": [
+      0.6749696568758727,
+      0.7314690256620207
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.166,
+     "acc_ci95": [
+      0.13595774323101012,
+      0.2011353161973068
+     ],
+     "acc_norm": 0.288,
+     "acc_norm_ci95": [
+      0.250043271115854,
+      0.32918944923984417
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 272031,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 3.0732209955492276,
+     "token_perplexity": 21.611400914314324,
+     "word_perplexity": 31.94806551458965,
+     "bits_per_byte": 0.9345867796461654,
+     "max_length": 2048
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.8139402985074626,
+     "acc_ci95": [
+      0.8109756481915622,
+      0.8168689512237444
+     ],
+     "macro_acc": 0.8139402985074626
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.22859991454208803,
+     "acc_ci95": [
+      0.22172906676953077,
+      0.2356192151154655
+     ],
+     "macro_acc": 0.22874870780265022
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10583382,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.2040717307065956,
+     "token_perplexity": 24.632623692214786,
+     "word_perplexity": 129.98751636016624,
+     "bits_per_byte": 1.2087481508043618,
+     "max_length": 2048
+    }
+   }
+  },
+  "gpt2-medium": {
+   "model": {
+    "kind": "huggingface",
+    "model": "gpt2-medium",
+    "revision": null,
+    "parameters": 354823168,
+    "max_length": 1024,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.3331009759012149,
+     "acc_ci95": [
+      0.32394792957638613,
+      0.34238166424207944
+     ],
+     "acc_norm": 0.39384584744074885,
+     "acc_norm_ci95": [
+      0.3843318176411227,
+      0.40344106243673195
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.676278563656148,
+     "acc_ci95": [
+      0.6545394170726535,
+      0.6972823952210634
+     ],
+     "acc_norm": 0.6637649619151251,
+     "acc_norm_ci95": [
+      0.6418457095044912,
+      0.6850010975955358
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.49074074074074076,
+     "acc_ci95": [
+      0.47067078447639055,
+      0.5108405889653497
+     ],
+     "acc_norm": 0.43602693602693604,
+     "acc_norm_ci95": [
+      0.41620669375799163,
+      0.4560537045667589
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.2150170648464164,
+     "acc_ci95": [
+      0.19244736969867857,
+      0.23944883111229795
+     ],
+     "acc_norm": 0.25,
+     "acc_norm_ci95": [
+      0.2260533231819695,
+      0.2755801703438272
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.5311760063141279,
+     "acc_ci95": [
+      0.5036452434296269,
+      0.5585182935337564
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.4298466912478168,
+     "acc_ci95": [
+      0.4163871856589836,
+      0.4434107147082422
+     ],
+     "perplexity": 18.264825059751587
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.775,
+     "acc_ci95": [
+      0.7480942379750103,
+      0.7998010448579344
+     ],
+     "acc_norm": 0.673,
+     "acc_norm_ci95": [
+      0.6433104519531344,
+      0.7013654896108635
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.186,
+     "acc_ci95": [
+      0.1543339917500702,
+      0.22245409405978459
+     ],
+     "acc_norm": 0.302,
+     "acc_norm_ci95": [
+      0.26339155087985655,
+      0.3436276879429182
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 272031,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 2.91556753213233,
+     "token_perplexity": 18.459285668265053,
+     "word_perplexity": 26.74655905077432,
+     "bits_per_byte": 0.8866433213370338,
+     "max_length": 1024
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.8259850746268657,
+     "acc_ci95": [
+      0.823095691990919,
+      0.8288370785629325
+     ],
+     "macro_acc": 0.8259850746268655
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.22895598917533114,
+     "acc_ci95": [
+      0.2220812430002621,
+      0.2359789933823922
+     ],
+     "macro_acc": 0.2288873598984205
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10583382,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.2709433197707596,
+     "token_perplexity": 26.336171060146917,
+     "word_perplexity": 143.88664839717595,
+     "bits_per_byte": 1.2339757101152242,
+     "max_length": 1024
+    }
+   }
+  },
+  "gpt2": {
+   "model": {
+    "kind": "huggingface",
+    "model": "gpt2",
+    "revision": null,
+    "parameters": 124439808,
+    "max_length": 1024,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+   },
+   "tasks": {
+    "hellaswag": {
+     "samples": 10042,
+     "choices_per_question": 4.0,
+     "acc": 0.2891854212308305,
+     "acc_ci95": [
+      0.28039980011831545,
+      0.2981322703552476
+     ],
+     "acc_norm": 0.31139215295757816,
+     "acc_norm_ci95": [
+      0.3024088568579842,
+      0.320519693674339
+     ]
+    },
+    "piqa": {
+     "samples": 1838,
+     "choices_per_question": 2.0,
+     "acc": 0.6289445048966268,
+     "acc_ci95": [
+      0.6066117947173785,
+      0.6507393457567293
+     ],
+     "acc_norm": 0.6251360174102285,
+     "acc_norm_ci95": [
+      0.6027656569636602,
+      0.6469843949732376
+     ]
+    },
+    "arc_easy": {
+     "samples": 2376,
+     "choices_per_question": 3.9987373737373737,
+     "acc": 0.43813131313131315,
+     "acc_ci95": [
+      0.41829696668747757,
+      0.45816539221869573
+     ],
+     "acc_norm": 0.3947811447811448,
+     "acc_norm_ci95": [
+      0.3753117424269481,
+      0.41459022850191796
+     ]
+    },
+    "arc_challenge": {
+     "samples": 1172,
+     "choices_per_question": 3.999146757679181,
+     "acc": 0.19027303754266212,
+     "acc_ci95": [
+      0.16882681723377724,
+      0.21374300580330202
+     ],
+     "acc_norm": 0.22696245733788395,
+     "acc_norm_ci95": [
+      0.2038963749861788,
+      0.2518125599225412
+     ]
+    },
+    "winogrande": {
+     "samples": 1267,
+     "choices_per_question": 2.0,
+     "acc": 0.516179952644041,
+     "acc_ci95": [
+      0.4886555454183084,
+      0.5436065433854729
+     ]
+    },
+    "lambada_openai": {
+     "samples": 5153,
+     "acc": 0.32563555210556955,
+     "acc_ci95": [
+      0.3129748134602364,
+      0.33855606753548223
+     ],
+     "perplexity": 40.05540995196162
+    },
+    "sciq": {
+     "samples": 1000,
+     "choices_per_question": 4.0,
+     "acc": 0.753,
+     "acc_ci95": [
+      0.7253357631562045,
+      0.7787278970501046
+     ],
+     "acc_norm": 0.645,
+     "acc_norm_ci95": [
+      0.6148387032147422,
+      0.6740515368244469
+     ]
+    },
+    "openbookqa": {
+     "samples": 500,
+     "choices_per_question": 4.0,
+     "acc": 0.164,
+     "acc_ci95": [
+      0.13412892031587176,
+      0.1989946364742914
+     ],
+     "acc_norm": 0.272,
+     "acc_norm_ci95": [
+      0.2348440922052204,
+      0.31263260704524753
+     ]
+    },
+    "wikitext": {
+     "documents": 62,
+     "tokens": 272031,
+     "words": 241335,
+     "bytes": 1290527,
+     "token_nll": 3.2122851315838434,
+     "token_perplexity": 24.83577444248886,
+     "word_perplexity": 37.36982952707555,
+     "bits_per_byte": 0.9768771008593462,
+     "max_length": 1024
+    },
+    "blimp": {
+     "samples": 67000,
+     "choices_per_question": 2.0,
+     "acc": 0.8252089552238806,
+     "acc_ci95": [
+      0.8223145749720984,
+      0.8280660457686129
+     ],
+     "macro_acc": 0.8252089552238807
+    },
+    "mmlu": {
+     "samples": 14042,
+     "choices_per_question": 4.0,
+     "acc": 0.22924084888192564,
+     "acc_ci95": [
+      0.22236298907155458,
+      0.23626681090922622
+     ],
+     "macro_acc": 0.23141131969059706
+    },
+    "pg19": {
+     "documents": 100,
+     "tokens": 10583382,
+     "words": 6966686,
+     "bytes": 40473002,
+     "token_nll": 3.7112891368682237,
+     "token_perplexity": 40.90650663672028,
+     "word_perplexity": 280.89289558340334,
+     "bits_per_byte": 1.4000978312369052,
+     "max_length": 1024
+    }
+   }
+  }
+ },
+ "lm_eval_crosscheck": {
+  "versions": {
+   "lm_eval_version": "0.4.13",
+   "transformers_version": "5.23.0",
+   "date": 1794932396.2251425
+  },
+  "results": {
+   "hellaswag": {
+    "sample_len": 10042,
+    "acc,none": 0.2891854212308305,
+    "acc_stderr,none": 0.004524575892953094,
+    "acc_norm,none": 0.31139215295757816,
+    "acc_norm_stderr,none": 0.004621163476949437
+   },
+   "piqa": {
+    "sample_len": 1838,
+    "acc,none": 0.6289445048966268,
+    "acc_stderr,none": 0.011271222398600666,
+    "acc_norm,none": 0.6251360174102285,
+    "acc_norm_stderr,none": 0.01129456580561892
+   },
+   "arc_easy": {
+    "sample_len": 2376,
+    "acc,none": 0.43813131313131315,
+    "acc_stderr,none": 0.010180937100600149,
+    "acc_norm,none": 0.3947811447811448,
+    "acc_norm_stderr,none": 0.01003003893588357
+   },
+   "arc_challenge": {
+    "sample_len": 1172,
+    "acc,none": 0.19027303754266212,
+    "acc_stderr,none": 0.011470424179225763,
+    "acc_norm,none": 0.22696245733788395,
+    "acc_norm_stderr,none": 0.012240491536132965
+   },
+   "winogrande": {
+    "sample_len": 1267,
+    "acc,none": 0.516179952644041,
+    "acc_stderr,none": 0.014045126130978676
+   },
+   "lambada_openai": {
+    "sample_len": 5153,
+    "perplexity,none": 40.055156540640624,
+    "perplexity_stderr,none": 1.478715160605121,
+    "acc,none": 0.32563555210556955,
+    "acc_stderr,none": 0.00652867895783563
+   },
+   "wikitext": {
+    "sample_len": 62,
+    "word_perplexity,none": 37.369515720637416,
+    "byte_perplexity,none": 1.968197280705199,
+    "bits_per_byte,none": 0.9768748353267729
+   },
+   "sciq": {
+    "sample_len": 1000,
+    "acc,none": 0.752,
+    "acc_stderr,none": 0.013663187134877524,
+    "acc_norm,none": 0.644,
+    "acc_norm_stderr,none": 0.015149042659306678
+   },
+   "openbookqa": {
+    "sample_len": 500,
+    "acc,none": 0.164,
+    "acc_stderr,none": 0.016575811142446696,
+    "acc_norm,none": 0.272,
+    "acc_norm_stderr,none": 0.019920483209566107
+   }
+  }
+ },
+ "audits": {
+  "sampler_main": {
+   "recipe": "/home/wang.21020/modern-sequence-run/configs/data/fineweb_pg19_50_50.json",
+   "recipe_sha256": "af3a30b8482fa5b99fcbfedb237a2ffb1b8bee5db1cbba0749889c3ae7807d50",
+   "config": "configs/report/main_ttt.json",
+   "seed": 0,
+   "steps": 12000,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "windows": 192000,
+   "target_probabilities": {
+    "fineweb_edu": 0.5,
+    "pg19": 0.5
+   },
+   "coverage_block_tokens": 1024,
+   "sources": {
+    "fineweb_edu": {
+     "corpus_tokens": 2254686265,
+     "windows": 96316,
+     "window_fraction": 0.5016458333333333,
+     "sampled_tokens": 394510336,
+     "sampled_tokens_over_corpus": 0.17497349503745702,
+     "corpus_fraction_seen": 0.19670067302709593,
+     "seen_blocks_sampled_more_than_once": 0.10463306734641102
+    },
+    "pg19": {
+     "corpus_tokens": 3066539608,
+     "windows": 95684,
+     "window_fraction": 0.49835416666666665,
+     "sampled_tokens": 391921664,
+     "sampled_tokens_over_corpus": 0.1278058378823979,
+     "corpus_fraction_seen": 0.1476060117515531,
+     "seen_blocks_sampled_more_than_once": 0.07817325029240031
+    }
+   }
+  },
+  "duplicates": {
+   "fineweb_edu": {
+    "train_documents": 2163591,
+    "heldout_documents": 20000,
+    "heldout_exact_duplicates_of_train": 365,
+    "heldout_internal_duplicates": 0
+   },
+   "pg19": {
+    "train_books": 28602,
+    "validation_exact_duplicates_of_train": [],
+    "test_exact_duplicates_of_train": [],
+    "validation_books_with_title_also_in_train": [],
+    "test_books_with_title_also_in_train": [],
+    "note": "same normalised title + author string in metadata.csv; indicates possible other editions"
+   }
+  },
+  "benchmark_overlap": {
+   "method": "Aho-Corasick exact match of normalised probe strings against normalised training text",
+   "probe_characters": 80,
+   "minimum_characters": 50,
+   "corpora": {
+    "fineweb_edu_train": [
+     "data/raw/fineweb-edu/000_00000.parquet",
+     "data/raw/fineweb-edu/001_00000.parquet",
+     "data/raw/fineweb-edu/002_00000.parquet"
+    ],
+    "pg19_train_files": 28602
+   },
+   "tasks": {
+    "hellaswag": {
+     "items_probed": 9793,
+     "items_with_exact_match": 0
+    },
+    "piqa": {
+     "items_probed": 395,
+     "items_with_exact_match": 0
+    },
+    "arc_easy": {
+     "items_probed": 2079,
+     "items_with_exact_match": 13
+    },
+    "arc_challenge": {
+     "items_probed": 1061,
+     "items_with_exact_match": 1
+    },
+    "winogrande": {
+     "items_probed": 1267,
+     "items_with_exact_match": 0
+    },
+    "lambada_openai": {
+     "items_probed": 5153,
+     "items_with_exact_match": 2
+    },
+    "sciq": {
+     "items_probed": 813,
+     "items_with_exact_match": 6
+    },
+    "openbookqa": {
+     "items_probed": 206,
+     "items_with_exact_match": 0
+    },
+    "mmlu": {
+     "items_probed": 12477,
+     "items_with_exact_match": 94
+    },
+    "wikitext": {
+     "items_probed": 61,
+     "items_with_exact_match": 2
+    }
+   }
+  },
+  "corpora": {
+   "fineweb-edu-heldout": {
+    "documents": 20000,
+    "tokens": 20690762,
+    "utf8_bytes": 95661007,
+    "bytes_per_token": 4.62336800355637,
+    "shards": 1,
+    "tokenizer": "tiktoken:gpt2"
+   },
+   "fineweb-edu-heldout-dedup": {
+    "documents": 19635,
+    "tokens": 20366133,
+    "utf8_bytes": 94154024,
+    "bytes_per_token": 4.623068306585251,
+    "excluded_duplicate_documents": 365,
+    "shards": 1,
+    "tokenizer": "tiktoken:gpt2"
+   },
+   "fineweb-edu-train": {
+    "documents": 2182000,
+    "tokens": 2254686265,
+    "utf8_bytes": 10422142787,
+    "bytes_per_token": 4.622435923252497,
+    "shards": 23,
+    "tokenizer": "tiktoken:gpt2"
+   },
+   "pg19-test": {
+    "documents": 100,
+    "tokens": 10583482,
+    "utf8_bytes": 40473002,
+    "bytes_per_token": 3.824166942410825,
+    "shards": 1,
+    "tokenizer": "tiktoken:gpt2"
+   },
+   "pg19-train": {
+    "documents": 28602,
+    "tokens": 3066539608,
+    "utf8_bytes": 11450872935,
+    "bytes_per_token": 3.734135018222794,
+    "shards": 31,
+    "tokenizer": "tiktoken:gpt2"
+   },
+   "pg19-validation": {
+    "documents": 50,
+    "tokens": 4640281,
+    "utf8_bytes": 17397435,
+    "bytes_per_token": 3.749220144211094,
+    "shards": 1,
+    "tokenizer": "tiktoken:gpt2"
+   }
+  }
+ },
+ "provenance": {
+  "runs": {
+   "main-swa": {
+    "source_sha256": "e3553bf58eca5561af72f6648662d0c5e49bbd8ccf3a154b741768588c574cf4",
+    "data_manifest_sha256": "af3a30b8482fa5b99fcbfedb237a2ffb1b8bee5db1cbba0749889c3ae7807d50"
+   },
+   "main-ttt": {
+    "source_sha256": "e3553bf58eca5561af72f6648662d0c5e49bbd8ccf3a154b741768588c574cf4",
+    "data_manifest_sha256": "af3a30b8482fa5b99fcbfedb237a2ffb1b8bee5db1cbba0749889c3ae7807d50"
+   }
+  },
+  "environment": {
+   "python": "3.12.16",
+   "system": "Linux-5.15.0-202-generic-x86_64-with-glibc2.35",
+   "packages": {
+    "jax": "0.4.38",
+    "jaxlib": "0.4.38",
+    "optax": "0.2.4",
+    "numpy": "2.5.4",
+    "orbax-checkpoint": "0.10.3",
+    "fastapi": null,
+    "tensorstore": "0.1.86"
+   },
+   "gpu": "NVIDIA H200 NVL, 580.196.07, 143771 MiB"
+  },
+  "source_digests": [
+   "e3553bf58eca5561af72f6648662d0c5e49bbd8ccf3a154b741768588c574cf4"
+  ]
+ },
+ "validation_curves": {
+  "swa": {
+   "1000": {
+    "pg19val": 4.006198029060143,
+    "fineweb": 4.535449986021376
+   },
+   "2000": {
+    "pg19val": 3.649576161140537,
+    "fineweb": 4.079874059832036
+   },
+   "3000": {
+    "pg19val": 3.495422168118513,
+    "fineweb": 3.8919093678268837
+   },
+   "4000": {
+    "pg19val": 3.394327223798743,
+    "fineweb": 3.7718485316627266
+   },
+   "5000": {
+    "pg19val": 3.3193380463913194,
+    "fineweb": 3.6910425080718596
+   },
+   "6000": {
+    "pg19val": 3.257522323794729,
+    "fineweb": 3.6188069478635043
+   },
+   "7000": {
+    "pg19val": 3.2049619769872355,
+    "fineweb": 3.5610427054843967
+   },
+   "8000": {
+    "pg19val": 3.159081538363212,
+    "fineweb": 3.508823110666526
+   },
+   "9000": {
+    "pg19val": 3.12007142027312,
+    "fineweb": 3.468279581994011
+   },
+   "10000": {
+    "pg19val": 3.09465786474601,
+    "fineweb": 3.439247349328525
+   },
+   "11000": {
+    "pg19val": 3.081068815080893,
+    "fineweb": 3.423647223779426
+   },
+   "12000": {
+    "pg19val": 3.0779223216553393,
+    "fineweb": 3.4205634083932637
+   }
+  },
+  "ttt": {
+   "1000": {
+    "pg19val": 3.839817506491078,
+    "fineweb": 4.317741215581918
+   },
+   "2000": {
+    "pg19val": 3.53433761353094,
+    "fineweb": 3.9614713324417608
+   },
+   "3000": {
+    "pg19val": 3.405355110694362,
+    "fineweb": 3.8059184792173255
+   },
+   "4000": {
+    "pg19val": 3.3116145497270777,
+    "fineweb": 3.69952421045582
+   }
+  }
+ },
+ "training": {
+  "swa": {
+   "steps": 12000,
+   "tokens_seen": 786432000,
+   "final_train_nll": 3.257543853193684,
+   "logged_steps": 600,
+   "median_step_seconds": 0.34529919596388936,
+   "peak_device_bytes": 87786320896,
+   "max_grad_norm": 4.324917316436768,
+   "clipped_fraction": 0.003703703703703704,
+   "wall_clock_hours": 1.5472406017335338,
+   "final_fast_weight_norm": 0.0,
+   "initial_fast_weight_norm": 0.0,
+   "final_inner_grad_norm": 0.0,
+   "final_inner_update_norm": 0.0
+  },
+  "ttt": {
+   "steps": 5960,
+   "tokens_seen": 390594560,
+   "final_train_nll": 3.386838595145579,
+   "logged_steps": 298,
+   "median_step_seconds": 0.9417276319582015,
+   "peak_device_bytes": 83473448192,
+   "max_grad_norm": 11.43134593963623,
+   "clipped_fraction": 0.01486988847583643,
+   "wall_clock_hours": 1.5859902741025305,
+   "final_fast_weight_norm": 134.61367797851562,
+   "initial_fast_weight_norm": 75.2650146484375,
+   "final_inner_grad_norm": 1.1440061330795288,
+   "final_inner_update_norm": 0.9874532222747803
+  }
+ },
+ "training_cost": {
+  "full": {
+   "parameters": 123571200,
+   "fast_parameters": 0,
+   "tokens_per_second": 82087.09083098726,
+   "median_step_seconds": 0.7983715750742704,
+   "peak_bytes_in_use": 48754944000,
+   "batch_size": 16,
+   "sequence_length": 4096
+  },
+  "swa": {
+   "parameters": 123571200,
+   "fast_parameters": 0,
+   "tokens_per_second": 193429.97989106024,
+   "median_step_seconds": 0.33880994061473757,
+   "peak_bytes_in_use": 87786062080,
+   "batch_size": 16,
+   "sequence_length": 4096
+  },
+  "ck": {
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "tokens_per_second": 125550.37161475961,
+   "median_step_seconds": 0.521989693515934,
+   "peak_bytes_in_use": 14150443008,
+   "batch_size": 16,
+   "sequence_length": 4096
+  },
+  "ttt": {
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "tokens_per_second": 70218.46639889696,
+   "median_step_seconds": 0.9333157410146669,
+   "peak_bytes_in_use": 83473372672,
+   "batch_size": 16,
+   "sequence_length": 4096
+  }
+ },
+ "training_cost_variants": {
+  "ck_b16": {
+   "config": "configs/report/bench_ttt.json",
+   "overrides": [
+    "inner.enabled=false"
+   ],
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 0.521989693515934,
+   "tokens_per_second": 125550.37161475961,
+   "peak_bytes_in_use": 14150443008
+  },
+  "full_b16_t4096": {
+   "config": "configs/report/bench_full.json",
+   "overrides": [],
+   "parameters": 123571200,
+   "fast_parameters": 0,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 0.7983715750742704,
+   "tokens_per_second": 82087.09083098726,
+   "peak_bytes_in_use": 48754944000
+  },
+  "swa_b16_nogc": {
+   "config": "configs/report/bench_swa.json",
+   "overrides": [
+    "training.gradient_checkpointing=false"
+   ],
+   "parameters": 123571200,
+   "fast_parameters": 0,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 0.33880994061473757,
+   "tokens_per_second": 193429.97989106024,
+   "peak_bytes_in_use": 87786062080
+  },
+  "swa_b16_t4096": {
+   "config": "configs/report/bench_swa.json",
+   "overrides": [],
+   "parameters": 123571200,
+   "fast_parameters": 0,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 0.42557815415784717,
+   "tokens_per_second": 153992.8667853864,
+   "peak_bytes_in_use": 17649986304
+  },
+  "swa_b32": {
+   "config": "configs/report/bench_swa.json",
+   "overrides": [
+    "training.batch_size=32"
+   ],
+   "parameters": 123571200,
+   "fast_parameters": 0,
+   "batch_size": 32,
+   "sequence_length": 4096,
+   "median_step_seconds": 0.8078987270127982,
+   "tokens_per_second": 162238.15636476877,
+   "peak_bytes_in_use": 31542574336
+  },
+  "ttt_b16_chunk128": {
+   "config": "configs/report/bench_ttt.json",
+   "overrides": [
+    "model.ttt_chunk_size=128",
+    "model.loss_token_block_size=128"
+   ],
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 1.9028224250068888,
+   "tokens_per_second": 34441.46922945936,
+   "peak_bytes_in_use": 30087737600
+  },
+  "ttt_b16_chunk512": {
+   "config": "configs/report/bench_ttt.json",
+   "overrides": [
+    "model.ttt_chunk_size=512",
+    "model.loss_token_block_size=512"
+   ],
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 1.3002564359921962,
+   "tokens_per_second": 50402.36539955364,
+   "peak_bytes_in_use": 33173165312
+  },
+  "ttt_b16_nogc": {
+   "config": "configs/report/bench_ttt.json",
+   "overrides": [
+    "training.gradient_checkpointing=false"
+   ],
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 0.9333157410146669,
+   "tokens_per_second": 70218.46639889696,
+   "peak_bytes_in_use": 83473372672
+  },
+  "ttt_b16_t4096": {
+   "config": "configs/report/bench_ttt.json",
+   "overrides": [],
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "batch_size": 16,
+   "sequence_length": 4096,
+   "median_step_seconds": 1.4709720378741622,
+   "tokens_per_second": 44552.852340219964,
+   "peak_bytes_in_use": 28864033280
+  },
+  "ttt_b32": {
+   "config": "configs/report/bench_ttt.json",
+   "overrides": [
+    "training.batch_size=32"
+   ],
+   "parameters": 137731584,
+   "fast_parameters": 14155776,
+   "batch_size": 32,
+   "sequence_length": 4096,
+   "median_step_seconds": 2.7839563540183008,
+   "tokens_per_second": 47081.19788257944,
+   "peak_bytes_in_use": 53474316544
+  }
+ }
+}

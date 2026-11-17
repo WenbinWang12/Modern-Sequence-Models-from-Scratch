@@ -1,466 +1,588 @@
-# TTT-E2E Technical Report
+---
+hide:
+  - navigation
+---
 
-**Working draft — 2026-11-17**
+# TTT-E2E 技术报告：从零训练、匹配对照与长上下文评测
 
-本文档是 TTT-E2E 从数据、架构、训练到评测的技术报告草稿。采用“证据先于结论”的写法：
-
-- **measured**：由保存的原始报告或远端命令直接测得；
-- **inferred**：由配置或公式推导，尚未由完整实验确认；
-- **not measured**：当前没有证据，不能写成模型能力结论。
-
-当前公开结果是 CPU pilot，不能代表目标 GPU 规模，也不能声称击败任何开源或闭源模型。
+**版本 1.0　·　2026 年 11 月 18 日**
 
 ## 摘要
 
-我们实现了一个端到端 Test-Time Training（TTT-E2E）语言模型。模型把跨样本共享的慢参数 theta 与会话内更新的快权重 phi 分开：训练阶段用外循环优化 theta 和初始化，使模型学会如何从上下文适应；推理阶段只更新当前会话的 phi，不修改发布的慢参数。
+（待补）
 
-本报告的第一条完整证据链是一个约 1.020M 参数的 CPU pilot：使用 WikiText-2 train split 的 5,120,000 个调度 token，完成 5,000 步训练、checkpoint、恢复、独立 validation/test NLL、profile 和功能验证。该实验验证工程闭环，不是 compute-optimal 预训练，也不是与大型模型的公平能力比较。
 
-## 1. 研究问题与贡献边界
+## 1 引言
 
-### 1.1 研究问题
+长上下文语言模型在成本上有一个基本矛盾。全注意力让每个 token 都能直接读到此前的全部内容，但每生成一个 token 的计算量和需要保存的状态都随已读长度线性增长。把注意力限制在最近的一个窗口里，这两项都变成常数，代价是窗口之外的内容基本丢失。循环网络一类的方法把历史压进固定大小的状态，问题变成压缩什么、怎样压缩。
 
-我们要回答三个可区分的问题：
+TTT-E2E[^ttte2e] 的回答是把历史压进模型自己的一部分权重，并且用梯度下降来压缩。模型一边读，一边在刚读过的文本上做下一个 token 的预测训练，只更新最后几层里的一组 MLP；训练阶段再用元学习让模型为“被这样更新”做好准备。原论文在 30 亿参数、1,640 亿训练 token 的规模上报告：在 128K 上下文内，TTT-E2E 的损失随上下文长度的变化方式与全注意力相同，而推理延迟不随上下文增长。
 
-1. 在固定参数、数据、有效 token 和计算预算下，TTT 快权重是否降低独立 held-out NLL？
-2. 在长上下文中，TTT 的会话状态是否比完整 KV 历史提供更好的内存/延迟折中？
-3. 外循环学到的初始化是否使推理时适应稳定、可恢复且具有可重复收益？
+本报告从零实现了这一方法，并在两张 GPU 可以完整复现的规模上检验它。我们用同一份数据、同样的 batch 顺序、同样的优化器和同样的训练 token 数训练四个约 1.3 亿参数的模型，回答五个问题：
 
-“在某个 benchmark 上得分更高”只有在数据、tokenizer、prompt、适应开关、预算和统计协议都固定后，才可以归因于 TTT。
+1. TTT-E2E 相对滑窗注意力能挽回多少因为看不到远处上下文而损失的预测质量，离全注意力还有多远？（第 4.2、4.3 节）
+2. 收益里有多少来自测试时更新本身，有多少只是因为多了参数？不做元学习、直接对普通模型做测试时梯度更新够不够？（第 4.4 节）
+3. 上下文超过训练长度之后会发生什么？（第 4.5 节）
+4. 把历史压进权重会丢掉什么？（第 4.6 节）
+5. 训练和推理各要付出多少成本？（第 4.10 节）
 
-### 1.2 贡献声明模板
+此外，第 4.7 节用同一套零样本协议把这些模型和一组公开的同规模模型放在一起，给出绝对水平的参照；第 4.8、4.9 节是消融、随机种子和模型规模实验；第 5 节是数据审计。
 
-正式版本只允许从以下证据中写贡献：
+**与已有工作的关系。** 在测试序列上继续做梯度更新的做法至少可以追溯到动态评估[^dyneval][^dynevaltr]；快权重[^fastweights]提供了“随序列变化的权重”这一视角；通过内循环求导来学习初始化是 MAML[^maml] 的做法，一阶近似见 Reptile[^reptile]。把测试时训练用于分布外泛化见 Sun 等[^ttt]，把它做成序列模型的层见 TTT 层[^tttlayers]和 Titans[^titans]。同样追求常数推理成本的还有状态空间模型和线性循环模型，例如 Mamba[^mamba] 和 Gated DeltaNet[^gdn]；限制注意力范围或跨段复用状态的 Transformer 见 Transformer-XL[^transformerxl]、Longformer[^longformer]、Compressive Transformer[^pg19] 和 Block-Recurrent Transformer[^blockrecurrent]。本报告只实现并评测 TTT-E2E 及其对照，没有重新实现上述其他方法。
 
-| 声明 | 必须有的证据 | 当前状态 |
-|---|---|---|
-| TTT-E2E 训练闭环可运行 | 有限梯度、因果性、streaming 一致性、checkpoint 恢复 | **measured** |
-| TTT 在固定预算下降低 NLL | plain/TTT 配对模型、多 seed、独立 test | **not measured** |
-| TTT 提高长上下文能力 | 预注册的 RULER/LongBench/检索协议、adapt/no-adapt 对照 | **not measured** |
-| TTT 降低推理成本 | 相同硬件、精度、上下文和 warm-up 后 latency/显存 | **not measured** |
-| TTT 击败某个开源或闭源模型 | 同等协议和可复核原始结果 | **not measured** |
+**本报告的贡献。**
 
-## 2. 模型规格
+- 一个完整的 JAX 实现：带二阶导的训练、带状态的流式推理、检查点与恢复，以及一套对正确性做出保证的测试（因果性、外循环梯度、流式一致性）。
+- 一组严格匹配的对照实验，以及能把“参数量”“测试时更新”“元学习”三个因素分开的对照。
+- 超出训练长度 8 倍的评测、逐字回忆探针、公开 benchmark 和与公开模型的同协议比较。
+- 全部数字可追溯：本页的每个数字都由脚本从原始评测输出生成，原始输出和生成脚本都在仓库里。
 
-### 2.1 参数与状态
 
-对第 c 个上下文块，慢参数记为 theta，快权重记为 phi_c。快权重不会跨独立 session 共享：
+## 2 方法
 
-~~~text
-phi_c,0 = g_theta(previous_state)
-phi_c,i+1 = phi_c,i - eta * grad_phi loss_inner(x_c,i, y_c,i; theta, phi_c,i)
-~~~
+### 2.1 记号
 
-模型前向使用当前块开始时的 phi 预测，等目标已经观测后才更新到下一状态。这一时序是因果性的一部分，不能把“更新后权重”用于预测同一个尚未观测的目标。
+记 token 序列为 \(x_1,\ldots,x_{L+1}\)，模型在位置 \(t\) 读入 \(x_{1:t}\) 并预测 \(x_{t+1}\)，\(L\) 是一个训练窗口里的预测位置数。模型有 \(n_\ell\) 个残差块，隐藏宽度为 \(d\)，MLP 中间宽度为 \(d_{\mathrm{ff}}\)，词表大小为 \(V\)。滑窗注意力的每一层只能看到最近 \(w\) 个位置。
 
-### 2.2 当前 CPU pilot 配置（measured）
+参数分成两部分。**慢参数** \(\theta\) 在训练结束后固定，所有序列共用；**快权重** \(\phi\) 属于当前这一条序列，随着序列被读入而改变。序列按长度 \(C\) 切成更新块（chunk），第 \(c\) 块包含位置 \(\mathcal T_c=\{(c-1)C+1,\ldots,cC\}\)。\(\phi_{c-1}\) 表示预测第 \(c\) 块时使用的快权重，\(\phi_0\) 是它的初值。
 
-| 字段 | 值 |
-|---|---:|
-| 实际参数量 | 1,020,032 |
-| 层数 | 6 |
-| hidden size | 128 |
-| intermediate size | 256 |
-| attention heads / KV heads | 4 / 2 |
-| layer types | full / sliding attention 混合 |
-| context upper bound | 512 |
-| training sequence length | 128 |
-| tokenizer | byte，V=259 |
-| parameter dtype / compute dtype | float32 / float32 |
-| tie word embeddings | true |
-| fast MLP initial state | 98,304 parameters |
+### 2.2 模型结构
 
-完整配置见 [configs/runs/cpu_pilot_1m.json](../configs/runs/cpu_pilot_1m.json)。模型名中的规模档位不能替代实际参数计数；正式报告必须报告 embedding、slow weights、fast weights 和总参数。
+主干是一个 pre-norm 的 decoder-only Transformer。每个块依次做两件事：
 
-## 3. TTT 训练算法
+$$
+u=h+\operatorname{Attn}\bigl(\operatorname{RMSNorm}(h)\bigr),\qquad
+h'=u+\operatorname{MLP}\bigl(\operatorname{RMSNorm}(u)\bigr).
+$$
 
-### 3.1 内循环目标
+注意力使用旋转位置编码（RoPE，基数 \(5\times10^5\)）和 QK 归一化：query 和 key 在每个头内先做 RMSNorm 再做点积，分数除以 \(\sqrt{d_h}\)。MLP 是 SwiGLU，\(\operatorname{MLP}(v)=W_{\mathrm{down}}\bigl(\operatorname{SiLU}(W_{\mathrm{gate}}v)\odot W_{\mathrm{up}}v\bigr)\)，不带偏置。输入嵌入和输出投影共用同一个矩阵。
 
-训练时，每个序列被当作一个会在推理阶段到来的上下文。内循环使用已观测的 next-token 对：
+TTT-E2E 只改动最后 \(n_s\) 个块（下文称**后段**，其余 \(n_\ell-n_s\) 个块称**前段**）。后段的每个块在注意力和原有 MLP 之间多一个结构相同的 MLP′，它的三个矩阵就是快权重：
 
-~~~text
-loss_inner = sum_t mask_t * CE(model(x up to t; theta, phi_t), y_t) / sum_t mask_t
-~~~
+$$
+u=h+\operatorname{Attn}(\operatorname{RMSNorm}(h)),\qquad
+v=u+\operatorname{MLP}'_{\phi}(\operatorname{RMSNorm}(u)),\qquad
+h'=v+\operatorname{MLP}(\operatorname{RMSNorm}(v)).
+$$
 
-其中 mask_t 是监督 mask。文档边界、EOS、packing 和 chunk 顺序必须写入数据协议，不能由模型实现隐式决定。
+原有的 MLP 仍然是慢参数，为预训练得到的知识保留一个不会被测试时更新改写的位置；这一点和只更新最后四分之一的块，都沿用原论文的设计[^ttte2e]。嵌入、归一化和注意力在测试时都不更新。
 
-### 3.2 外循环目标
+<figure markdown="span" class="report-figure">
+  ![TTT-E2E 的前向过程与两个循环](assets/report/fig_method.light.svg#only-light){ width="100%" }
+  ![TTT-E2E 的前向过程与两个循环](assets/report/fig_method.dark.svg#only-dark){ width="100%" }
+  <figcaption>图 1　TTT-E2E 的前向过程。前段对整条序列只算一次；后段逐块前向，每块先用当前快权重预测，再用这一块的损失把快权重更新一步。外循环把各块损失相加，并对整条更新链求导。</figcaption>
+</figure>
 
-外循环在内循环适应之后评价 next-token loss，并对慢参数、初始化和可学习规则求导。因为适应后的 phi 依赖 theta，外循环梯度一般需要穿过内循环。当前实现保留高阶梯度；正式模型必须报告是否截断、内循环步数、梯度裁剪和实际计算成本。
+### 2.3 内循环：先预测，后更新
 
-### 3.3 训练和推理的差别
+前段不依赖快权重，对整条序列只计算一次，得到特征 \(g_t=f^{\mathrm{pre}}_\theta(x_{1:t})\)。后段逐块计算。读完第 \(c\) 块后，这一块的平均损失是
 
-| 阶段 | 更新对象 | 是否保留外循环梯度 | 状态范围 |
-|---|---|---|---|
-| 预训练 | theta，并在样本内模拟 phi | 是 | batch 内临时状态 |
-| 推理 | 当前 session 的 phi | 否 | session 独立 |
-| checkpoint 恢复 | theta、optimizer、sampler | 不适用 | 训练作业 |
-| session 恢复 | phi、KV/Delta、未完成 chunk | 不适用 | 单一会话 |
+$$
+\ell_c(\theta,\phi_{c-1})=\frac1C\sum_{t\in\mathcal T_c}-\log p\bigl(x_{t+1}\mid x_{1:t};\theta,\phi_{c-1}\bigr).
+$$
 
-只在推理时对现成模型做 SGD，不等于 TTT-E2E；那是没有外循环元学习的 post-hoc TTT 变体。
+注意预测第 \(c\) 块时用的是 \(\phi_{c-1}\)：它只见过前 \(c-1\) 块的目标。等第 \(c\) 块的目标全部成为已观测信息之后，才对快权重做一步梯度下降：
 
-## 4. 数据与 tokenizer
+$$
+g_c=\nabla_{\phi}\,\ell_c(\theta,\phi)\Big|_{\phi=\phi_{c-1}},\qquad
+\hat g_c=\min\!\Bigl(1,\frac{\tau}{\lVert g_c\rVert_2}\Bigr)g_c,\qquad
+\phi_c=\phi_{c-1}-\eta\,\hat g_c .
+$$
 
-### 4.1 数据对象
+\(\eta\) 是内循环学习率，\(\tau\) 是对全部快权重合在一起计算的梯度范数上限。更新后的 \(\phi_c\) 只用于第 \(c+1\) 块及之后的预测，所以任何一个 token 的损失都不会用到见过它自己的权重，评测时不存在标签泄漏。序列末尾不足一块的部分只参与评分，不触发更新。
 
-当前 pilot 使用公开 WikiText-2 train/validation/test 文件的公开镜像。下载、逐行 JSONL 转换、token manifest 和分片摘要均单独保存。
+后段的注意力带 KV 缓存：第 \(c\) 块可以看到窗口内前面各块的 key 和 value，它们是当时用旧的快权重算出来的，更新后不重算。
 
-| split | 文档数 | token 数 | 用途 |
-|---|---:|---:|---|
-| train | 23,767 | 10,795,013 | 参数更新 |
-| validation | 2,461 | 1,121,544 | 模型选择/诊断 |
-| test | 2,891 | 1,256,406 | 最终一次性报告 |
+### 2.4 外循环：学习怎样被更新
 
-数据卡和许可信息必须与文件 SHA256 一起归档。当前 pilot 的数据只适合管线与小模型验证；它不支持对大规模预训练能力的外推。
+训练目标是“按上述方式边读边更新之后”的平均损失：
 
-### 4.2 必须报告的处理信息
+$$
+\mathcal L(\theta)=\frac{1}{n_c}\sum_{c=1}^{n_c}\ell_c\bigl(\theta,\phi_{c-1}(\theta)\bigr),\qquad \phi_0\subset\theta .
+$$
 
-正式数据章节必须给出：
+\(\phi_0\) 是慢参数的一部分，也就是说快权重的初值是学出来的。因为 \(\phi_{c-1}\) 是 \(\theta\) 的函数，\(\mathcal L\) 对 \(\theta\) 的梯度除了普通的反向传播，还要沿着更新链回传：
 
-- 原始 URL、不可变 revision、许可和获取时间；
-- 原始文件、清洗文件、JSONL、token 分片的字节数和 SHA256；
-- 空行、非法 UTF-8、重复文档、过滤规则和保留率；
-- 精确/近似去重方法及阈值；
-- train/validation/test 的文档簇切分和污染检查；
-- tokenizer 文件、revision、词表、特殊 token、归一化和 added tokens；
-- packing、EOS、BOS、mask 和跨文档状态规则。
+$$
+\frac{d\phi_c}{d\theta}=\frac{d\phi_{c-1}}{d\theta}-\eta\,\frac{d\hat g_c}{d\theta},
+$$
 
-当前 pilot 使用 byte tokenizer，因此其 PPL 不能直接与 BPE 或 SentencePiece 模型比较。正式主实验必须增加固定 revision 的子词 tokenizer，并将 tokenizer 训练语料与预训练语料的关系写清楚。
+其中 \(d\hat g_c/d\theta\) 含有 \(\ell_c\) 对快权重的二阶导。实现上就是对整个带内循环的前向函数再求一次导（梯度的梯度）。慢参数因此学到两件事：怎样预测下一个 token，以及怎样让后段在被梯度更新之后预测得更好。
 
-## 5. 训练设置与系统
+消融实验里的**一阶近似**把 \(\hat g_c\) 当作常数，即令 \(d\hat g_c/d\theta=0\)。此时前向数值完全不变，训练更便宜，但外循环不再知道慢参数会怎样影响更新量。
 
-### 5.1 当前 pilot（measured）
+### 2.5 推理
 
-| 项目 | 值 |
-|---|---|
-| 设备 | 双路 AMD EPYC 7742 主机上的单个 JAX CPU device |
-| 可见内存 | 约 503 GiB |
-| GPU | 无 |
-| optimizer | AdamW，b1=0.9，b2=0.95，weight decay 0.1 |
-| gradient clipping | global norm 1.0 |
-| scheduler | warmup + cosine decay |
-| batch / sequence | 8 / 128 |
-| steps / scheduled tokens | 5,000 / 5,120,000 |
-| precision | float32 |
-| checkpoint | NPZ，每 500 步 |
+推理和训练时的内循环是同一个过程，只是不再有外循环。一个会话的状态由三部分组成：当前快权重 \(\phi\)（大小固定，与已读长度无关）、各层最近 \(w\) 个位置的 KV 缓存、以及尚未凑满一块的特征和目标。生成时每凑满 \(C\) 个 token 并观测到下一个 token，就执行一次更新。发布的慢参数不会被任何会话改动，不同会话之间也不共享快权重。
 
-Muon 不是当前结果的一部分。Muon 实验应单独作为 optimizer ablation，不能和 AdamW 结果混在同一主表中。
+### 2.6 实现要点
 
-### 5.2 正式训练还要记录
+实现基于 JAX，下面几点和结果的可信度直接相关。
 
-正式 GPU run 必须保存 GPU 型号、数量、拓扑、驱动、JAX/XLA 版本、global batch、gradient accumulation、有效 token、FLOPs、wall-clock、吞吐、峰值显存、编译时间、重启次数、loss spike 和 checkpoint 恢复点。只写“用了八张卡”不足以复现成本。
+- **外循环梯度。** 序列损失函数内部用 `lax.scan` 逐块前向并在每一步调用 `jax.value_and_grad` 得到 \(g_c\)，外层再对整个函数求导。块级扫描分成两层并加检查点，反传时只保存约 \(\sqrt{n_c}\) 份快权重快照，其余在反传时重算。
+- **滑窗注意力。** 训练时前段对整条序列做滑窗注意力。我们把序列按 \(w\) 切块，每块只和自己以及前一块的 key 做稠密注意力，各块并行计算。在 float64 下它和逐位置掩码的参考实现最大相差 \(7\times10^{-7}\)（前向和对 query、key 的梯度都检查过），因此是同一个函数的另一种算法，不是近似。
+- **交叉熵。** 词表投影和 log-softmax 按 token 分块计算；数值与一次性计算相同。
+- **精度。** 参数为 float32；矩阵乘法用 bfloat16；归一化、softmax 和损失用 float32。
+- **正确性测试。** 仓库的测试覆盖因果性（修改未来 token 不影响过去的输出）、外循环梯度与有限差分的一致性、流式推理与整段前向的一致性、检查点恢复，以及一阶近似“前向不变、梯度改变”这一性质；它们在 CPU 上全部通过。
 
-## 6. 当前结果
+### 2.7 复杂度
 
-### 6.1 训练曲线（measured）
+设每个 token 经过一个块的线性层成本为 \(c_{\mathrm{lin}}\)。全注意力每个 token 的注意力成本与已读长度成正比，KV 缓存也随长度线性增长。滑窗注意力和 TTT-E2E 的注意力成本都只与 \(w\) 有关。TTT-E2E 在此之上每个 token 多出两项：后段多一个 MLP′ 的前向，以及每块一次的后段反向传播（成本约为后段前向的两倍，再加输出层）。这两项都与已读长度无关，所以 TTT-E2E 的推理成本和状态大小对上下文长度是常数；代价是训练时要穿过内循环求二阶导。实测数字见第 4.10 节。
 
-CPU pilot 从早期 loss 约 4.65 降到最终 1.3237。最后 50 个记录点的线性趋势仍为负，但最后 10 个点的波动标准差约 0.049；因此应写成“基本进入平台但尚无完全收敛证据”，不能写成“已经收敛”。
 
-训练最后一个记录点：
+## 3 实验设置
 
-| step | tokens seen | loss/NLL | tokens/s |
-|---:|---:|---:|---:|
-| 5,000 | 5,120,000 | 1.3237 | 1,103.6 |
+### 3.1 四个模型
 
-### 6.2 独立语言建模评测（measured）
+主实验训练四个 12 层、宽度 768 的模型。它们使用同一个 tokenizer、同一份数据、完全相同的 batch 顺序、同样的优化器和同样的训练 token 数，只在“怎样使用上下文”上不同。
 
-评测从未用于训练或选 checkpoint，使用 256 个窗口、约 32.7k 个有效 token：
+| 模型 | 注意力 | 带 MLP′ 的块 | 测试时更新 | 总参数 | 非嵌入参数 |
+|:--|:--|:--|:--|--:|--:|
+| 全注意力 | 可见全部 4,096 个位置 | – | – | 123.57M | 84.97M |
+| 滑窗注意力 | 最近 \(w=512\) 个位置 | – | – | 123.57M | 84.97M |
+| 无更新对照 | 最近 \(w=512\) 个位置 | 最后 3 块 | 不更新 | 137.73M | 99.13M |
+| TTT-E2E | 最近 \(w=512\) 个位置 | 最后 3 块 | 每 \(C=256\) 个 token 一步 | 137.73M | 99.13M |
 
-| split | adapt | NLL | PPL |
-|---|---|---:|---:|
-| validation | no | 1.2814 | 3.6016 |
-| test | no | 1.2912 | 3.6370 |
-| validation | yes | 1.2715 | 3.5661 |
-| test | yes | 1.2779 | 3.5892 |
+每个对照回答一个问题：
 
-这里的 adapt=yes 是 TTT 会话内适应，不能和 adapt=no 混成同一个标准语言模型分数。由于 tokenizer 是 byte，PPL 只作本项目内部对照。
+- **全注意力**是上下文内信息无损可见时的参照。它的成本随上下文线性增长，本报告把它看作质量上的目标，而不是成本上的对手。
+- **滑窗注意力**是成本与 TTT-E2E 同量级的基线。它的每一层只能直接看到最近 512 个位置；更早的信息只能靠逐层接力间接传递（12 层在理论上最远可达约 6,100 个位置），模型没有专门的长程记忆。
+- **无更新对照**与 TTT-E2E 结构相同、参数量相同（都比前两者多 14.16M 个 MLP′ 参数），训练和推理时都不做内循环。它用来区分“多出来的参数”和“测试时更新”各自的作用。
+- 评测时还会把训练好的 TTT-E2E **关闭更新**再测一次，用来观察同一组慢参数在不更新时的表现。
 
-### 6.3 合成检索诊断（measured, not a public benchmark）
+其余结构四者相同：\(d=768\)，12 个注意力头，\(d_{\mathrm{ff}}=2048\)，输入输出嵌入共享，RoPE 基数 \(5\times10^5\)，QK 归一化。
 
-仓库自带的 256 条 secret-ID probe 在当前 pilot 上 exact match 为 0。该结果说明当前小模型和训练预算没有通过这项合成长上下文诊断；它不能解释为标准 benchmark 失败，也不能被替换成只展示成功样本的数字。正式长上下文结论需要 RULER、LongBench 或预注册的独立任务集。
+### 3.2 数据
 
-### 6.4 推理系统指标（measured）
+| 语料 | 用途 | 文档数 | token 数 | 字节/token | 来源与许可 |
+|:--|:--|--:|--:|--:|:--|
+| FineWeb-Edu `sample/10BT`，分片 000–002 | 训练 | 2,182,000 | 2.25B | 4.62 | HuggingFaceFW/fineweb-edu，revision `87f0914`，ODC-By 1.0[^fineweb] |
+| PG-19 train | 训练 | 28,602 | 3.07B | 3.73 | DeepMind 发布的 Project Gutenberg 长篇书籍，文件列表 revision `4d28bd7`，Apache-2.0[^pg19] |
+| PG-19 validation | 训练过程中的验证、消融 | 50 | 4.64M | 3.75 | 同上，官方划分 |
+| PG-19 test | 最终评测 | 100 | 10.58M | 3.82 | 同上，官方划分 |
+| FineWeb-Edu `sample/10BT`，分片 013 的前 20,000 篇 | 最终评测 | 19,635 | 20.37M | 4.62 | 同 FineWeb-Edu；已剔除与训练分片全文重复的 365 篇 |
 
-在 CPU、context length 128、decode 8 的 profile 中：
+两种语料互补：FineWeb-Edu 是经过质量分类器筛选的网页，文档短（平均约 1,000 个 token），决定模型的一般语言能力；PG-19 的每篇文档是一整本书（平均约 10 万个 token），一个 4,096 token 的窗口几乎总是落在同一本书内部，是真正需要长上下文的数据。
 
-- prefill：约 0.111 s；
-- decode：约 191.5 token/s；
-- fast-weight state：393,216 bytes；
-- KV cache：594,432 bytes；
-- chunk cache：132,096 bytes。
+**Tokenizer。** 全部使用 GPT-2 的 BPE 词表（\(V=50{,}257\)）。每篇文档编码为 `<|endoftext|>` 加正文，文档首尾相接成一条 token 流。选用现成词表而不是自己训练，是为了能和公开模型在同一词表下直接比较损失。
 
-这些是单进程 CPU 数字，不是 GPU 服务吞吐，也不代表大上下文或并发性能。
+**混合与采样。** 每个训练样本先以 50% 的概率选择来源，再从该来源的 token 流里均匀随机取一个长度为 \(L+1\) 的窗口（有放回）。窗口可以跨文档边界。按训练时的随机种子重放采样器，实际比例和覆盖情况如下：
 
-## 7. Scaling 与消融计划
+| 来源 | 语料 token 数 | 目标比例 | 实际抽到的窗口 | 实际比例 | 被覆盖的语料比例 | 被重复抽到的比例 |
+|:--|--:|--:|--:|--:|--:|--:|
+| fineweb_edu | 2.25B | 50% | 96,316 | 50.16% | 19.7% | 10.5% |
+| pg19 | 3.07B | 50% | 95,684 | 49.84% | 14.8% | 7.8% |
 
-每个主结论至少需要以下配对：
+整个训练只用到每个语料的一小部分，绝大多数训练窗口只出现一次。
 
-| 变量 | 对照 | 固定项 |
-|---|---|---|
-| TTT adaptation | plain/fast update off | 参数、数据、token、optimizer、seed |
-| fast MLP | 原 FFN | 总参数或 FLOPs 预算 |
-| inner steps | 0/1/2/4 | outer budget、chunk、数据 |
-| optimizer | AdamW/Muon | 参数、batch、scheduler、seed |
-| context | 128/512/4K/32K | tokenizer、模型、有效 token |
-| tokenizer | byte/subword | 原始文本、模型预算、评测单位 |
+### 3.3 训练
 
-正式 scaling 至少覆盖 10–30M pilot、125M 主模型和在资源允许时的 760M 扩展。每个规模报告实际参数、激活参数、有效 token、FLOPs、吞吐和 held-out 曲线。
+| 项目 | 取值 |
+|:--|:--|
+| 序列长度 \(L\) / batch | 4,096 / 16 条序列（每步 65,536 个 token） |
+| 训练步数 / token 数 | 12,000 / 786,432,000 |
+| 优化器 | AdamW，\(\beta_1=0.9\)，\(\beta_2=0.95\)，权重衰减 0.1（只作用于矩阵） |
+| 学习率 | 峰值 \(6\times10^{-4}\)；前 480 步线性预热，之后余弦衰减到 0 |
+| 外循环梯度裁剪 | 全局范数 1.0 |
+| 内循环（仅 TTT-E2E） | \(\eta=1.0\)，\(\tau=1.0\)；\(\eta\) 在前 1,200 步从 0.1 线性升到 1.0 |
+| 精度 | 参数 float32，矩阵乘法 bfloat16 |
+| 随机种子 | 0（四个模型的初始化种子和数据顺序都相同） |
+| 硬件 | 每个模型独占一张 NVIDIA H200（143,771 MiB），不做多卡并行 |
 
-### Muon 试验要求
+超参数没有针对任何一个模型单独调过：四个模型共用上表，内循环的 \(\eta\) 和 \(\tau\) 取实现的默认值。训练 token 数约为原论文 125M 模型基础配方（25 亿 token）的 31%，受限于两张卡一晚上的预算；这是本报告最主要的规模限制。
 
-Muon 只应作用于明确选择的二维矩阵参数；embedding、norm、bias、标量和快权重需要单独的 AdamW 或保持不更新的规则。必须报告：
+### 3.4 评测协议
 
-1. Muon 的具体实现、Newton-Schulz/正交化步数和动量规则；
-2. 参数分组、学习率、weight decay、梯度裁剪和 warmup；
-3. 是否支持 TTT 外循环的高阶导；
-4. 相同 token/FLOPs 下与 AdamW 的多 seed 结果；
-5. loss spike、恢复和最终 test 的置信区间。
+**Held-out 语言建模。** PG-19 test 的每本书从头切成互不重叠的 4,096 token 窗口（丢弃末尾不足一个窗口的部分），共 «?» 个窗口、«?» 个预测位置。每个窗口从空状态开始：KV 缓存清空，快权重回到 \(\phi_0\)。于是窗口内第 \(t\) 个位置的损失，就是“恰好有 \(t\) 个 token 上下文时”的预测损失，按位置分桶即可得到损失随上下文长度变化的曲线。FineWeb-Edu held-out 的文档很短，按训练时的方式把文档首尾相接，取前 2,048 个窗口。我们报告每 token 的平均负对数似然（NLL，单位 nat）、困惑度和 bits/byte。
 
-如果 Muon 的实现不能稳定穿过当前内循环高阶梯度，应该把它作为独立系统实验，而不是修改主结果的 optimizer。
+**统计。** 四个模型评测的是同一批窗口，因此模型之间的差值按配对方式估计：PG-19 以书为单位、FineWeb-Edu 以窗口为单位做 2,000 次 bootstrap 重采样，给出 95% 置信区间。这个区间反映评测集的抽样误差，不包含重新训练带来的随机性；后者用第 4.9 节的多随机种子实验单独估计。
 
-## 8. Benchmark 协议
+**超出训练长度。** 把窗口加长到 32,768（训练长度的 8 倍），其余协议不变，不做任何微调。
 
-### 8.1 语言模型与理解
+**公开 benchmark。** 所有任务都是零样本、按对数似然评分：多选题对每个候选项计算 \(\log p(\text{候选}\mid\text{题干})\) 并取最大者，提示模板、候选项拼接方式和长度归一化都与 lm-evaluation-harness[^lmeval] 的同名任务一致。为了确认这一点，我们用自己的评测脚本和 lm-evaluation-harness 分别评测 GPT-2，逐项对比（第 4.7 节）。不使用 few-shot 示例，不针对任何 benchmark 做训练、提示词搜索或检查点挑选；所有模型都只评测训练结束时的最后一个检查点。
 
-正式表格可包含 Pile/WikiText held-out、MMLU、C-Eval、CMMLU、HellaSwag、PIQA、ARC、OpenBookQA、BBH、DROP 和 NQ。每项都要写：版本、split、prompt、shot 数、答案归一化、有效样本、超时/截断率、重复次数和置信区间。
+**公开参考模型。** 为了给出绝对水平的参照，用同一套脚本评测了一组规模相近的公开模型。它们的训练数据量比本报告的模型大一到三个数量级，这组数字用于定位，不是匹配预算的比较。
 
-### 8.2 数学、代码和长上下文
 
-适用时加入 GSM8K、MATH、HumanEval、MBPP、LiveCodeBench、LongBench 和 RULER。TTT 特有的 adapt/no-adapt 必须成对报告，并记录适应使用哪些 token、是否允许看到目标、更新步数和额外延迟。
+## 4 结果
 
-### 8.3 污染与公平比较
+### 4.1 训练过程
 
-训练原文、清洗文档、tokenizer 训练文本和 benchmark prompt/answer 要做 exact、NFC、长子串和近似匹配。未完成的检查写 not_checked，不能写“无污染”。比较模型时固定 tokenizer/revision、有效 token、参数量或 FLOPs、context、精度、prompt 和 seed；闭源模型只能作为外部参考，不能在不等价协议下声称击败。
+<figure markdown="span" class="report-figure">
+  ![训练损失与 held-out 损失随训练 token 数的变化](assets/report/fig_training.light.svg#only-light)
+  ![训练损失与 held-out 损失随训练 token 数的变化](assets/report/fig_training.dark.svg#only-dark)
+  <figcaption>图 2　训练过程。左：训练损失（指数滑动平均）。中、右：每 1,000 步保存的检查点在 PG-19 validation（每本书前 5 个窗口，共 250 个）和 FineWeb-Edu held-out（256 个窗口）上的损失。四个模型在每一步读到的 batch 完全相同。</figcaption>
+</figure>
 
-## 9. 安全、治理与限制
+（待补）
 
-报告必须说明数据许可、PII、隐私、毒性、偏见、越狱、危险能力、拒答行为和已知失败。还要给出模型权重、代码、数据清单、第三方许可证和使用限制。安全评估不应只在训练后挑选有利样本；测试集、提示模板和失败案例都要保留原始记录。
 
-当前 CPU pilot 尚未完成正式安全评测，标记为 not_measured。
+### 4.2 主结果：4K 上下文下的 held-out 损失
 
-## 10. 复现与发布清单
+<div class="report-table" markdown>
 
-一次可发布的 run 至少包含：
+*(draft: table `main` has no data yet)*
 
-- Git commit；若使用 tarball，另存 upstream commit 和 archive SHA256；
-- 完整 config、数据 manifest、tokenizer 摘要、环境报告和命令行；
-- raw JSONL metrics、图表生成脚本和原始评测 JSON；
-- checkpoint、optimizer、sampler、恢复点和失败日志；
-- 参数计数、有效 token、FLOPs、wall-clock、吞吐、显存和编译时间；
-- benchmark 版本、prompt、答案、评分器、样本数和置信区间；
-- 数据许可、污染报告、安全评测和模型卡。
+</div>
 
-当前 CPU pilot 的远端产物位于 <code>outputs/cpu-pilot-1m-formal/</code>；正式发布前还需把验证 JSON、数据 manifest SHA、Muon 对照、多 seed、标准 benchmark 和安全报告纳入同一版本化结果目录。
+表 1　训练结束时的检查点在两个 held-out 集上的损失（越低越好）。差值是与同一批窗口上全注意力的配对差，方括号内为 95% 置信区间。bits/byte 按语料的平均字节/token 换算。
 
-## 11. 参考报告
+（待补）
 
-本报告的组织方式参考公开技术报告中反复出现的证据类别：模型与训练细节、数据和预算、系统成本、消融、公开 benchmark、风险与复现材料。原始参考包括：
 
-- [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)
-- [Qwen2.5 Technical Report](https://arxiv.org/abs/2412.15115)
-- [Qwen2 Technical Report](https://arxiv.org/abs/2407.10671)
-- [GPT-4 Technical Report](https://cdn.openai.com/papers/gpt-4.pdf)
-- [Claude 4 System Card](https://www-cdn.anthropic.com/6d8a8055020700718b0c49369f60816ba2a7c285/Claude%204%20System%20Card.pdf)
-- [End-to-End Test-Time Training for Long Context](https://arxiv.org/abs/2512.23675)
+### 4.3 损失随上下文长度的变化
 
-StepFun、GLM 等报告也遵循类似的模型规格、数据/训练预算、系统效率、benchmark 和安全披露结构；在正式 TTT 报告中应加入对应版本的原始链接和可复核表格，而不是只引用二手榜单。
+<figure markdown="span" class="report-figure">
+  ![PG-19 test 上损失随上下文长度的变化](assets/report/fig_context_4k.light.svg#only-light)
+  ![PG-19 test 上损失随上下文长度的变化](assets/report/fig_context_4k.dark.svg#only-dark)
+  <figcaption>图 3　PG-19 test 上，损失随窗口内已读 token 数的变化（每 64 个位置取平均）。左：各模型的损失。右：各模型与全注意力的配对差，阴影是按书重采样的 95% 置信区间。滑窗注意力的窗口是 512，TTT-E2E 每 256 个 token 更新一次。</figcaption>
+</figure>
 
-## 12. 与成熟技术报告的对齐矩阵
+<div class="report-table" markdown>
 
-“技术报告”不是把论文摘要扩写，而是给出一条从输入、训练、系统到结论的证据链。公开报告的披露重点并不完全相同：DeepSeek-V3 报告同时给出了总参数、激活参数、训练 token、硬件小时、架构、基础设施、训练稳定性和大规模评测；Qwen2.5 报告把预训练规模、SFT、强化学习、模型家族和多类 benchmark 放在同一条产品证据链中；GPT-4 报告明确说明哪些架构、数据和训练细节没有披露；Claude 系统卡则把能力、安全、红队、代理风险和发布决定作为主要内容；TTT-E2E 报告重点给出内外循环、匹配参数/训练 token、长上下文 loss 和延迟曲线。
+*(draft: table `ranges` has no data yet)*
 
-| 报告部分 | 大型模型报告中的常见证据 | TTT 报告必须给出的对应证据 | 当前状态 |
-|---|---|---|---|
-| 模型身份 | 版本、规模、激活参数、模型家族 | TTT 版本、slow/fast 参数、配置 hash、checkpoint hash | 部分 measured |
-| 训练数据 | 来源、规模、混合、过滤、token budget | 每个 split 的 manifest、tokenizer、许可和污染报告 | 部分 measured |
-| 训练系统 | GPU 型号、拓扑、精度、吞吐、稳定性 | inner/outer 计算、设备、通信、compile、loss spike、恢复 | CPU measured |
-| 训练方法 | objective、optimizer、schedule、阶段 | inner objective、outer objective、chunk 时序、二阶导、Muon/AdamW 分组 | AdamW measured |
-| Scaling | 不同规模/数据/compute 的曲线 | 参数、激活参数、有效 token、FLOPs、context、适应步数 | not measured |
-| Benchmark | 标准任务、prompt、评分器、CI | PPL、理解/数学/代码/长上下文，adapt/no-adapt 成对结果 | 小型 PPL measured |
-| 安全与治理 | system card、红队、发布等级 | TTT 适应风险、数据许可、PII、越狱、agentic failure | not measured |
-| 可复现 | 代码、权重、配置、环境、日志 | tarball/commit、manifest、metrics、checkpoint、原始评测 JSON | 部分 measured |
+</div>
 
-### 12.1 透明披露也是结果
+表 2　PG-19 test 上按上下文位置分段的损失，以及模型之间的配对差（95% 置信区间）。
 
-有的技术报告由于竞争或安全原因不披露模型规模、数据构造和硬件细节。这种“未披露”本身应被记录，而不是由读者用猜测补齐。本项目选择更严格的研究路线：无法公开的字段写 <code>not_disclosed</code>，尚未执行的检查写 <code>not_measured</code>，估算值写 <code>inferred</code>，实测值链接到原始 JSON。报告不会把估算写成事实。
+（待补）
 
-### 12.2 TTT 特有的最低披露集
 
-普通语言模型报告可以只写一次训练 loss；TTT 报告还必须回答：
+### 4.4 收益来自哪里
 
-1. fast weights 的初态来自哪里，是否依赖慢参数；
-2. 内循环使用哪些目标，目标何时变成已观测信息；
-3. 每个 chunk 的预测、更新、cache 写入顺序；
-4. 外循环是否穿过 inner updates，是否截断高阶梯度；
-5. 推理适应是否修改发布参数，session 是否相互隔离；
-6. adapt/no-adapt 的额外 token、梯度、延迟和内存；
-7. session checkpoint 能否在不同设备布局恢复；
-8. 不适应的 plain baseline 是否拥有相同参数、数据和 FLOPs。
+（待补）
 
-没有这些字段，TTT 的分数无法判断来自模型表示、测试时计算、标签泄漏还是评测协议差异。
 
-## 13. 主实验设计
+### 4.5 超出训练长度：32K 上下文
 
-### 13.1 预注册的主问题
+<figure markdown="span" class="report-figure">
+  ![超出训练长度时的损失](assets/report/fig_context_32k.light.svg#only-light)
+  ![超出训练长度时的损失](assets/report/fig_context_32k.dark.svg#only-dark)
+  <figcaption>图 4　把评测窗口加长到 32,768 个 token（训练长度的 8 倍）时 PG-19 test 上的损失，每 256 个位置取平均，竖线标出训练长度。虚线是不做任何截断、直接外推的全注意力；“只看最近 4K”是把同一个全注意力模型的可见范围限制在训练时见过的长度内。右图是各模型与滑窗注意力的配对差。</figcaption>
+</figure>
 
-每次正式训练开始前，在 experiment.json 旁保存一份不可变的研究问题：
+<div class="report-table" markdown>
 
-~~~json
-{
-  "question": "Does TTT reduce held-out NLL at matched parameter, token, and FLOP budgets?",
-  "primary_metric": "test_nll_no_contamination",
-  "secondary_metrics": [
-    "test_ppl",
-    "adapt_minus_no_adapt_nll",
-    "prefill_latency",
-    "decode_tokens_per_second",
-    "fast_state_bytes"
-  ],
-  "primary_comparison": "plain_vs_ttt",
-  "budget": {
-    "parameters": "matched",
-    "effective_tokens": "matched",
-    "training_flops": "matched"
-  },
-  "seeds": [0, 1, 2]
-}
-~~~
+*(draft: table `long` has no data yet)*
 
-研究问题一旦确定，不能在看完 test 结果后替换成更有利的问题。任何追加分析都要标记为 secondary 或 exploratory。
+</div>
 
-### 13.2 三组必要对照
+表 3　32K 窗口内按位置分段的损失与配对差（95% 置信区间）。所有模型都只在 4,096 长度上训练过。
 
-正式主表至少包含：
+（待补）
 
-1. **Plain baseline**：没有 fast-weight 更新的同架构模型；
-2. **TTT no-adapt**：保留 TTT 参数但推理时关闭适应；
-3. **TTT adapt**：执行预先声明的会话内更新。
 
-这三组分别回答：结构本身是否有效、训练是否改变了慢参数表示、推理适应是否贡献额外收益。只比较 TTT adapt 与普通小模型，会把参数结构、训练策略和推理时额外计算混在一起。
+### 4.6 压缩丢掉了什么：逐字回忆
 
-### 13.3 成本匹配
+<figure markdown="span" class="report-figure">
+  ![逐字回忆探针](assets/report/fig_recall.light.svg#only-light){ width="70%" }
+  ![逐字回忆探针](assets/report/fig_recall.dark.svg#only-dark){ width="70%" }
+  <figcaption>图 5　逐字回忆探针。把窗口内第 128–191 个 token 原样复制到更靠后的位置，纵轴是重复段中间 32 个 token 上的损失比未改动文本降低了多少；值越大说明模型越能利用此前出现过的原文。</figcaption>
+</figure>
 
-记录每次运行的有效 token 数：
+<div class="report-table" markdown>
 
-~~~text
-effective_tokens = sum(batch_size * sequence_length * loss_mask)
-~~~
+*(draft: table `recall` has no data yet)*
 
-还要记录内循环更新的次数、外循环反向的 FLOPs、编译时间和 wall-clock。TTT 的每个 token 可能触发额外的梯度计算，因此“训练步数相同”不等于“计算预算相同”。如果采用 matched-FLOPs 对照，应允许步数不同，但必须报告因此改变的 token 数。
+</div>
 
-## 14. 图表和表格设计
+表 4　重复段上的损失降低量（nat，方括号内为 95% 置信区间；PG-19 test 每本书前 4 个窗口，共 400 个）。
 
-一份可读的技术报告不应把所有数字塞进一张 benchmark 表。建议固定以下图表：
+<div class="report-table" markdown>
 
-| 图/表 | 横轴 | 纵轴或内容 | 目的 |
-|---|---|---|---|
-| Figure 1 | context length | held-out loss | 长上下文质量 |
-| Figure 2 | context length | prefill/decode latency | 计算成本 |
-| Figure 3 | training tokens | train/validation NLL | 是否过拟合、是否收敛 |
-| Figure 4 | parameters/tokens | loss | scaling law |
-| Figure 5 | inner steps | NLL/latency | 适应收益和成本 |
-| Figure 6 | seed | test NLL/PPL | 方差和置信区间 |
-| Table 1 | model variants | 参数、激活参数、context | 模型规格 |
-| Table 2 | data splits | 文档、token、hash、license | 数据身份 |
-| Table 3 | benchmark | score、N、CI、prompt version | 可比性 |
-| Table 4 | systems | FLOPs、吞吐、显存、compile | 成本 |
-| Table 5 | failure cases | 输入、预期、实际、根因 | 限制与诚实披露 |
+| 模型 |
+|:--|
 
-图表脚本必须读取原始 JSONL，而不是手工复制最终数字。每个图旁边保存输入文件 hash、脚本 commit 和生成时间；如果图表重绘，旧图不能被静默覆盖。
+</div>
 
-## 15. 失败分析与反例
+表 5　单针检索：在干草堆文本里藏一句“One of the special magic numbers for &lt;键&gt; is: &lt;7 位数字&gt;.”，然后提问这个键对应的数字。表中是答案的每 token 对数似然比“针被换成无关键值对”时降低了多少（nat，越大说明越用到了针）。干草堆为 PG-19 test 的书籍正文，针均匀放在 10 个深度上；提示词和针的句式取自 RULER。
 
-成熟报告不会只展示成功案例。TTT 报告至少需要保留：
+（待补）
 
-- loss spike、NaN、梯度爆炸和恢复前后的 checkpoint；
-- fast weights 发散、更新范数饱和或适应后 NLL 变差的样本；
-- 长上下文中检索正确但生成格式错误的样本；
-- 适应后优于 no-adapt 但在新域退化的样本；
-- tokenizer 不匹配、mask 全零、文档边界错误和污染检测失败；
-- Muon 与 AdamW 在高阶梯度、速度、稳定性上的失败对照。
 
-每条失败记录包含输入版本、随机种子、命令、错误类型、是否重试、修复提交和是否进入最终统计。删除失败运行会破坏训练稳定性结论。
+### 4.7 公开 benchmark 与公开模型
 
-## 16. 发布门槛
+<div class="report-table" markdown>
 
-TTT 模型达到“可发表/可发布”之前，必须同时满足：
+| 模型 | 参数量 | HellaSwag | PIQA | ARC-E | ARC-C | WinoGrande | SciQ | OBQA | BLiMP | MMLU | LAMBADA | 平均 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| 滑窗注意力 | 124M | 27.1 | 57.9 | 38.2 | 22.6 | 52.2 | 70.1 | 25.4 | – | – | 17.7 | – |
+| 95% 置信区间半宽 |  | ±0.9 | ±2.3 | ±2.0 | ±2.4 | ±2.7 | ±2.8 | ±3.8 | – | – | ±1.0 |  |
 
-### A. 数值正确性
+</div>
 
-- 反向梯度有限；
-- 因果性和 future-token 修改测试通过；
-- full sequence 与 prefill/decode 在容忍范围内一致；
-- fast state、KV、pending chunk 的 checkpoint 恢复一致。
+表 6　本报告四个模型的零样本准确率（%）。HellaSwag、PIQA、ARC、OpenBookQA 报告按候选项长度归一化的准确率，其余为普通准确率；“平均”是十项的算术平均。
 
-### B. 训练证据
+<div class="report-table" markdown>
 
-- 至少一个 plain baseline 和一个 TTT variant；
-- 固定 tokenizer、数据、有效 token 和 FLOPs；
-- 至少三个 seed 或有预先声明的单 seed 限制；
-- 独立 validation/test，不用 test 选超参；
-- loss、吞吐、显存、compile、checkpoint 和失败日志齐全。
+| 模型 | Hugging Face 仓库 | 参数量 | 最大上下文 | 训练数据（据模型卡片或论文） |
+|:--|:--|--:|--:|:--|
+| DistilGPT-2[^distil] | `distilbert/distilgpt2` | 81.9M | 1,024 | OpenWebText（38 GB 文本），由 GPT-2 蒸馏；训练 token 数未公布 |
+| GPT-2[^gpt2] | `openai-community/gpt2` | 124.4M | 1,024 | WebText（40 GB 文本）；训练 token 数未公布 |
+| GPT-2 Medium[^gpt2] | `openai-community/gpt2-medium` | 354.8M | 1,024 | WebText（40 GB 文本）；训练 token 数未公布 |
+| Pythia-70M[^pythia] | `EleutherAI/pythia-70m` | 70.4M | 2,048 | The Pile；训练中读入约 3,000 亿 token |
+| Pythia-160M[^pythia] | `EleutherAI/pythia-160m` | 162.3M | 2,048 | The Pile；训练中读入约 3,000 亿 token |
+| GPT-Neo-125M[^gptneo] | `EleutherAI/gpt-neo-125m` | 125.2M | 2,048 | The Pile；3,000 亿 token |
+| OPT-125M[^opt] | `facebook/opt-125m` | 125.2M | 2,048 | 1,800 亿 token 的混合语料（800 GB）；训练 token 数未明确公布 |
+| SmolLM-135M[^smollm2] | `HuggingFaceTB/SmolLM-135M` | 134.5M | 2,048 | Cosmopedia v2、Python-Edu、FineWeb-Edu；6,000 亿 token |
+| SmolLM2-135M[^smollm2] | `HuggingFaceTB/SmolLM2-135M` | 134.5M | 8,192 | FineWeb-Edu、DCLM、The Stack 等；2 万亿 token |
 
-### C. 能力证据
+</div>
 
-- held-out NLL/PPL；
-- 至少一个公开理解/数学/代码 benchmark；
-- 至少一个长上下文 benchmark；
-- adapt/no-adapt 和失败率；
-- 污染检查和评分器版本。
+表 7　用于对照的公开模型。训练数据一列摘自各自的模型卡片或论文（2026 年 11 月核对）；它们的训练量比本报告的模型大一到三个数量级。
 
-### D. 治理证据
+<div class="report-table" markdown>
 
-- 数据许可证和 PII 处理；
-- 安全/偏见/越狱/危险能力评估；
-- 模型卡、限制和可接受使用范围；
-- 权重、代码、配置和复现说明。
+| 模型 | 参数量 | HellaSwag | PIQA | ARC-E | ARC-C | WinoGrande | SciQ | OBQA | BLiMP | MMLU | LAMBADA | 平均 |
+|:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| DistilGPT-2 | 82M | 27.5 | 59.8 | 36.6 | 23.0 | 50.4 | 71.6 | 26.8 | 79.5 | 22.9 | 25.0 | 42.3 |
+| GPT-2 | 124M | 31.1 | 62.5 | 39.5 | 22.7 | 51.6 | 75.3 | 27.2 | 82.5 | 22.9 | 32.6 | 44.8 |
+| GPT-2 Medium | 355M | 39.4 | 66.4 | 43.6 | 25.0 | 53.1 | 77.5 | 30.2 | 82.6 | 22.9 | 43.0 | 48.4 |
+| Pythia-70M | 70M | 27.4 | 58.4 | 34.4 | 22.4 | 51.3 | 61.2 | 24.8 | 73.8 | 22.9 | 18.5 | 39.5 |
+| Pythia-160M | 162M | 30.3 | 61.6 | 39.6 | 23.9 | 50.6 | 74.0 | 27.6 | 78.2 | 23.1 | 32.8 | 44.2 |
+| GPT-Neo-125M | 125M | 30.4 | 62.5 | 39.4 | 23.1 | 50.4 | 76.6 | 26.2 | 79.3 | 23.1 | 37.4 | 44.8 |
+| OPT-125M | 125M | 31.6 | 62.0 | 40.1 | 22.4 | 51.4 | 78.4 | 28.8 | 81.4 | 22.9 | 38.9 | 45.8 |
+| SmolLM-135M | 135M | 42.5 | 68.6 | 56.2 | 28.9 | 53.1 | 83.7 | 34.0 | 79.8 | 25.2 | 37.5 | 50.9 |
+| SmolLM2-135M | 135M | 43.1 | 68.4 | 58.6 | 29.4 | 52.6 | 84.2 | 33.2 | 80.3 | 24.2 | 42.8 | 51.7 |
 
-当前 CPU pilot 只满足 A 的大部分、B 的工程子集和 C 的 held-out PPL 子集，因此应被称为 **engineering and algorithm pilot**，而不是完整发布模型。
+</div>
 
-## 17. 版本记录
+表 8　用同一脚本、同一协议评测的公开模型（%）。参数量由加载的权重直接统计。
 
-| 版本 | 日期 | 变化 | 证据状态 |
-|---|---|---|---|
-| 0.1 | 2026-11-17 | CPU pilot、PPL、profile、技术报告草稿 | measured / not measured 混合，不能作能力发布 |
-| 0.2 | 待定 | AdamW/Muon 配对、plain baseline、多 seed | planned |
-| 0.3 | 2026-11-17 | H200 15M 混合数据、MMLU 与 HellaSwag 诊断 | measured pilot，不能作榜单比较 |
-| 0.4 | 2026-11-17 | ARC、PIQA、GSM8K、HumanEval、synthetic long-context 诊断 | measured pilot，不能作榜单比较 |
-| 0.5 | 2026-11-17 | GPQA 小子集诊断与长上下文限制说明 | measured pilot，不能作榜单比较 |
-| 0.6 | 2026-11-17 | BBH sports_understanding 子任务诊断 | measured pilot，不能作榜单比较 |
-| 1.0 | 待定 | GPU 规模、完整 benchmark、安全和复现包 | release gate |
+<div class="report-table" markdown>
 
-## 18. H200 15M scaling（measured）
+| 模型 | 最大上下文 | WikiText-103 词级 PPL | WikiText-103 bits/byte | PG-19 test 词级 PPL | PG-19 test bits/byte | LAMBADA PPL |
+|:--|--:|--:|--:|--:|--:|--:|
+| 滑窗注意力 | 4,096 | – | – | – | – | 382.44 |
+| DistilGPT-2 | 1,024 | 52.96 | 1.071 | 370.39 | 1.469 | 96.85 |
+| GPT-2 | 1,024 | 37.37 | 0.977 | 280.89 | 1.400 | 40.06 |
+| GPT-2 Medium | 1,024 | 26.75 | 0.887 | 143.89 | 1.234 | 18.26 |
+| Pythia-70M | 2,048 | 57.05 | 1.091 | 200.17 | 1.316 | 142.56 |
+| Pythia-160M | 2,048 | 33.41 | 0.947 | 107.09 | 1.161 | 38.18 |
+| GPT-Neo-125M | 2,048 | 32.29 | 0.937 | 105.24 | 1.156 | 30.27 |
+| OPT-125M | 2,048 | 31.95 | 0.935 | 129.99 | 1.209 | 23.14 |
+| SmolLM-135M | 2,048 | 26.57 | 0.885 | 102.91 | 1.151 | 32.39 |
+| SmolLM2-135M | 8,192 | 21.07 | 0.822 | 64.17 | 1.033 | 19.05 |
 
-在 H200 GPU 5 和 GPU 7 上分别运行独立的 TTT 与 plain baseline，未使用分布式通信。两组实际参数量均为 15,449,856，训练 10,000 步、40,960,000 个 token，使用相同的 WikiText-2 train split、byte tokenizer、seed 和 sequence length 512。
+</div>
 
-| 组别 | GPU | train tokens/s | 峰值显存 | validation PPL | test PPL |
-|---|---:|---:|---:|---:|---:|
-| Plain baseline | 7 | 约 57.2k | 0.84 GiB | 2.7279 | 2.6865 |
-| TTT no-adapt | 5 | 约 19.5k | 1.87 GiB | 2.7522 | 2.7082 |
-| TTT adapt | 5 | 推理适应额外计算 | 同上 | 2.6642 | 2.6109 |
+表 9　语言建模指标（越低越好）。WikiText-103 test 和 PG-19 test 按各模型的最大上下文切成互不重叠的窗口计算，与 lm-evaluation-harness 的做法相同；词级困惑度按空白分词的词数归一化，可以跨 tokenizer 比较。
 
-这组结果有两个同时成立的结论：TTT 的 no-adapt checkpoint 略差于 plain baseline；启用会话内适应后，test PPL 比 plain baseline 低约 0.0755。代价是训练吞吐约低 2.9 倍、状态和显存更大。由于这是单 seed、单数据集、byte tokenizer 的配对 pilot，不能写成普适架构优势；下一步需要 Muon/AdamW、多 seed、子词 tokenizer、更大数据和标准 benchmark。
+（待补）
 
-### 18.1 公开数据混合与 benchmark 诊断（measured）
 
-为避免把单一 WikiText-2 的结果误认为通用能力，我们又运行了一个固定配比的公开数据实验：WikiText-2 train 窗口 85%，Tiny Shakespeare 窗口 15%，`with_replacement`，seed 0，其他模型配置和 40.96M scheduled tokens 不变。80,000 个窗口的实测来源比例为 85.09375%/14.90625%。
+### 4.8 消融
 
-| 模型 | valid PPL | test PPL | MMLU 5 科目诊断 |
-|---|---:|---:|---:|
-| plain baseline | 2.7555 | 2.6966 | 29.59% (392 valid) |
-| TTT no-adapt | 2.7664 | 2.7105 | 26.53% (392 valid) |
-| TTT adapt | 2.6765 | 2.6223 | not run |
+<figure markdown="span" class="report-figure">
+  ![消融实验](assets/report/fig_ablations.light.svg#only-light)
+  ![消融实验](assets/report/fig_ablations.dark.svg#only-dark)
+  <figcaption>图 6　TTT-E2E 的四项设计选择（8 层、宽度 512、上下文 2,048 的模型，每次只改变一项）。横线是同规模的全注意力和滑窗注意力；最右一栏里滑窗注意力随窗口一起变化。</figcaption>
+</figure>
 
-PPL 是每个 split 128 个随机窗口、约 65k 有效 token；MMLU 是零样本答案字母 continuation log-likelihood，byte tokenizer、最大 512 token、TTT 适配关闭。该 MMLU 结果属于 diagnostic：模型只有约 15M 参数且没有 instruction tuning，且 professional_law 由于上下文上限跳过 95/100 题，不能和公开厂商榜单比较，也不能据此宣称 TTT 的通用能力下降或提升。正式 benchmark release 仍需 tokenizer 冻结、多 seed、污染审计和数学/代码/长上下文任务。
+<div class="report-table" markdown>
 
-同一协议下又抽取 HellaSwag validation 前 100 题：plain baseline 与 TTT no-adapt 都为 32/100（32%），没有观察到差异。该子集和 byte-token 设置同样只用于诊断；完整 validation split、长度归一化、更多 seed 和污染审计完成前，不把它写成能力结论。
+| 设置 | 训练 token | PG-19 val NLL | 前 256 个 token | 最后 512 个 token | 关闭更新时 | FineWeb-Edu NLL | 每步时间（s） |
+|:--|--:|--:|--:|--:|--:|--:|--:|
 
-### 18.2 其他公开 benchmark 与长上下文前置诊断（measured）
+</div>
 
-在同一 H200 混合数据配对上，ARC-Challenge test 前 100 题为 baseline 12/100、TTT no-adapt 11/100；PIQA validation 前 100 题两者均为 57/100。GSM8K test 前 100 题 greedy numeric exact match 两者均为 0/100；HumanEval 官方测试前 50 题两者均为 pass@1 0/50。
+表 10　消融结果（PG-19 validation，上下文 2,048）。“关闭更新时”是同一个检查点在评测时不做测试时更新的损失。
 
-GPQA test 前 50 题在 512-token 上限下，baseline 为 9/32（28.13%），TTT no-adapt 为 5/32（15.63%）；每组跳过 18 题。该结果来自公开去门控镜像，仓库不保存 GPQA 题目文本，只保存带 SHA 的结果 JSON。
+（待补）
 
-BBH `sports_understanding` 子任务前 50 题的零样本 greedy normalized exact match 为 baseline 0/50、TTT no-adapt 0/50。由于正式 BBH 需要子任务专用答案解析和 shot 协议，该结果只作为生成链路诊断。
 
-这些生成和选择结果都来自 15M、byte-token、非 instruction-tuned base model，只能证明评测链路已经可以运行。合成长上下文 key-value 前置诊断在 256、512、1024 请求长度各取 16 题，plain baseline、TTT no-adapt 与 TTT adapt 的 exact match 均为 0。该诊断不是 RULER 或 LongBench 分数；正式结果仍需使用固定 revision 的公开套件、多 seed、污染检查和完整任务集合。
+### 4.9 随机种子与模型规模
+
+<div class="report-table" markdown>
+
+| 量 | seed 0 | seed 1 | seed 2 | 均值 | 标准差 |
+|:--|--:|--:|--:|--:|--:|
+
+</div>
+
+表 11　三个随机种子（初始化和数据顺序同时改变）下的 PG-19 validation 损失。同一种子下各模型读到的数据相同，所以差值按种子配对。
+
+<div class="report-table" markdown>
+
+| 层数 × 宽度 | 全注意力 | 滑窗注意力 | TTT-E2E | Δ TTT − 滑窗 | Δ TTT − 全注意力 |
+|:--|--:|--:|--:|--:|--:|
+
+</div>
+
+表 12　三种模型规模在相同的 1.64 亿训练 token 下的 PG-19 validation 损失（上下文 2,048，窗口 256）。
+
+<figure markdown="span" class="report-figure">
+  ![模型规模与训练量](assets/report/fig_scaling.light.svg#only-light)
+  ![模型规模与训练量](assets/report/fig_scaling.dark.svg#only-dark)
+  <figcaption>图 7　左：表 10 的三种规模。右：主实验训练过程中，PG-19 validation 上模型之间的损失差随训练 token 数的变化。</figcaption>
+</figure>
+
+（待补）
+
+
+### 4.10 成本
+
+<div class="report-table" markdown>
+
+| 模型 | 总参数 | 快权重参数 | 训练吞吐（token/s） | 相对滑窗 | 每步时间（s） | 峰值显存（GiB） |
+|:--|--:|--:|--:|--:|--:|--:|
+| 滑窗注意力 | 123.6M | – | 193,430 | 1.00× | 0.339 | 81.8 |
+| 无更新对照 | 137.7M | 14.2M | 125,550 | 0.65× | 0.522 | 13.2 |
+| 全注意力 | 123.6M | – | 82,087 | 0.42× | 0.798 | 45.4 |
+| TTT-E2E | 137.7M | 14.2M | 70,218 | 0.36× | 0.933 | 77.7 |
+
+</div>
+
+表 13　单张 H200 上的训练成本（batch 16 × 4,096 token，随机输入，取 4–5 步的中位数）。全注意力和无更新对照开启了逐层梯度检查点，否则全注意力超出单卡显存。
+
+<figure markdown="span" class="report-figure">
+  ![训练与前向吞吐](assets/report/fig_cost.light.svg#only-light)
+  ![训练与前向吞吐](assets/report/fig_cost.dark.svg#only-dark)
+  <figcaption>图 8　左：表 11 的训练吞吐。右：不同上下文长度下的前向吞吐（整段读入并计算每个位置的损失，每批固定 32,768 个 token；TTT-E2E 包含测试时更新）。</figcaption>
+</figure>
+
+<div class="report-table" markdown>
+
+| 模型 | 已读上下文（token） | 快权重（MiB） | KV 缓存（MiB） | 会话状态合计（MiB） | 逐 token 解码（token/s） |
+|:--|--:|--:|--:|--:|--:|
+
+</div>
+
+表 14　单个推理会话在读入不同长度的上下文之后保存的状态，以及随后逐 token 解码的速度（批大小 1）。状态大小由实际分配的数组统计。
+
+（待补）
+
+
+## 5 数据审计
+
+<div class="report-table" markdown>
+
+| 评测集 | 检查的题目数 | 题干片段在训练语料中逐字出现的题目数 | 占比 |
+|:--|--:|--:|--:|
+| hellaswag | 9,793 | 0 | 0.00% |
+| piqa | 395 | 0 | 0.00% |
+| arc_easy | 2,079 | 13 | 0.63% |
+| arc_challenge | 1,061 | 1 | 0.09% |
+| winogrande | 1,267 | 0 | 0.00% |
+| lambada_openai | 5,153 | 2 | 0.04% |
+| sciq | 813 | 6 | 0.74% |
+| openbookqa | 206 | 0 | 0.00% |
+| mmlu | 12,477 | 94 | 0.75% |
+| wikitext | 61 | 2 | 3.28% |
+
+</div>
+
+表 15　评测题目与训练语料的逐字重合检查。对每道题取规范化（小写、压缩空白）后的题干前 80 个字符，在全部训练原文（21.9 GB）中做精确匹配。
+
+**评测题目是否出现在训练语料里。** FineWeb-Edu 来自公开网页，而公开 benchmark 的题目本身也在网上流传，所以这一项必须实际检查而不能假定。表 13 的结果是：HellaSwag、PIQA、WinoGrande 和 OpenBookQA 没有发现逐字重合；ARC-Easy、ARC-Challenge、SciQ、LAMBADA 和 MMLU 各有不到 1% 的题目能在训练语料中找到题干原文，占比最高的是 MMLU（94 / 12,477，0.75%）。即使这些题目全部答对或全部答错，相应任务的准确率变化也不会超过这个比例，不影响第 4.7 节的任何结论。WikiText-103 test 的 61 篇文章里有 2 篇的片段出现在训练语料中，这在意料之内：维基百科的内容被大量网页转载。
+
+这项检查有两个已知的盲区。第一，它只能发现逐字重合，发现不了改写、翻译或只重合答案的情况。第二，题干规范化后不足 50 个字符的题目没有参与检查（表中“检查的题目数”小于题目总数的原因），PIQA 和 OpenBookQA 因此只覆盖了一部分题目。
+
+**训练集与 held-out 集之间的重复。** PG-19 使用官方划分。按规范化全文的摘要比对，validation 和 test 的 150 本书没有一本与训练集的 28,602 本书全文相同；按 PG-19 元数据里的“书名 + 作者”比对，也没有与训练集同名的书。FineWeb-Edu 的 held-out 取自训练没有用到的分片，但网页语料里存在跨分片的重复：最初取出的 20,000 篇里有 365 篇（1.8%）与训练分片中的某篇文档全文相同。这些文档已经从 held-out 集中剔除，本报告的所有 FineWeb-Edu 数字都在剔除之后的集合上计算。近似重复（例如只差页眉页脚的网页）没有检查。
+
+**训练时实际读到了什么。** 采样器按训练种子重放的结果见第 3.2 节：两个来源的实际比例与 50/50 的目标相差不到 0.2 个百分点；整个训练只覆盖了 FineWeb-Edu 训练分片的 19.7% 和 PG-19 训练集的 14.8%，被读到的文本里约九成只读到一次。训练因此接近单遍训练，模型几乎没有机会靠重复来记住训练文本。
+
+
+## 6 讨论与局限
+
+（待补）
+
+
+
+## 7 适用范围与发布说明
+
+- **模型性质。** 四个主实验模型都是只做过预训练的小型英文基座语言模型，没有经过指令微调、对话微调或任何安全对齐训练。它们适合研究序列建模方法，不适合直接面向用户，也不应把它们的输出当作事实来源。
+- **数据许可。** 训练只使用两种公开语料：FineWeb-Edu（ODC-By 1.0）和 PG-19（公有领域书籍文本，数据集卡片为 Apache-2.0）。仓库不再分发语料本身，只提供下载脚本、固定的 revision 和文件摘要。评测集按各自的许可只下载评测划分，不进入训练。
+- **内容风险。** FineWeb-Edu 来自网页，PG-19 是 1919 年之前出版的书籍，其中有与当代规范不符的表述，模型会复现训练语料中的偏见和过时内容。本报告没有做毒性、偏见或越狱评测，这些是面向用户发布之前必须补上的工作，而不是这一版声称已经完成的事。
+- **测试时更新特有的风险。** 快权重只存在于单个会话里，会话结束即丢弃，发布的慢参数不会被用户输入改写；实现上不同会话的快权重和缓存相互隔离。但在会话内部，模型的行为会随读到的内容漂移，这既是方法的目的，也意味着长会话里的行为比固定权重的模型更难事先界定。第 4.5 节给出了快权重在 32K token 内的漂移幅度。
+- **本报告不声称的事。** 不声称达到同规模模型的最好水平（第 4.7 节的公开模型在多数任务上更强，它们的训练量大得多）；不声称结论在更大的模型、更长的训练或更长的窗口下必然成立；不声称与任何闭源模型可比。
+
+## 8 复现
+
+全部实验可以用仓库里的脚本重跑。每一步都把输入文件的 SHA256、配置和环境写进输出目录。
+
+```bash
+# 环境（Linux，CUDA 12，Python 3.12）
+uv sync --frozen --no-install-project --python 3.12 --extra cuda --extra checkpoint
+uv pip install --python .venv/bin/python tiktoken matplotlib pyahocorasick
+
+# 1. 语料：下载、分词、去重、评测集
+python scripts/download_public_corpora.py --dataset pg19 --output data/raw/pg19
+python scripts/download_public_corpora.py --dataset fineweb-edu --output data/raw/fineweb-edu --shards 0 1 2
+python scripts/download_public_corpora.py --dataset fineweb-edu --output data/raw/fineweb-edu-heldout --shards 13
+for split in train validation test; do
+  python scripts/tokenize_corpus.py --source text-dir --input data/raw/pg19/$split --output data/tokens/pg19-$split
+done
+python scripts/tokenize_corpus.py --source parquet --input data/raw/fineweb-edu/00[012]_00000.parquet \
+  --output data/tokens/fineweb-edu-train
+python scripts/audit_report_data.py duplicates --fineweb-train data/raw/fineweb-edu/00[012]_00000.parquet \
+  --fineweb-heldout data/raw/fineweb-edu-heldout/013_00000.parquet --pg19 data/raw/pg19 \
+  --output outputs/audits/duplicates.json
+python scripts/tokenize_corpus.py --source parquet --input data/raw/fineweb-edu-heldout/013_00000.parquet \
+  --max-documents 20000 --exclude-digests outputs/audits/duplicates.json \
+  --output data/tokens/fineweb-edu-heldout-dedup
+python scripts/download_benchmarks.py --output data/benchmarks
+
+# 2. 训练与评测：两张卡各跑一条流水线，互不通信；中断后重新执行即可续跑
+python scripts/make_report_configs.py
+scripts/report_pipeline.sh 0 baseline   # 滑窗 → 全注意力 → 推理吞吐 → 消融队列
+scripts/report_pipeline.sh 1 ttt        # TTT-E2E → 无更新对照 → 朴素更新基线 → 消融队列
+scripts/run_reference_benchmarks.sh 0   # 公开参考模型 + lm-evaluation-harness 交叉核对
+
+# 3. 审计、图表和报告
+python scripts/audit_report_data.py sampler --recipe configs/data/fineweb_pg19_50_50.json \
+  --config configs/report/main_ttt.json --output outputs/audits/sampler_main.json
+python scripts/audit_report_data.py benchmarks --fineweb-train data/raw/fineweb-edu/00[012]_00000.parquet \
+  --pg19-train data/raw/pg19/train --output outputs/audits/benchmark_overlap.json
+python scripts/make_report_figures.py && python scripts/make_report_diagram.py
+python scripts/render_report.py
+```
+
+| 项目 | 内容 |
+|:--|:--|
+| 代码 | 本仓库。滑窗注意力和 TTT-E2E 两个主模型训练时的 `ttt/` 源码是提交 `d54407d`（源码摘要 `e3553bf5…`），其余训练使用提交 `854484e`（摘要 `5610909c…`）。两者之间 `ttt/` 的差别只有一个默认关闭的一阶近似开关、续训时比较配置的方式和 import 顺序，数值计算相同。每个运行的源码摘要记录在 `results.json` 的 `provenance` 字段，算法见 `ttt/provenance.py`。 |
+| 配置 | `configs/report/*.json`（由 `scripts/make_report_configs.py` 生成），数据配比 `configs/data/fineweb_pg19_50_50.json` |
+| 原始结果 | `docs/assets/report/results.json`（本页全部数字的来源）；`docs/assets/report/raw/` 下是各项评测脚本的原始输出 |
+| 软件 | Python 3.12.16，JAX 0.4.38，Optax 0.2.4，Orbax 0.10.3，NumPy 2.5.4；参考模型用 PyTorch 2.15 和 Transformers 5.23 加载；lm-evaluation-harness 0.4.13 |
+| 硬件 | NVIDIA H200 NVL（143,771 MiB，驱动 580.196.07），AMD EPYC 9555，Ubuntu 22.04 |
+| 随机性 | 初始化、数据顺序由配置中的 `seed` 决定；评测窗口的选取是确定的，不含随机数 |
+
+模型权重体积较大，没有放进 Git 仓库；检查点保存在训练服务器上，按上面的命令可以从头重新得到。
+
+## 9 版本记录
+
+| 版本 | 日期 | 内容 |
+|:--|:--|:--|
+| 0.1–0.6 | 2026-11-16 至 11-17 | 流程验证阶段：1M 参数的 CPU 试跑和 15M 参数、字节级 tokenizer、WikiText-2 上的 H200 配对实验。这些实验确认了训练、恢复和评测链路可用，但模型在公开 benchmark 上处于随机水平，不能支持任何能力结论。记录保留在 [CPU Pilot](reports/cpu_pilot_1m.md)、[H200 15M Scaling](reports/h200_scaling.md) 和 [Benchmark 测评协议](reports/benchmark_protocol.md)。 |
+| 1.0 | 2026-11-18 | 本报告：GPT-2 BPE、30 亿级 token 的两种公开语料、4K 上下文下四个约 1.3 亿参数模型的匹配实验，长上下文、逐字回忆、公开 benchmark、消融、随机种子、规模和成本评测，以及数据审计。 |
+
+
+## 参考文献
+
+///Footnotes Go Here///
+
+[^ttte2e]: A. Tandon et al. End-to-End Test-Time Training for Long Context. arXiv:2512.23675, 2025.
+[^tttlayers]: Y. Sun et al. Learning to (Learn at Test Time): RNNs with Expressive Hidden States. arXiv:2407.04620, 2024.
+[^ttt]: Y. Sun et al. Test-Time Training with Self-Supervision for Generalization under Distribution Shifts. ICML 2020. arXiv:1909.13231.
+[^maml]: C. Finn, P. Abbeel, S. Levine. Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks. ICML 2017. arXiv:1703.03400.
+[^reptile]: A. Nichol, J. Achiam, J. Schulman. On First-Order Meta-Learning Algorithms. arXiv:1803.02999, 2018.
+[^dyneval]: B. Krause, E. Kahembwe, I. Murray, S. Renals. Dynamic Evaluation of Neural Sequence Models. arXiv:1709.07432, 2017.
+[^dynevaltr]: B. Krause, E. Kahembwe, I. Murray, S. Renals. Dynamic Evaluation of Transformer Language Models. arXiv:1904.08378, 2019.
+[^fastweights]: J. Ba et al. Using Fast Weights to Attend to the Recent Past. arXiv:1610.06258, 2016.
+[^titans]: A. Behrouz, P. Zhong, V. Mirrokni. Titans: Learning to Memorize at Test Time. arXiv:2501.00663, 2024.
+[^mamba]: A. Gu, T. Dao. Mamba: Linear-Time Sequence Modeling with Selective State Spaces. arXiv:2312.00752, 2023.
+[^gdn]: S. Yang, J. Kautz, A. Hatamizadeh. Gated Delta Networks: Improving Mamba2 with Delta Rule. ICLR 2025. arXiv:2412.06464.
+[^transformerxl]: Z. Dai et al. Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context. ACL 2019. arXiv:1901.02860.
+[^longformer]: I. Beltagy, M. E. Peters, A. Cohan. Longformer: The Long-Document Transformer. arXiv:2004.05150, 2020.
+[^pg19]: J. W. Rae, A. Potapenko, S. M. Jayakumar, T. P. Lillicrap. Compressive Transformers for Long-Range Sequence Modelling. arXiv:1911.05507, 2019.
+[^blockrecurrent]: D. Hutchins et al. Block-Recurrent Transformers. arXiv:2203.07852, 2022.
+[^fineweb]: G. Penedo et al. The FineWeb Datasets: Decanting the Web for the Finest Text Data at Scale. arXiv:2406.17557, 2024.
+[^gpt2]: A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever. Language Models are Unsupervised Multitask Learners. OpenAI, 2019.
+[^distil]: V. Sanh, L. Debut, J. Chaumond, T. Wolf. DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter. arXiv:1910.01108, 2019.
+[^pythia]: S. Biderman et al. Pythia: A Suite for Analyzing Large Language Models Across Training and Scaling. arXiv:2304.01373, 2023.
+[^gptneo]: S. Black, L. Gao, P. Wang, C. Leahy, S. Biderman. GPT-Neo: Large Scale Autoregressive Language Modeling with Mesh-Tensorflow. Zenodo, 2021. doi:10.5281/zenodo.5297715.
+[^opt]: S. Zhang et al. OPT: Open Pre-trained Transformer Language Models. arXiv:2205.01068, 2022.
+[^smollm2]: L. Ben Allal et al. SmolLM2: When Smol Goes Big – Data-Centric Training of a Small Language Model. arXiv:2502.02737, 2025.
+[^lmeval]: S. Biderman et al. Lessons from the Trenches on Reproducible Evaluation of Language Models. arXiv:2405.14782, 2024.
+

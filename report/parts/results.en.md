@@ -78,6 +78,14 @@ Table 3. Loss by position range inside 32K windows, and paired differences (95% 
 
 Table 4. Loss reduction on the repeated span (nats, 95% confidence intervals in brackets; first 4 windows of each PG-19 test book, 400 in total).
 
+<div class="report-table" markdown>
+
+{% table niah %}
+
+</div>
+
+Table 5. Needle in a haystack: one sentence, “One of the special magic numbers for &lt;key&gt; is: &lt;7-digit number&gt;.”, is hidden in the haystack text and the model is then asked for that key's number. The table reports how much lower the answer's log-likelihood per token is than when the needle is replaced by an unrelated key–value pair (nats; larger means the needle was used more). The haystack is PG-19 test book text, the needle is placed at ten evenly spaced depths, and the prompt and needle wording come from RULER.
+
 {% include parts/results_4_6.en.md %}
 
 ### 4.7 Public benchmarks and public models
@@ -88,7 +96,15 @@ Table 4. Loss reduction on the repeated span (nats, 95% confidence intervals in 
 
 </div>
 
-Table 5. Zero-shot accuracy (%) of the four models in this report. HellaSwag, PIQA, ARC and OpenBookQA report accuracy normalised by choice length; the others report plain accuracy. “Mean” is the arithmetic mean of the ten tasks.
+Table 6. Zero-shot accuracy (%) of the four models in this report. HellaSwag, PIQA, ARC and OpenBookQA report accuracy normalised by choice length; the others report plain accuracy. “Mean” is the arithmetic mean of the ten tasks.
+
+<div class="report-table" markdown>
+
+{% table reference_models %}
+
+</div>
+
+Table 7. The public models used for comparison. The training-data column is taken from each model card or paper (checked November 2026); their training budgets exceed ours by one to three orders of magnitude.
 
 <div class="report-table" markdown>
 
@@ -96,7 +112,7 @@ Table 5. Zero-shot accuracy (%) of the four models in this report. HellaSwag, PI
 
 </div>
 
-Table 6. Public models evaluated with the same script and protocol (%). Parameter counts are taken from the loaded weights.
+Table 8. Public models evaluated with the same script and protocol (%). Parameter counts are taken from the loaded weights.
 
 <div class="report-table" markdown>
 
@@ -104,7 +120,7 @@ Table 6. Public models evaluated with the same script and protocol (%). Paramete
 
 </div>
 
-Table 7. Language-modelling metrics (lower is better). WikiText-103 test and PG-19 test are cut into non-overlapping windows of each model's maximum context, as lm-evaluation-harness does. Word-level perplexity is normalised by the number of whitespace-separated words and can be compared across tokenizers.
+Table 9. Language-modelling metrics (lower is better). WikiText-103 test and PG-19 test are cut into non-overlapping windows of each model's maximum context, as lm-evaluation-harness does. Word-level perplexity is normalised by the number of whitespace-separated words and can be compared across tokenizers.
 
 {% include parts/results_4_7.en.md %}
 
@@ -122,7 +138,7 @@ Table 7. Language-modelling metrics (lower is better). WikiText-103 test and PG-
 
 </div>
 
-Table 8. Ablation results (PG-19 validation, 2,048 tokens of context). “Updates off” is the loss of the same checkpoint evaluated without test-time updates.
+Table 10. Ablation results (PG-19 validation, 2,048 tokens of context). “Updates off” is the loss of the same checkpoint evaluated without test-time updates.
 
 {% include parts/results_4_8.en.md %}
 
@@ -134,7 +150,7 @@ Table 8. Ablation results (PG-19 validation, 2,048 tokens of context). “Update
 
 </div>
 
-Table 9. PG-19 validation loss under three seeds (initialisation and data order both change). Within a seed all models read the same data, so differences are paired by seed.
+Table 11. PG-19 validation loss under three seeds (initialisation and data order both change). Within a seed all models read the same data, so differences are paired by seed.
 
 <div class="report-table" markdown>
 
@@ -142,7 +158,7 @@ Table 9. PG-19 validation loss under three seeds (initialisation and data order 
 
 </div>
 
-Table 10. PG-19 validation loss of three model sizes at the same 164M training tokens (2,048 tokens of context, window 256).
+Table 12. PG-19 validation loss of three model sizes at the same 164M training tokens (2,048 tokens of context, window 256).
 
 <figure markdown="span" class="report-figure">
   ![Model size and amount of training](assets/report/fig_scaling.light.svg#only-light)
@@ -160,7 +176,7 @@ Table 10. PG-19 validation loss of three model sizes at the same 164M training t
 
 </div>
 
-Table 11. Training cost on one H200 (batch of 16 × 4,096 tokens, random input, median of 4–5 steps). Full attention and the no-update control use per-block gradient checkpointing; without it full attention exceeds the memory of one GPU.
+Table 13. Training cost on one H200 (batch of 16 × 4,096 tokens, random input, median of 4–5 steps). Full attention and the no-update control use per-block gradient checkpointing; without it full attention exceeds the memory of one GPU.
 
 <figure markdown="span" class="report-figure">
   ![Training and forward throughput](assets/report/fig_cost.light.svg#only-light)
@@ -174,7 +190,7 @@ Table 11. Training cost on one H200 (batch of 16 × 4,096 tokens, random input, 
 
 </div>
 
-Table 12. State kept by one inference session after reading contexts of different lengths, and the speed of token-by-token decoding that follows (batch size 1). State sizes are counted from the arrays actually allocated.
+Table 14. State kept by one inference session after reading contexts of different lengths, and the speed of token-by-token decoding that follows (batch size 1). State sizes are counted from the arrays actually allocated.
 
 {% include parts/results_4_10.en.md %}
 
@@ -186,7 +202,7 @@ Table 12. State kept by one inference session after reading contexts of differen
 
 </div>
 
-Table 13. Verbatim overlap between evaluation items and the training corpora. For each item, the first 80 characters of the normalised question text (lower-cased, whitespace collapsed) are matched exactly against all training text ({{ GB(r.audits.corpora["fineweb-edu-train"].utf8_bytes + r.audits.corpora["pg19-train"].utf8_bytes) }} GB).
+Table 15. Verbatim overlap between evaluation items and the training corpora. For each item, the first 80 characters of the normalised question text (lower-cased, whitespace collapsed) are matched exactly against all training text ({{ GB(r.audits.corpora["fineweb-edu-train"].utf8_bytes + r.audits.corpora["pg19-train"].utf8_bytes) }} GB).
 
 {% include parts/results_5.en.md %}
 

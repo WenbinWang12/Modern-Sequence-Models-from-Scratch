@@ -68,6 +68,18 @@ profile() { # profile <arm>：单会话的状态大小与逐 token 解码速度
     --context-lengths 2048 8192 32768 --output "$out" >>logs/pipeline_evals.log 2>&1 || log "FAILED profile $1"
 }
 
+niah() { # niah <arm> [extra args]：单针检索（含“针不在场”对照）
+  local arm=$1 out checkpoint
+  shift
+  out=outputs/niah/main_$arm.json
+  [ -f "$out" ] && return 0
+  checkpoint=$(ls -d "outputs/main-${arm%%_*}"/step_*.orbax | sort | tail -n 1)
+  log "niah $arm"
+  CUDA_VISIBLE_DEVICES=$gpu JAX_PLATFORMS=cuda XLA_PYTHON_CLIENT_PREALLOCATE=false PYTHONPATH=. \
+    "$python" scripts/eval_niah.py --checkpoint "$checkpoint" --output "$out" "$@" \
+    >>logs/pipeline_evals.log 2>&1 || log "FAILED niah $arm"
+}
+
 make_iso_config() { # 用实测的单步时间决定“与 TTT 等训练时间”的滑窗基线步数
   until complete abl-ttt && complete abl-swa; do sleep 60; done
   local steps
@@ -114,6 +126,8 @@ baseline)
   profile full
   profile ttt
   evals recall swa full
+  niah swa
+  niah full
   drain_queue
   ;;
 ttt)
@@ -130,6 +144,9 @@ ttt)
   bench main_ck main-ck
   evals dynamic
   evals recall ttt ck
+  niah ttt
+  niah ttt_noadapt --no-adapt
+  niah ck
   drain_queue
   ;;
 *)

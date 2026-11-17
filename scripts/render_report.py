@@ -59,6 +59,63 @@ REFERENCE_MODELS = (
     ("HuggingFaceTB_SmolLM-135M", "SmolLM-135M"),
     ("HuggingFaceTB_SmolLM2-135M", "SmolLM2-135M"),
 )
+# 各公开模型的训练数据，摘自它们的模型卡片或论文（2026-11 核对）；没有公布的项目写明“未公布”。
+REFERENCE_FACTS = {
+    "distilgpt2": {
+        "hub": "distilbert/distilgpt2",
+        "zh": "OpenWebText（38 GB 文本），由 GPT-2 蒸馏；训练 token 数未公布",
+        "en": "OpenWebText (38 GB of text), distilled from GPT-2; training tokens not stated",
+        "cite": "distil",
+    },
+    "gpt2": {
+        "hub": "openai-community/gpt2",
+        "zh": "WebText（40 GB 文本）；训练 token 数未公布",
+        "en": "WebText (40 GB of text); training tokens not stated",
+        "cite": "gpt2",
+    },
+    "gpt2-medium": {
+        "hub": "openai-community/gpt2-medium",
+        "zh": "WebText（40 GB 文本）；训练 token 数未公布",
+        "en": "WebText (40 GB of text); training tokens not stated",
+        "cite": "gpt2",
+    },
+    "EleutherAI_pythia-70m": {
+        "hub": "EleutherAI/pythia-70m",
+        "zh": "The Pile；训练中读入约 3,000 亿 token",
+        "en": "The Pile; about 300B tokens seen in training",
+        "cite": "pythia",
+    },
+    "EleutherAI_pythia-160m": {
+        "hub": "EleutherAI/pythia-160m",
+        "zh": "The Pile；训练中读入约 3,000 亿 token",
+        "en": "The Pile; about 300B tokens seen in training",
+        "cite": "pythia",
+    },
+    "EleutherAI_gpt-neo-125m": {
+        "hub": "EleutherAI/gpt-neo-125m",
+        "zh": "The Pile；3,000 亿 token",
+        "en": "The Pile; 300B tokens",
+        "cite": "gptneo",
+    },
+    "facebook_opt-125m": {
+        "hub": "facebook/opt-125m",
+        "zh": "1,800 亿 token 的混合语料（800 GB）；训练 token 数未明确公布",
+        "en": "a 180B-token mixed corpus (800 GB); training tokens not stated explicitly",
+        "cite": "opt",
+    },
+    "HuggingFaceTB_SmolLM-135M": {
+        "hub": "HuggingFaceTB/SmolLM-135M",
+        "zh": "Cosmopedia v2、Python-Edu、FineWeb-Edu；6,000 亿 token",
+        "en": "Cosmopedia v2, Python-Edu, FineWeb-Edu; 600B tokens",
+        "cite": "smollm2",
+    },
+    "HuggingFaceTB_SmolLM2-135M": {
+        "hub": "HuggingFaceTB/SmolLM2-135M",
+        "zh": "FineWeb-Edu、DCLM、The Stack 等；2 万亿 token",
+        "en": "FineWeb-Edu, DCLM, The Stack and others; 2T tokens",
+        "cite": "smollm2",
+    },
+}
 OUR_MODELS = (
     ("main_full", "full"),
     ("main_swa", "swa"),
@@ -279,11 +336,18 @@ def table_benchmarks(r, lang, which="all"):
     ]
     header.append({"zh": "平均", "en": "Mean"}[lang])
     rows, groups = [], []
+    titles = {
+        "ours": {"zh": "**本报告的模型**", "en": "**Models in this report**"}[lang],
+        "reference": {"zh": "**公开模型**", "en": "**Public models**"}[lang],
+    }
     if which in ("all", "ours"):
-        groups.append([(key, names[arm], True) for key, arm in OUR_MODELS if bench[key]])
+        groups.append(("ours", [(key, names[arm], True) for key, arm in OUR_MODELS if bench[key]]))
     if which in ("all", "reference"):
-        groups.append([(key, label, False) for key, label in REFERENCE_MODELS if bench[key]])
-    for group in groups:
+        groups.append(("reference", [(key, label, False) for key, label in REFERENCE_MODELS if bench[key]]))
+    blank = [""] * (len(header) - 1)
+    for name, group in groups:
+        if which == "all":
+            rows.append([titles[name]] + blank)
         values = {key: [benchmark_cell(bench[key], task, metric) for task, _, metric in TASKS] for key, _, _ in group}
         for key, label, ours in group:
             entry = bench[key]
@@ -295,7 +359,40 @@ def table_benchmarks(r, lang, which="all"):
             present = [value for value in values[key] if value is not None]
             mean = percent(sum(present) / len(present)) if len(present) == len(TASKS) else "–"
             rows.append([label, millions(parameters, 0)] + cells + [mean])
+        if name == "ours" and group:
+            # 95% 置信区间的半宽，取本组第一个模型的 Wilson 区间；同一任务上各模型的半宽几乎相同。
+            first = bench[group[0][0]]["tasks"]
+            widths = []
+            for task, _, metric in TASKS:
+                pair = first[task][f"{metric}_ci95"]
+                widths.append(f"±{50 * (pair[1] - pair[0]):.1f}" if pair else "–")
+            label = {"zh": "95% 置信区间半宽", "en": "95% CI half-width"}[lang]
+            rows.append([label, ""] + widths + [""])
     return markdown_table(header, rows)
+
+
+def table_reference_models(r, lang):
+    bench = r["benchmarks"]
+    header = {
+        "zh": ["模型", "Hugging Face 仓库", "参数量", "最大上下文", "训练数据（据模型卡片或论文）"],
+        "en": ["Model", "Hugging Face repository", "Parameters", "Max context", "Training data (from model card or paper)"],
+    }[lang]
+    rows = []
+    for key, label in REFERENCE_MODELS:
+        entry = bench[key]
+        if not entry:
+            continue
+        facts = REFERENCE_FACTS[key]
+        rows.append(
+            [
+                f"{label}[^{facts['cite']}]",
+                f"`{facts['hub']}`",
+                millions(entry["model"]["parameters"]),
+                grouped(entry["model"]["max_length"]),
+                facts[lang],
+            ]
+        )
+    return markdown_table(header, rows, ["l", "l", "r", "r", "l"])
 
 
 def table_perplexity(r, lang):
@@ -669,6 +766,26 @@ def table_sampler(r, lang):
     return markdown_table(header, rows)
 
 
+def table_niah(r, lang, haystack="books"):
+    names = ARM_NAMES[lang]
+    data = r["niah"]
+    order = [("full", names["full"]), ("swa", names["swa"]), ("ck", names["ck"]), ("ttt_noadapt", names["ttt_noadapt"]), ("ttt", names["ttt"])]
+    order += [(key, label) for key, label in REFERENCE_MODELS if data[key]]
+    lengths = sorted({int(key.split("_")[-1]) for name, _ in order if data[name] for key in data[name]["results"].keys()})
+    header = [{"zh": "模型", "en": "Model"}[lang]] + [f"{length // 1024}K" if length >= 1024 else str(length) for length in lengths]
+    rows = []
+    for name, label in order:
+        entry = data[name]
+        if not entry:
+            continue
+        cells = []
+        for length in lengths:
+            value = entry["results"][f"{haystack}_{length}"]
+            cells.append(f"{value['needle_gain_per_token']:.2f}" if value else "–")
+        rows.append([label] + cells)
+    return markdown_table(header, rows)
+
+
 def table_sessions(r, lang):
     names = ARM_NAMES[lang]
     data = r["sessions"]
@@ -709,6 +826,9 @@ def table_sessions(r, lang):
 
 
 TABLES = {
+    "niah": table_niah,
+    "niah_noise": lambda r, lang: table_niah(r, lang, "noise"),
+    "reference_models": table_reference_models,
     "sessions": table_sessions,
     "main": table_main,
     "ranges": table_ranges,
@@ -736,7 +856,7 @@ TABLE = re.compile(r"\{% table (\w+) %\}")
 EXPRESSION = re.compile(r"\{\{ (.+?) \}\}")
 
 
-def render(template, results, lang):
+def render(template, results, lang, *, allow_missing=False):
     r = Box(results)
     namespace = {
         "r": r,
@@ -769,18 +889,28 @@ def render(template, results, lang):
         return chosen
 
     def table(match):
-        return TABLES[match.group(1)](r, lang)
+        try:
+            return TABLES[match.group(1)](r, lang)
+        except (KeyError, IndexError, TypeError, ValueError, ZeroDivisionError, StopIteration):
+            if not allow_missing:
+                raise
+            return f"*(draft: table `{match.group(1)}` has no data yet)*"
 
     def expression(match):
-        value = evaluate(match.group(1))
-        if isinstance(value, Box):
-            raise ValueError(f"模板字段没有数据：{match.group(1).strip()}")
+        try:
+            value = evaluate(match.group(1))
+            if isinstance(value, Box):
+                raise ValueError(f"模板字段没有数据：{match.group(1).strip()}")
+        except (KeyError, IndexError, TypeError, ValueError, ZeroDivisionError):
+            if not allow_missing:
+                raise
+            return "«?»"
         return str(value)
 
     text = CONDITIONAL.sub(conditional, template)
     text = TABLE.sub(table, text)
     text = EXPRESSION.sub(expression, text)
-    if "{%" in text or "{{ " in text:
+    if "{% " in text or "{{ " in text:
         raise ValueError("模板中有未被处理的指令。")
     return prune_references(text)
 
@@ -802,6 +932,7 @@ def main() -> None:
     parser.add_argument("--results", type=Path, default=Path("docs/assets/report/results.json"))
     parser.add_argument("--templates", type=Path, default=Path("report"))
     parser.add_argument("--docs", type=Path, default=Path("docs"))
+    parser.add_argument("--allow-missing", action="store_true", help="草稿模式：缺数据的表格和字段用占位符代替，不报错")
     args = parser.parse_args()
     results = json.loads(args.results.read_text(encoding="utf-8"))
     outputs = {"zh": args.docs / "technical_report.md", "en": args.docs / "technical_report_en.md"}
@@ -812,7 +943,7 @@ def main() -> None:
         source = template.read_text(encoding="utf-8")
         for _ in range(3):  # 允许被包含的文件再包含别的文件，最多三层
             source = INCLUDE.sub(lambda match: (args.templates / match.group(1)).read_text(encoding="utf-8"), source)
-        text = render(source, results, lang)
+        text = render(source, results, lang, allow_missing=args.allow_missing)
         output.write_bytes(text.encode("utf-8"))
         print(f"rendered {output} ({len(text.splitlines())} lines)")
 

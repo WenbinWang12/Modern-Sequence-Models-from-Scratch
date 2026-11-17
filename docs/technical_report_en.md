@@ -7,6 +7,10 @@ hide:
 
 **Version 1.0 · 18 November 2026**
 
+!!! warning "Draft: 6 values are not in yet"
+    This page was rendered from experiments that are still running. Places marked «?» or carrying a
+    placeholder note fill in automatically once the corresponding run finishes.
+
 ## Abstract
 
 To be written.

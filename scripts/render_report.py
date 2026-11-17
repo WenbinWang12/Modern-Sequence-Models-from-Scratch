@@ -375,7 +375,13 @@ def table_reference_models(r, lang):
     bench = r["benchmarks"]
     header = {
         "zh": ["模型", "Hugging Face 仓库", "参数量", "最大上下文", "训练数据（据模型卡片或论文）"],
-        "en": ["Model", "Hugging Face repository", "Parameters", "Max context", "Training data (from model card or paper)"],
+        "en": [
+            "Model",
+            "Hugging Face repository",
+            "Parameters",
+            "Max context",
+            "Training data (from model card or paper)",
+        ],
     }[lang]
     rows = []
     for key, label in REFERENCE_MODELS:
@@ -769,10 +775,20 @@ def table_sampler(r, lang):
 def table_niah(r, lang, haystack="books"):
     names = ARM_NAMES[lang]
     data = r["niah"]
-    order = [("full", names["full"]), ("swa", names["swa"]), ("ck", names["ck"]), ("ttt_noadapt", names["ttt_noadapt"]), ("ttt", names["ttt"])]
+    order = [
+        ("full", names["full"]),
+        ("swa", names["swa"]),
+        ("ck", names["ck"]),
+        ("ttt_noadapt", names["ttt_noadapt"]),
+        ("ttt", names["ttt"]),
+    ]
     order += [(key, label) for key, label in REFERENCE_MODELS if data[key]]
-    lengths = sorted({int(key.split("_")[-1]) for name, _ in order if data[name] for key in data[name]["results"].keys()})
-    header = [{"zh": "模型", "en": "Model"}[lang]] + [f"{length // 1024}K" if length >= 1024 else str(length) for length in lengths]
+    lengths = sorted(
+        {int(key.split("_")[-1]) for name, _ in order if data[name] for key in data[name]["results"].keys()}
+    )
+    header = [{"zh": "模型", "en": "Model"}[lang]] + [
+        f"{length // 1024}K" if length >= 1024 else str(length) for length in lengths
+    ]
     rows = []
     for name, label in order:
         entry = data[name]
@@ -927,6 +943,26 @@ def prune_references(text):
     return "\n".join(kept)
 
 
+def add_draft_banner(text, lang):
+    """草稿模式下只要还有缺数据的位置，就在页首声明，避免半成品看起来像定稿。"""
+    pending = text.count("«?»") + text.count("draft: table")
+    if not pending:
+        return text
+    banner = {
+        "zh": (
+            f'!!! warning "草稿：尚有 {pending} 处数值未就绪"\n'
+            "    本页由尚未跑完的实验渲染而成；带 «?» 或占位说明的位置会在对应实验完成后自动填入。\n"
+        ),
+        "en": (
+            f'!!! warning "Draft: {pending} values are not in yet"\n'
+            "    This page was rendered from experiments that are still running. Places marked «?» or carrying a\n"
+            "    placeholder note fill in automatically once the corresponding run finishes.\n"
+        ),
+    }[lang]
+    marker = "## 摘要" if lang == "zh" else "## Abstract"
+    return text.replace(marker, banner + "\n" + marker, 1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="渲染技术报告")
     parser.add_argument("--results", type=Path, default=Path("docs/assets/report/results.json"))
@@ -944,6 +980,7 @@ def main() -> None:
         for _ in range(3):  # 允许被包含的文件再包含别的文件，最多三层
             source = INCLUDE.sub(lambda match: (args.templates / match.group(1)).read_text(encoding="utf-8"), source)
         text = render(source, results, lang, allow_missing=args.allow_missing)
+        text = add_draft_banner(text, lang)
         output.write_bytes(text.encode("utf-8"))
         print(f"rendered {output} ({len(text.splitlines())} lines)")
 

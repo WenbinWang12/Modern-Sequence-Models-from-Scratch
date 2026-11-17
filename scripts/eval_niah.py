@@ -178,7 +178,9 @@ def main() -> None:
                 "accuracy_by_depth": {depth: correct / count for depth, (correct, count) in by_depth.items()},
                 "seconds": time.perf_counter() - started,
             }
-            summary = {key: value for key, value in results[f"{haystack}_{length}"].items() if key != "accuracy_by_depth"}
+            summary = {
+                key: value for key, value in results[f"{haystack}_{length}"].items() if key != "accuracy_by_depth"
+            }
             print(json.dumps(summary), flush=True)
             report = {
                 "protocol_version": "niah_single_v1",

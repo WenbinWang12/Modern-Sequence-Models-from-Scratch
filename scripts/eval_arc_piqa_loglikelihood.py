@@ -77,6 +77,21 @@ def _piqa_row(row: dict[str, object]) -> tuple[str, list[str], int]:
     return str(row["goal"]) + "\nAnswer:", choices, label
 
 
+def _gpqa_row(row: dict[str, object]) -> tuple[str, list[str], int]:
+    choices = [str(value) for value in row["choices"]]
+    answer = str(row["answer"]).strip()
+    labels = "ABCD"
+    if answer.upper() in labels:
+        index = labels.index(answer.upper())
+    elif answer.isdigit():
+        index = int(answer)
+    else:
+        raise ValueError("GPQA answer 无法映射到选项")
+    if not 0 <= index < len(choices):
+        raise ValueError("GPQA answer 超出选项范围")
+    return str(row["question"]) + "\nAnswer:", choices, index
+
+
 def evaluate(checkpoint_path: Path, data_path: Path, task: str, *, limit: int | None = None) -> dict[str, object]:
     checkpoint = load_checkpoint(checkpoint_path, load_optimizer=False)
     experiment = checkpoint.experiment
@@ -98,7 +113,7 @@ def evaluate(checkpoint_path: Path, data_path: Path, task: str, *, limit: int | 
     if limit is not None:
         rows = rows[:limit]
     correct = skipped = 0
-    parse_row = _arc_row if task == "arc" else _piqa_row
+    parse_row = {"arc": _arc_row, "piqa": _piqa_row, "gpqa": _gpqa_row}[task]
     for row in rows:
         try:
             prompt, choices, answer = parse_row(row)
@@ -108,7 +123,7 @@ def evaluate(checkpoint_path: Path, data_path: Path, task: str, *, limit: int | 
             skipped += 1
     samples = len(rows) - skipped
     metadata_path = checkpoint_path / "metadata.json" if checkpoint_path.is_dir() else checkpoint_path
-    split = "test" if task == "arc" else "validation"
+    split = "test" if task in ("arc", "gpqa") else "validation"
     return {
         "protocol_version": "arc_piqa_loglikelihood_v1",
         "protocol": f"{task} {split} split; zero-shot answer-text continuation log-likelihood; byte tokenizer; no adaptation",
@@ -129,7 +144,7 @@ def evaluate(checkpoint_path: Path, data_path: Path, task: str, *, limit: int | 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="评估 ARC 或 PIQA continuation log-likelihood")
-    parser.add_argument("--task", choices=("arc", "piqa"), required=True)
+    parser.add_argument("--task", choices=("arc", "piqa", "gpqa"), required=True)
     parser.add_argument("--checkpoint", required=True, type=Path)
     parser.add_argument("--data", required=True, type=Path)
     parser.add_argument("--limit", type=int)

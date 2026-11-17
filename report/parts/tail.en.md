@@ -38,6 +38,8 @@ scripts/report_pipeline.sh 0 baseline   # sliding window → full attention → 
 scripts/report_pipeline.sh 1 ttt        # TTT-E2E → no-update control → naive-update baseline → ablation queue
 scripts/run_reference_benchmarks.sh 0   # public reference models + lm-evaluation-harness cross-check
 
+The `0` and `1` values are examples of device IDs assigned to a job, not fixed machine-wide IDs. On the H200 run for this report, GPU 7 ran the baseline pipeline and GPU 5 ran the TTT pipeline. The two pipelines were independent and exchanged no cross-device data.
+
 # 3. Audits, figures and the report
 python scripts/audit_report_data.py sampler --recipe configs/data/fineweb_pg19_50_50.json \
   --config configs/report/main_ttt.json --output outputs/audits/sampler_main.json

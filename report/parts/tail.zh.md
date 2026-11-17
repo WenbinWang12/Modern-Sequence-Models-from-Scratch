@@ -38,6 +38,8 @@ scripts/report_pipeline.sh 0 baseline   # 滑窗 → 全注意力 → 推理吞�
 scripts/report_pipeline.sh 1 ttt        # TTT-E2E → 无更新对照 → 朴素更新基线 → 消融队列
 scripts/run_reference_benchmarks.sh 0   # 公开参考模型 + lm-evaluation-harness 交叉核对
 
+这里的 `0` 和 `1` 只是作业分配后的 GPU 编号示例，不是固定的机器编号。本报告在 H200 机器上使用 GPU 7 运行 baseline、GPU 5 运行 TTT，两条流水线彼此独立且不做跨卡通信。
+
 # 3. 审计、图表和报告
 python scripts/audit_report_data.py sampler --recipe configs/data/fineweb_pg19_50_50.json \
   --config configs/report/main_ttt.json --output outputs/audits/sampler_main.json

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -23,6 +24,8 @@ class MixtureBatchStream:
         recipe = json.loads(self.recipe_path.read_text(encoding="utf-8"))
         if recipe.get("format") != self.recipe_format:
             raise ValueError("数据混合 recipe 格式不受支持。")
+        if recipe.get("selection_unit", "window") != "window":
+            raise ValueError("当前混合采样器只支持按训练窗口选择来源。")
         sources = recipe.get("sources")
         if not isinstance(sources, list) or not sources:
             raise ValueError("混合 recipe 至少需要一个来源。")
@@ -41,12 +44,14 @@ class MixtureBatchStream:
                 raise ValueError(f"混合来源名称重复：{name}")
             if not isinstance(relative_path, str):
                 raise ValueError(f"来源 {name} 缺少 data 路径。")
-            if not isinstance(probability, (int, float)) or probability <= 0:
+            if not isinstance(probability, (int, float)) or not math.isfinite(float(probability)) or probability <= 0:
                 raise ValueError(f"来源 {name} 的 probability 必须为正数。")
             names.append(name)
             paths.append((self.recipe_path.parent / relative_path).resolve())
             probabilities.append(float(probability))
         total = sum(probabilities)
+        if not math.isfinite(total) or total <= 0:
+            raise ValueError("混合来源的 probability 总和必须为有限正数。")
         self.names = tuple(names)
         self.probabilities = np.asarray(probabilities, dtype=np.float64) / total
         self.datasets = tuple(TokenDataset(path, vocab_size) for path in paths)
@@ -97,6 +102,7 @@ class MixtureBatchStream:
     def state_dict(self):
         return {
             "kind": self.recipe_format,
+            "source_names": list(self.names),
             "rng": self.rng.bit_generator.state,
             "recipe_sha256": self.recipe_sha256,
             "source_sha256": list(self.source_sha256),
@@ -110,6 +116,7 @@ class MixtureBatchStream:
         expected = (
             self.recipe_sha256,
             tuple(self.source_sha256),
+            tuple(self.names),
             tuple(float(value) for value in self.probabilities),
             self.sequence_length,
             self.batch_size,
@@ -118,6 +125,7 @@ class MixtureBatchStream:
         actual = (
             state.get("recipe_sha256"),
             tuple(state.get("source_sha256", ())),
+            tuple(state.get("source_names", ())),
             tuple(float(value) for value in state.get("probabilities", ())),
             state.get("sequence_length"),
             state.get("batch_size"),

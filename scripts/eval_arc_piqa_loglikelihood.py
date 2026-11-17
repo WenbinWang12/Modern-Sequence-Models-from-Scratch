@@ -109,7 +109,8 @@ def evaluate(checkpoint_path: Path, data_path: Path, task: str, *, limit: int | 
             return_logits=True,
         ).logits
     )
-    rows = [json.loads(line) for line in data_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    with data_path.open(encoding="utf-8") as handle:
+        rows = [json.loads(line) for line in handle if line.strip()]
     if limit is not None:
         rows = rows[:limit]
     correct = skipped = 0

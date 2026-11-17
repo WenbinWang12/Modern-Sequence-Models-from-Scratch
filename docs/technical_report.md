@@ -426,6 +426,7 @@ TTT 模型达到“可发表/可发布”之前，必须同时满足：
 | 0.3 | 2026-11-17 | H200 15M 混合数据、MMLU 与 HellaSwag 诊断 | measured pilot，不能作榜单比较 |
 | 0.4 | 2026-11-17 | ARC、PIQA、GSM8K、HumanEval、synthetic long-context 诊断 | measured pilot，不能作榜单比较 |
 | 0.5 | 2026-11-17 | GPQA 小子集诊断与长上下文限制说明 | measured pilot，不能作榜单比较 |
+| 0.6 | 2026-11-17 | BBH sports_understanding 子任务诊断 | measured pilot，不能作榜单比较 |
 | 1.0 | 待定 | GPU 规模、完整 benchmark、安全和复现包 | release gate |
 
 ## 18. H200 15M scaling（measured）
@@ -459,5 +460,7 @@ PPL 是每个 split 128 个随机窗口、约 65k 有效 token；MMLU 是零样�
 在同一 H200 混合数据配对上，ARC-Challenge test 前 100 题为 baseline 12/100、TTT no-adapt 11/100；PIQA validation 前 100 题两者均为 57/100。GSM8K test 前 100 题 greedy numeric exact match 两者均为 0/100；HumanEval 官方测试前 50 题两者均为 pass@1 0/50。
 
 GPQA test 前 50 题在 512-token 上限下，baseline 为 9/32（28.13%），TTT no-adapt 为 5/32（15.63%）；每组跳过 18 题。该结果来自公开去门控镜像，仓库不保存 GPQA 题目文本，只保存带 SHA 的结果 JSON。
+
+BBH `sports_understanding` 子任务前 50 题的零样本 greedy normalized exact match 为 baseline 0/50、TTT no-adapt 0/50。由于正式 BBH 需要子任务专用答案解析和 shot 协议，该结果只作为生成链路诊断。
 
 这些生成和选择结果都来自 15M、byte-token、非 instruction-tuned base model，只能证明评测链路已经可以运行。合成长上下文 key-value 前置诊断在 256、512、1024 请求长度各取 16 题，plain baseline、TTT no-adapt 与 TTT adapt 的 exact match 均为 0。该诊断不是 RULER 或 LongBench 分数；正式结果仍需使用固定 revision 的公开套件、多 seed、污染检查和完整任务集合。

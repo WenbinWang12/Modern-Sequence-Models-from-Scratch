@@ -60,6 +60,8 @@ The same pair gave ARC-Challenge 12/100 for the baseline and 11/100 for TTT no-a
 
 On the first 50 GPQA examples from a public un-gated mirror, the fixed 512-token protocol yielded 9/32 (28.13%) for the baseline and 5/32 (15.63%) for TTT no-adapt; 18 examples were skipped in each run for context length. Because the original GPQA release has strict anti-redistribution and contamination requirements, only result JSON is stored here, not question text, and this is not an official full GPQA leaderboard score.
 
+For BBH, the first 50 examples of the `sports_understanding` subtask were run with zero-shot greedy normalized exact match: 0/50 for both baseline and TTT no-adapt. Official BBH scoring uses subtask-specific answer parsers and a shot protocol, so this only validates the generation path.
+
 The current 15M configuration has `max_position_embeddings=2048`, while the standard RULER context bands begin at 4K. Truncating those tasks to 2048 would change the task, so no official RULER score is claimed. LongBench also requires task-specific input preservation, answer normalization, and length policies; until the tokenizer and long-context configuration are frozen, we keep only the synthetic preflight.
 
 ## Contamination and comparability

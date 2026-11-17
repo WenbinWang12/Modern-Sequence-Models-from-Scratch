@@ -68,6 +68,8 @@ H200 15M 混合数据配对的前 100 题诊断为：ARC-Challenge baseline 12/1
 
 GPQA 使用公开去门控镜像的 test 数据前 50 题；固定 512-token 上限后 baseline 为 9/32（28.13%），TTT no-adapt 为 5/32（15.63%），两组各跳过 18 题。由于原始 GPQA 对题目再发布和污染有严格要求，仓库只保存结果 JSON，不保存题目文本；这不是官方完整 GPQA leaderboard 分数。
 
+BBH 先运行 `sports_understanding` 子任务前 50 题的零样本 greedy exact match；baseline 和 TTT no-adapt 都是 0/50。BBH 正式协议通常包含子任务专用 answer parser 和 few-shot prompt，本次结果只验证生成链路，不能当作 BBH 总分。
+
 GSM8K 使用 greedy numeric exact match：test 前 100 题 baseline 和 TTT 都是 0/100。HumanEval 使用官方测试执行前 50 题，baseline 和 TTT 的 pass@1 都是 0/50。当前模型是 15M、byte-token、非 instruction-tuned base model，这两个生成任务结果只用于确认评测链路。
 
 RULER/LongBench 的前置 synthetic key-value 诊断在 256、512、1024 请求长度各取 16 题：baseline、TTT no-adapt 和 TTT adapt 的 exact match 全部为 0。它不是公开 RULER/LongBench 分数；正式测评仍需固定套件 revision、任务集合、答案归一化、多 seed 和污染审计。

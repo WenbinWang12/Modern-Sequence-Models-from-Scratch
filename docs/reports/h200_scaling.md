@@ -54,7 +54,8 @@ HellaSwag validation 前 100 题的 continuation 诊断中，baseline 与 TTT no
 | GSM8K | 0/100 | 0/100 | greedy numeric exact match |
 | HumanEval | 0/50 | 0/50 | 官方测试执行，pass@1 |
 | GPQA | 9/32 有效 | 5/32 有效 | test 前 50 题，18/50 因 512-token 上限跳过 |
+| BBH sports_understanding | 0/50 | 0/50 | 零样本 greedy normalized exact match |
 
 合成长上下文 key-value 诊断在 256、512、1024 请求长度各取 16 题；baseline、TTT no-adapt 和 TTT adapt 的 exact match 全部为 0。这一项是 RULER/LongBench 的前置工程诊断，不能当作公开套件分数。
 
-对应的 [ARC 结果](../assets/reports/arc_challenge_baseline_100.json)、[TTT ARC 结果](../assets/reports/arc_challenge_ttt_100.json)、[PIQA 结果](../assets/reports/piqa_baseline_100.json)、[TTT PIQA 结果](../assets/reports/piqa_ttt_100.json)、[GPQA baseline](../assets/reports/gpqa_baseline_50.json)、[GPQA TTT](../assets/reports/gpqa_ttt_50.json)、[GSM8K baseline](../assets/reports/gsm8k_baseline_100.json)、[GSM8K TTT](../assets/reports/gsm8k_ttt_100.json)、[HumanEval baseline](../assets/reports/humaneval_baseline_50.json)、[HumanEval TTT](../assets/reports/humaneval_ttt_50.json) 和 [长上下文 JSON](../assets/reports/long_ttt_noadapt_16.json) 已随仓库保存。
+对应的 [ARC 结果](../assets/reports/arc_challenge_baseline_100.json)、[TTT ARC 结果](../assets/reports/arc_challenge_ttt_100.json)、[PIQA 结果](../assets/reports/piqa_baseline_100.json)、[TTT PIQA 结果](../assets/reports/piqa_ttt_100.json)、[GPQA baseline](../assets/reports/gpqa_baseline_50.json)、[GPQA TTT](../assets/reports/gpqa_ttt_50.json)、[BBH baseline](../assets/reports/bbh_sports_baseline_50.json)、[BBH TTT](../assets/reports/bbh_sports_ttt_50.json)、[GSM8K baseline](../assets/reports/gsm8k_baseline_100.json)、[GSM8K TTT](../assets/reports/gsm8k_ttt_100.json)、[HumanEval baseline](../assets/reports/humaneval_baseline_50.json)、[HumanEval TTT](../assets/reports/humaneval_ttt_50.json) 和 [长上下文 JSON](../assets/reports/long_ttt_noadapt_16.json) 已随仓库保存。

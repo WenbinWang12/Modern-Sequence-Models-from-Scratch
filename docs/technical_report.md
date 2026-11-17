@@ -264,3 +264,163 @@ Muon 只应作用于明确选择的二维矩阵参数；embedding、norm、bias�
 - [End-to-End Test-Time Training for Long Context](https://arxiv.org/abs/2512.23675)
 
 StepFun、GLM 等报告也遵循类似的模型规格、数据/训练预算、系统效率、benchmark 和安全披露结构；在正式 TTT 报告中应加入对应版本的原始链接和可复核表格，而不是只引用二手榜单。
+
+## 12. 与成熟技术报告的对齐矩阵
+
+“技术报告”不是把论文摘要扩写，而是给出一条从输入、训练、系统到结论的证据链。公开报告的披露重点并不完全相同：DeepSeek-V3 报告同时给出了总参数、激活参数、训练 token、硬件小时、架构、基础设施、训练稳定性和大规模评测；Qwen2.5 报告把预训练规模、SFT、强化学习、模型家族和多类 benchmark 放在同一条产品证据链中；GPT-4 报告明确说明哪些架构、数据和训练细节没有披露；Claude 系统卡则把能力、安全、红队、代理风险和发布决定作为主要内容；TTT-E2E 报告重点给出内外循环、匹配参数/训练 token、长上下文 loss 和延迟曲线。
+
+| 报告部分 | 大型模型报告中的常见证据 | TTT 报告必须给出的对应证据 | 当前状态 |
+|---|---|---|---|
+| 模型身份 | 版本、规模、激活参数、模型家族 | TTT 版本、slow/fast 参数、配置 hash、checkpoint hash | 部分 measured |
+| 训练数据 | 来源、规模、混合、过滤、token budget | 每个 split 的 manifest、tokenizer、许可和污染报告 | 部分 measured |
+| 训练系统 | GPU 型号、拓扑、精度、吞吐、稳定性 | inner/outer 计算、设备、通信、compile、loss spike、恢复 | CPU measured |
+| 训练方法 | objective、optimizer、schedule、阶段 | inner objective、outer objective、chunk 时序、二阶导、Muon/AdamW 分组 | AdamW measured |
+| Scaling | 不同规模/数据/compute 的曲线 | 参数、激活参数、有效 token、FLOPs、context、适应步数 | not measured |
+| Benchmark | 标准任务、prompt、评分器、CI | PPL、理解/数学/代码/长上下文，adapt/no-adapt 成对结果 | 小型 PPL measured |
+| 安全与治理 | system card、红队、发布等级 | TTT 适应风险、数据许可、PII、越狱、agentic failure | not measured |
+| 可复现 | 代码、权重、配置、环境、日志 | tarball/commit、manifest、metrics、checkpoint、原始评测 JSON | 部分 measured |
+
+### 12.1 透明披露也是结果
+
+有的技术报告由于竞争或安全原因不披露模型规模、数据构造和硬件细节。这种“未披露”本身应被记录，而不是由读者用猜测补齐。本项目选择更严格的研究路线：无法公开的字段写 <code>not_disclosed</code>，尚未执行的检查写 <code>not_measured</code>，估算值写 <code>inferred</code>，实测值链接到原始 JSON。报告不会把估算写成事实。
+
+### 12.2 TTT 特有的最低披露集
+
+普通语言模型报告可以只写一次训练 loss；TTT 报告还必须回答：
+
+1. fast weights 的初态来自哪里，是否依赖慢参数；
+2. 内循环使用哪些目标，目标何时变成已观测信息；
+3. 每个 chunk 的预测、更新、cache 写入顺序；
+4. 外循环是否穿过 inner updates，是否截断高阶梯度；
+5. 推理适应是否修改发布参数，session 是否相互隔离；
+6. adapt/no-adapt 的额外 token、梯度、延迟和内存；
+7. session checkpoint 能否在不同设备布局恢复；
+8. 不适应的 plain baseline 是否拥有相同参数、数据和 FLOPs。
+
+没有这些字段，TTT 的分数无法判断来自模型表示、测试时计算、标签泄漏还是评测协议差异。
+
+## 13. 主实验设计
+
+### 13.1 预注册的主问题
+
+每次正式训练开始前，在 experiment.json 旁保存一份不可变的研究问题：
+
+~~~json
+{
+  "question": "Does TTT reduce held-out NLL at matched parameter, token, and FLOP budgets?",
+  "primary_metric": "test_nll_no_contamination",
+  "secondary_metrics": [
+    "test_ppl",
+    "adapt_minus_no_adapt_nll",
+    "prefill_latency",
+    "decode_tokens_per_second",
+    "fast_state_bytes"
+  ],
+  "primary_comparison": "plain_vs_ttt",
+  "budget": {
+    "parameters": "matched",
+    "effective_tokens": "matched",
+    "training_flops": "matched"
+  },
+  "seeds": [0, 1, 2]
+}
+~~~
+
+研究问题一旦确定，不能在看完 test 结果后替换成更有利的问题。任何追加分析都要标记为 secondary 或 exploratory。
+
+### 13.2 三组必要对照
+
+正式主表至少包含：
+
+1. **Plain baseline**：没有 fast-weight 更新的同架构模型；
+2. **TTT no-adapt**：保留 TTT 参数但推理时关闭适应；
+3. **TTT adapt**：执行预先声明的会话内更新。
+
+这三组分别回答：结构本身是否有效、训练是否改变了慢参数表示、推理适应是否贡献额外收益。只比较 TTT adapt 与普通小模型，会把参数结构、训练策略和推理时额外计算混在一起。
+
+### 13.3 成本匹配
+
+记录每次运行的有效 token 数：
+
+~~~text
+effective_tokens = sum(batch_size * sequence_length * loss_mask)
+~~~
+
+还要记录内循环更新的次数、外循环反向的 FLOPs、编译时间和 wall-clock。TTT 的每个 token 可能触发额外的梯度计算，因此“训练步数相同”不等于“计算预算相同”。如果采用 matched-FLOPs 对照，应允许步数不同，但必须报告因此改变的 token 数。
+
+## 14. 图表和表格设计
+
+一份可读的技术报告不应把所有数字塞进一张 benchmark 表。建议固定以下图表：
+
+| 图/表 | 横轴 | 纵轴或内容 | 目的 |
+|---|---|---|---|
+| Figure 1 | context length | held-out loss | 长上下文质量 |
+| Figure 2 | context length | prefill/decode latency | 计算成本 |
+| Figure 3 | training tokens | train/validation NLL | 是否过拟合、是否收敛 |
+| Figure 4 | parameters/tokens | loss | scaling law |
+| Figure 5 | inner steps | NLL/latency | 适应收益和成本 |
+| Figure 6 | seed | test NLL/PPL | 方差和置信区间 |
+| Table 1 | model variants | 参数、激活参数、context | 模型规格 |
+| Table 2 | data splits | 文档、token、hash、license | 数据身份 |
+| Table 3 | benchmark | score、N、CI、prompt version | 可比性 |
+| Table 4 | systems | FLOPs、吞吐、显存、compile | 成本 |
+| Table 5 | failure cases | 输入、预期、实际、根因 | 限制与诚实披露 |
+
+图表脚本必须读取原始 JSONL，而不是手工复制最终数字。每个图旁边保存输入文件 hash、脚本 commit 和生成时间；如果图表重绘，旧图不能被静默覆盖。
+
+## 15. 失败分析与反例
+
+成熟报告不会只展示成功案例。TTT 报告至少需要保留：
+
+- loss spike、NaN、梯度爆炸和恢复前后的 checkpoint；
+- fast weights 发散、更新范数饱和或适应后 NLL 变差的样本；
+- 长上下文中检索正确但生成格式错误的样本；
+- 适应后优于 no-adapt 但在新域退化的样本；
+- tokenizer 不匹配、mask 全零、文档边界错误和污染检测失败；
+- Muon 与 AdamW 在高阶梯度、速度、稳定性上的失败对照。
+
+每条失败记录包含输入版本、随机种子、命令、错误类型、是否重试、修复提交和是否进入最终统计。删除失败运行会破坏训练稳定性结论。
+
+## 16. 发布门槛
+
+TTT 模型达到“可发表/可发布”之前，必须同时满足：
+
+### A. 数值正确性
+
+- 反向梯度有限；
+- 因果性和 future-token 修改测试通过；
+- full sequence 与 prefill/decode 在容忍范围内一致；
+- fast state、KV、pending chunk 的 checkpoint 恢复一致。
+
+### B. 训练证据
+
+- 至少一个 plain baseline 和一个 TTT variant；
+- 固定 tokenizer、数据、有效 token 和 FLOPs；
+- 至少三个 seed 或有预先声明的单 seed 限制；
+- 独立 validation/test，不用 test 选超参；
+- loss、吞吐、显存、compile、checkpoint 和失败日志齐全。
+
+### C. 能力证据
+
+- held-out NLL/PPL；
+- 至少一个公开理解/数学/代码 benchmark；
+- 至少一个长上下文 benchmark；
+- adapt/no-adapt 和失败率；
+- 污染检查和评分器版本。
+
+### D. 治理证据
+
+- 数据许可证和 PII 处理；
+- 安全/偏见/越狱/危险能力评估；
+- 模型卡、限制和可接受使用范围；
+- 权重、代码、配置和复现说明。
+
+当前 CPU pilot 只满足 A 的大部分、B 的工程子集和 C 的 held-out PPL 子集，因此应被称为 **engineering and algorithm pilot**，而不是完整发布模型。
+
+## 17. 版本记录
+
+| 版本 | 日期 | 变化 | 证据状态 |
+|---|---|---|---|
+| 0.1 | 2026-11-17 | CPU pilot、PPL、profile、技术报告草稿 | measured / not measured 混合，不能作能力发布 |
+| 0.2 | 待定 | AdamW/Muon 配对、plain baseline、多 seed | planned |
+| 1.0 | 待定 | GPU 规模、完整 benchmark、安全和复现包 | release gate |

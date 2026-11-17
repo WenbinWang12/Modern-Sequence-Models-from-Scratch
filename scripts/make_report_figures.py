@@ -1018,6 +1018,31 @@ def collect_provenance(runs, results):
         results["provenance"] = provenance
 
 
+def collect_interruptions(runs, results):
+    """记录监督训练脚本捕获的中断和恢复次数。"""
+    records = {}
+    total = 0
+    for run in sorted(path for path in runs.iterdir() if path.is_dir()):
+        path = run / "interruptions.jsonl"
+        if not path.exists():
+            continue
+        events = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        records[run.name] = {
+            "count": len(events),
+            "resumed_from_steps": [event.get("resumed_from_step") for event in events],
+        }
+        total += len(events)
+    if records:
+        results["interruptions"] = {"total": total, "runs": records}
+
+
 def collect_niah(directory, results):
     """单针检索：准确率，以及“针在场 vs 不在场”的答案对数似然差。"""
     table = {}
@@ -1075,6 +1100,7 @@ def main() -> None:
     collect_benchmarks(args.benchmarks, results)
     collect_audits(args.audits, args.data, results)
     collect_provenance(args.runs, results)
+    collect_interruptions(args.runs, results)
     collect_sessions(args.evals, results)
     collect_niah(args.niah, results)
     copy_raw(args)

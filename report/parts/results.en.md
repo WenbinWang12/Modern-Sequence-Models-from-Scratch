@@ -96,7 +96,7 @@ Table 5. Needle in a haystack: one sentence, “One of the special magic numbers
 
 </div>
 
-Table 6. Zero-shot accuracy (%) of the four models in this report. HellaSwag, PIQA, ARC and OpenBookQA report accuracy normalised by choice length; the others report plain accuracy. “Mean” is the arithmetic mean of the ten tasks.
+Table 6. Zero-shot accuracy (%) for the four trained configurations in this report, with the TTT checkpoint also evaluated with test-time updates disabled. HellaSwag, PIQA, ARC and OpenBookQA report accuracy normalised by choice length; the others report plain accuracy. “Mean” is the arithmetic mean of the ten tasks.
 
 <div class="report-table" markdown>
 

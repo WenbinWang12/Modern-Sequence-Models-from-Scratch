@@ -96,7 +96,7 @@
 
 </div>
 
-表 6　本报告四个模型的零样本准确率（%）。HellaSwag、PIQA、ARC、OpenBookQA 报告按候选项长度归一化的准确率，其余为普通准确率；“平均”是十项的算术平均。
+表 6　本报告四个训练配置的零样本准确率（%），并额外列出关闭测试时更新的 TTT 检查点。HellaSwag、PIQA、ARC、OpenBookQA 报告按候选项长度归一化的准确率，其余为普通准确率；“平均”是十项的算术平均。
 
 <div class="report-table" markdown>
 

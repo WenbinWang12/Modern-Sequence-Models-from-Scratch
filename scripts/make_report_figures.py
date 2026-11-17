@@ -974,7 +974,7 @@ def collect_benchmarks(directory, results):
 
 def collect_audits(directory, data, results):
     audits = {}
-    for name in ("sampler_main", "duplicates", "benchmark_overlap"):
+    for name in ("sampler_main", "matched_batches", "duplicates", "benchmark_overlap"):
         path = directory / f"{name}.json"
         if path.exists():
             audits[name] = read_json(path)

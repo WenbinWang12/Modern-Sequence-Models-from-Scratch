@@ -158,6 +158,8 @@ The two corpora complement each other. FineWeb-Edu is web text filtered by a qua
 
 Training touches only a small part of each corpus, and the great majority of training windows are seen once.
 
+The four main models share this one sampler: instantiated from each of their own configurations, the tokens and masks of the first 20 batches are byte-identical (digest `bea8b574b5ba…`), as are the seed, step count, batch size, sequence length, learning rate and data fingerprint. Any difference between the models in Section 4 therefore comes from architecture and test-time updates, and cannot come from the data or its order.
+
 ### 3.3 Training
 
 | Item | Value |
@@ -290,8 +292,8 @@ To be written.
 
 | Model | Params | HellaSwag | PIQA | ARC-E | ARC-C | WinoGrande | SciQ | OBQA | BLiMP | MMLU | LAMBADA | Mean |
 |:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| Sliding window | 124M | 27.1 | 57.9 | 38.2 | 22.6 | 52.2 | 70.1 | 25.4 | – | – | 17.7 | – |
-| 95% CI half-width |  | ±0.9 | ±2.3 | ±2.0 | ±2.4 | ±2.7 | ±2.8 | ±3.8 | – | – | ±1.0 |  |
+| Sliding window | 124M | 27.1 | 57.9 | 38.2 | 22.6 | 52.2 | 70.1 | 25.4 | 76.0 | 23.0 | 17.7 | 41.0 |
+| 95% CI half-width |  | ±0.9 | ±2.3 | ±2.0 | ±2.4 | ±2.7 | ±2.8 | ±3.8 | ±0.3 | ±0.7 | ±1.0 |  |
 
 </div>
 
@@ -337,7 +339,7 @@ Table 8. Public models evaluated with the same script and protocol (%). Paramete
 
 | Model | Max context | WikiText-103 word PPL | WikiText-103 bits/byte | PG-19 test word PPL | PG-19 test bits/byte | LAMBADA PPL |
 |:--|--:|--:|--:|--:|--:|--:|
-| Sliding window | 4,096 | – | – | – | – | 382.44 |
+| Sliding window | 4,096 | 73.05 | 1.158 | 106.09 | 1.158 | 382.44 |
 | DistilGPT-2 | 1,024 | 52.96 | 1.071 | 370.39 | 1.469 | 96.85 |
 | GPT-2 | 1,024 | 37.37 | 0.977 | 280.89 | 1.400 | 40.06 |
 | GPT-2 Medium | 1,024 | 26.75 | 0.887 | 143.89 | 1.234 | 18.26 |

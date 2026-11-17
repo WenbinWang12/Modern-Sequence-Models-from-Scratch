@@ -6,6 +6,7 @@
 - ``sampler``：按训练配置重放混合采样器的随机数（不读 token），统计每个来源实际被抽到的
   窗口数、被覆盖的语料比例和重复采样程度；
 - ``duplicates``：held-out 文档与训练文档的规范化全文哈希比对（精确重复）；
+- ``batches``：按各个实验配置实例化采样器，核对它们是否真的读到同一批训练数据；
 - ``benchmarks``：把每道 benchmark 题目的规范化题干片段放进 Aho-Corasick 自动机，
   扫描全部训练语料原文，报告出现精确匹配的题目数。
 
@@ -95,6 +96,58 @@ def audit_sampler(args) -> dict:
 
 
 # --------------------------------------------------------------------------- duplicates
+
+
+def audit_batches(args) -> dict:
+    """核对若干实验配置是否真的读到同一批训练数据：对前若干个 batch 的 token 和掩码取摘要。"""
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from ttt.config import load_experiment
+    from ttt.data import BatchStream
+
+    runs = {}
+    for path in args.configs:
+        experiment = load_experiment(path)
+        training = experiment.training
+        stream = BatchStream(
+            args.recipe,
+            sequence_length=training.sequence_length,
+            batch_size=training.batch_size,
+            vocab_size=experiment.model.vocab_size,
+            seed=training.seed,
+        )
+        digest = hashlib.sha256()
+        for _ in range(args.batches):
+            tokens, masks = stream.next_batch_with_masks()
+            digest.update(tokens.tobytes())
+            digest.update(masks.tobytes())
+        runs[Path(path).stem] = {
+            "batches_sha256": digest.hexdigest(),
+            "seed": training.seed,
+            "steps": training.steps,
+            "batch_size": training.batch_size,
+            "sequence_length": training.sequence_length,
+            "learning_rate": training.learning_rate,
+            "data_fingerprint": stream.fingerprint,
+            "layer_types": sorted(set(experiment.model.layer_types)),
+            "use_fast_mlp": experiment.model.use_fast_mlp,
+            "ttt_suffix_length": experiment.model.ttt_suffix_length,
+            "ttt_chunk_size": experiment.model.ttt_chunk_size,
+            "inner_enabled": experiment.inner.enabled,
+        }
+    identical = len({entry["batches_sha256"] for entry in runs.values()}) == 1
+    budget = {
+        key: len({entry[key] for entry in runs.values()}) == 1
+        for key in ("seed", "steps", "batch_size", "sequence_length", "learning_rate", "data_fingerprint")
+    }
+    return {
+        "recipe": str(Path(args.recipe).resolve()),
+        "batches_compared": args.batches,
+        "identical_batches": identical,
+        "identical_budget": budget,
+        "runs": runs,
+    }
 
 
 def _parquet_digests(task):
@@ -287,6 +340,10 @@ def main() -> None:
     sampler = commands.add_parser("sampler")
     sampler.add_argument("--recipe", required=True)
     sampler.add_argument("--config", required=True)
+    batches = commands.add_parser("batches")
+    batches.add_argument("--recipe", required=True)
+    batches.add_argument("--configs", nargs="+", required=True)
+    batches.add_argument("--batches", type=int, default=20)
     duplicates = commands.add_parser("duplicates")
     benchmarks = commands.add_parser("benchmarks")
     for command in (duplicates, benchmarks):
@@ -299,12 +356,16 @@ def main() -> None:
     benchmarks.add_argument("--benchmarks", default="data/benchmarks")
     benchmarks.add_argument("--probe-characters", type=int, default=80)
     benchmarks.add_argument("--minimum-characters", type=int, default=50)
-    for command in (sampler, duplicates, benchmarks):
+    for command in (sampler, batches, duplicates, benchmarks):
         command.add_argument("--output", required=True)
     args = parser.parse_args()
-    result = {"sampler": audit_sampler, "duplicates": audit_duplicates, "benchmarks": audit_benchmarks}[args.command](
-        args
-    )
+    audits = {
+        "sampler": audit_sampler,
+        "batches": audit_batches,
+        "duplicates": audit_duplicates,
+        "benchmarks": audit_benchmarks,
+    }
+    result = audits[args.command](args)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

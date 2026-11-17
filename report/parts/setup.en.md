@@ -40,6 +40,8 @@ The two corpora complement each other. FineWeb-Edu is web text filtered by a qua
 
 Training touches only a small part of each corpus, and the great majority of training windows are seen once.
 
+The four main models share this one sampler: instantiated from each of their own configurations, the tokens and masks of the first 20 batches are byte-identical (digest `{{ r.audits.matched_batches.runs.main_ttt.batches_sha256[:12] }}…`), as are the seed, step count, batch size, sequence length, learning rate and data fingerprint. Any difference between the models in Section 4 therefore comes from architecture and test-time updates, and cannot come from the data or its order.
+
 ### 3.3 Training
 
 | Item | Value |

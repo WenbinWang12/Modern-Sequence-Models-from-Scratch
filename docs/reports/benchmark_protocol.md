@@ -70,6 +70,8 @@ GSM8K 使用 greedy numeric exact match：test 前 100 题 baseline 和 TTT 都�
 
 RULER/LongBench 的前置 synthetic key-value 诊断在 256、512、1024 请求长度各取 16 题：baseline、TTT no-adapt 和 TTT adapt 的 exact match 全部为 0。它不是公开 RULER/LongBench 分数；正式测评仍需固定套件 revision、任务集合、答案归一化、多 seed 和污染审计。
 
+当前 15M 配置的 `max_position_embeddings` 为 2048，而官方 RULER 的标准 context bands 从 4K 开始；直接截断到 2048 会改变任务定义，所以本轮不冒充官方 RULER 分数。LongBench 同样需要按 task 固定原始输入、答案归一化和长度策略；在 tokenizer 与长上下文配置冻结前不静默截断，暂只保留 synthetic preflight。
+
 ## 3. 污染与可比性检查
 
 在正式评测前，训练语料、tokenizer 训练文本和 benchmark 的题目/答案需要做 exact match、Unicode NFC 归一化后的匹配、长子串匹配和近似匹配。每个 benchmark 还要固定 revision、split、prompt、shot 数、答案归一化、超时规则和重复次数。闭源模型只能作为外部参考，不能在不等价协议下写成“击败”。

@@ -58,6 +58,8 @@ On the H200 15M mixture pair, the five-subject MMLU subset gave 116/392 (29.59%)
 
 The same pair gave ARC-Challenge 12/100 for the baseline and 11/100 for TTT no-adapt, and PIQA 57/100 for both. Greedy GSM8K numeric exact match was 0/100 for both; HumanEval official test execution was 0/50 pass@1 for both. A synthetic key-value diagnostic at requested lengths 256, 512, and 1024 produced 0/16 at every length for baseline, TTT no-adapt, and TTT adapt. The synthetic test is a RULER/LongBench preflight, not a public-suite score.
 
+The current 15M configuration has `max_position_embeddings=2048`, while the standard RULER context bands begin at 4K. Truncating those tasks to 2048 would change the task, so no official RULER score is claimed. LongBench also requires task-specific input preservation, answer normalization, and length policies; until the tokenizer and long-context configuration are frozen, we keep only the synthetic preflight.
+
 ## Contamination and comparability
 
 Before formal evaluation, compare the training corpus, tokenizer training text, and benchmark questions/answers with exact matching, NFC-normalized matching, long-substring matching, and approximate matching. Fix the revision, split, prompt, shot count, normalization, timeout rule, and repeat count for every benchmark. Closed models are external references; unequal protocols must not be reported as a victory.

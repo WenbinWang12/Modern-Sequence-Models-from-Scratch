@@ -424,6 +424,7 @@ TTT 模型达到“可发表/可发布”之前，必须同时满足：
 | 0.1 | 2026-11-17 | CPU pilot、PPL、profile、技术报告草稿 | measured / not measured 混合，不能作能力发布 |
 | 0.2 | 待定 | AdamW/Muon 配对、plain baseline、多 seed | planned |
 | 0.3 | 2026-11-17 | H200 15M 混合数据、MMLU 与 HellaSwag 诊断 | measured pilot，不能作榜单比较 |
+| 0.4 | 2026-11-17 | ARC、PIQA、GSM8K、HumanEval、synthetic long-context 诊断 | measured pilot，不能作榜单比较 |
 | 1.0 | 待定 | GPU 规模、完整 benchmark、安全和复现包 | release gate |
 
 ## 18. H200 15M scaling（measured）

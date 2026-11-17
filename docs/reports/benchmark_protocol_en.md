@@ -25,6 +25,8 @@ The 15M byte-token numbers retained below are an earlier pipeline-validation rec
 
 These tiers are complementary. A lower PPL does not imply a higher GSM8K score, and MMLU answer selection does not replace execution-based code evaluation. A release table should cover knowledge/commonsense, mathematics or code, and long context, together with held-out NLL.
 
+The reproducible extension runner is `scripts/run_extended_benchmarks.sh`. It runs ARC-Challenge, PIQA, GPQA, GSM8K, HumanEval, the `sports_understanding` BBH diagnostic, and a synthetic key-value long-context preflight for a chosen final checkpoint. The synthetic row is an engineering check for RULER/LongBench integration and is never presented as an official score.
+
 ## Current MMLU diagnostic
 
 `scripts/eval_mmlu_loglikelihood.py` reads MMLU test CSV files and constructs:

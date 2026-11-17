@@ -16,6 +16,7 @@
 | 层级 | 任务 | 主要回答的问题 | 当前状态 |
 | --- | --- | --- | --- |
 | 训练健康度 | held-out NLL、PPL、数据混合比例、重复率 | 模型是否学会了训练分布，训练是否稳定 | 已运行 |
+可复现的扩展 runner 是 `scripts/run_extended_benchmarks.sh`，为指定的最终检查点运行 ARC-Challenge、PIQA、GPQA、GSM8K、HumanEval、`sports_understanding` BBH 诊断和合成键值长上下文前置检查。合成行用于验证 RULER/LongBench 接入，不会被当作正式套件分数。
 | 基础知识与常识 | MMLU、ARC-E/ARC-C、OpenBookQA、PIQA、HellaSwag、WinoGrande | 小模型是否形成可迁移的知识和常识判断 | 1.0 滑窗与公开参考模型已入库；TTT 主表待完成 |
 | 数学推理 | GSM8K、MATH、AIME/AMC | 能否进行多步符号推理 | GSM8K 有 15M 流程诊断；1.0 主实验待运行 |
 | 代码 | HumanEval、MBPP、LiveCodeBench | 代码生成、执行正确性和时间切分泛化 | HumanEval 有 15M 流程诊断；1.0 主实验待运行 |

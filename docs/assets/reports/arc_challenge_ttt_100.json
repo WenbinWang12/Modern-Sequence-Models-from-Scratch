@@ -1,10 +1,10 @@
 {
   "protocol_version": "arc_piqa_loglikelihood_v1",
-  "protocol": "arc validation split; zero-shot answer-text continuation log-likelihood; byte tokenizer; no adaptation",
+  "protocol": "arc test split; zero-shot answer-text continuation log-likelihood; byte tokenizer; no adaptation",
   "task": "arc",
   "checkpoint": "outputs/h200-15m-ttt-mixture-85-15/step_00010000.orbax",
   "checkpoint_metadata_sha256": "c82e827c1df9f4e360b97afc80c0cf5beb58cb1d7531aba825c2d5be2ba5498b",
-  "script_sha256": "8d90b691215f1024c5b6e073972f351af81cbc01ff7d80c23ed85b3eafd2a63d",
+  "script_sha256": "8f7631fbf4aab128e7b3637a4210f3f872af249743c20823dbf893e33d67ce72",
   "data": "/home/wang.21020/modern-sequence-run/data/public/arc/arc_challenge_test.jsonl",
   "data_sha256": "03227c30fd557ad1416c2cb955eeb6dc79eeb21e0679456a1ccd42eaccc0ff87",
   "limit": 100,

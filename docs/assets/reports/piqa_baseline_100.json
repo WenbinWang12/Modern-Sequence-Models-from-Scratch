@@ -4,7 +4,7 @@
   "task": "piqa",
   "checkpoint": "outputs/h200-15m-baseline-mixture-85-15/step_00010000.orbax",
   "checkpoint_metadata_sha256": "c5a6ac43b55a2b52dc2956df4b951db1171fb69360f69b344f1d53c308f7d4bb",
-  "script_sha256": "8ac5ad7e667b45fe845ba4a83e4078770d0db808dcc758da18897ac610fb5b45",
+  "script_sha256": "8f7631fbf4aab128e7b3637a4210f3f872af249743c20823dbf893e33d67ce72",
   "data": "/home/wang.21020/modern-sequence-run/data/public/piqa/piqa_validation.jsonl",
   "data_sha256": "61533005e22f175534909b1ec8eacb6da03c233933558d1bafb15787453b1f55",
   "limit": 100,

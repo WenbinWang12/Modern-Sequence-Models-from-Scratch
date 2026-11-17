@@ -82,7 +82,7 @@ recipe = {
     "format": "ttt_mixture_v1",
     "formula": "p_j = (N_j / sum(N)) ** alpha / sum_i((N_i / sum(N)) ** alpha)",
     "alpha": alpha,
-    "selection_unit": "equal_valid_length_window",
+    "selection_unit": "window",
     "target_tokens": 1_000_000_000,
     "exhaustion_policy": "with_replacement",
     "sources": [

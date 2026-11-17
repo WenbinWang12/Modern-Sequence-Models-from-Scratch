@@ -30,7 +30,14 @@ train() { # train <config-name> <run-name>
     return 0
   fi
   log "train $2"
-  scripts/run_report_arm.sh "configs/report/$1.json" "$2" "$gpu" >>"logs/train_$2.log" 2>&1 || log "FAILED train $2"
+  # 经监督脚本启动：共享机器上进程被别人杀掉时自动从检查点续跑。
+  scripts/supervise_training.sh "configs/report/$1.json" "$2" "$gpu" || log "FAILED train $2"
+}
+
+prune() { # prune <arm>：曲线评测取完数值后删掉中间检查点，主目录有配额限制
+  log "prune $1"
+  "$python" scripts/prune_checkpoints.py --runs "outputs/main-$1" --keep 6000 --apply \
+    >>logs/pipeline_evals.log 2>&1 || log "FAILED prune $1"
 }
 
 evals() { # evals <stage> [arms...]
@@ -111,11 +118,13 @@ case "$plan" in
 baseline)
   train main_swa main-swa
   evals curves swa
+  prune swa
   evals main swa
   evals long swa
   bench main_swa main-swa
   train main_full main-full
   evals curves full
+  prune full
   evals main full
   evals long full
   bench main_full main-full
@@ -133,12 +142,14 @@ baseline)
 ttt)
   train main_ttt main-ttt
   evals curves ttt
+  prune ttt
   evals main ttt
   evals long ttt
   bench main_ttt main-ttt
   bench main_ttt_noadapt main-ttt --no-adapt
   train main_ck main-ck
   evals curves ck
+  prune ck
   evals main ck
   evals long ck
   bench main_ck main-ck

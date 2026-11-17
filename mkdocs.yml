@@ -118,6 +118,7 @@ nav:
       - TTT 技术报告: technical_report.md
       - CPU Pilot 训练曲线: reports/cpu_pilot_1m.md
       - H200 15M Scaling: reports/h200_scaling.md
+      - Benchmark 测评协议: reports/benchmark_protocol.md
       - 验证记录: validation.md
       - 工程对齐: industry_alignment.md
       - 生产要求: production_requirements.md

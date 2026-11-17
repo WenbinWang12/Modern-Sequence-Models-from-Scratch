@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # 监督一次训练：进程意外退出就从最近的检查点续跑，直到 status.json 变成 complete。
 #
-# 这台 GPU 机器是多人共享、没有调度器的，别的用户清理显卡时会连带杀掉我们的进程
-# （2026-11-17 13:02 发生过一次，两个训练同时被 SIGKILL，日志里没有任何异常输出）。
-# 训练本身支持 --auto-resume，恢复参数、优化器状态和数据采样位置，所以代价只是
-# 上一个检查点之后的若干步。
+# 这台 GPU 机器是多人共享、没有调度器的。2026-11-17 曾因用户级 NFS 磁盘配额耗尽，
+# 检查点和错误状态都无法写入，训练进程因此中断。训练本身支持 --auto-resume，恢复
+# 参数、优化器状态和数据采样位置，所以代价只是上一个检查点之后的若干步。
 #
 # 用法：scripts/supervise_training.sh <config.json> <run-name> <gpu-index> [data-recipe]
 set -uo pipefail

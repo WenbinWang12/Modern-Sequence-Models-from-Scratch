@@ -30,7 +30,7 @@ train() { # train <config-name> <run-name>
     return 0
   fi
   log "train $2"
-  # 经监督脚本启动：共享机器上进程被别人杀掉时自动从检查点续跑。
+  # 经监督脚本启动：进程因配额或外部中断退出时自动从检查点续跑。
   scripts/supervise_training.sh "configs/report/$1.json" "$2" "$gpu" || log "FAILED train $2"
 }
 

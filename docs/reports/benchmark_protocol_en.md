@@ -56,6 +56,8 @@ Run the baseline on GPU7 by changing the checkpoint and device. Keep the experim
 
 On the H200 15M mixture pair, the five-subject MMLU subset gave 116/392 (29.59%) for the plain baseline and 104/392 (26.53%) for TTT no-adapt. On the first 100 HellaSwag validation examples, both models gave 32/100 (32%). These are byte-token, non-instruction-tuned pilot measurements, not leaderboard scores.
 
+The same pair gave ARC-Challenge 12/100 for the baseline and 11/100 for TTT no-adapt, and PIQA 57/100 for both. Greedy GSM8K numeric exact match was 0/100 for both; HumanEval official test execution was 0/50 pass@1 for both. A synthetic key-value diagnostic at requested lengths 256, 512, and 1024 produced 0/16 at every length for baseline, TTT no-adapt, and TTT adapt. The synthetic test is a RULER/LongBench preflight, not a public-suite score.
+
 ## Contamination and comparability
 
 Before formal evaluation, compare the training corpus, tokenizer training text, and benchmark questions/answers with exact matching, NFC-normalized matching, long-substring matching, and approximate matching. Fix the revision, split, prompt, shot count, normalization, timeout rule, and repeat count for every benchmark. Closed models are external references; unequal protocols must not be reported as a victory.

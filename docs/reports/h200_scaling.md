@@ -44,3 +44,16 @@ PPL 使用 WikiText-2 validation/test，各 128 个随机窗口、约 65k 有效
 HellaSwag validation 前 100 题的 continuation 诊断中，baseline 与 TTT no-adapt 都是 32/100（32%）；它们使用完全相同的 byte tokenizer、512 token 上限和题目子集，因此这里只能说本次小样本没有观察到差异。仓库也保存了 [baseline HellaSwag JSON](../assets/reports/hellaswag_baseline_100.json) 和 [TTT HellaSwag JSON](../assets/reports/hellaswag_ttt_100.json)。
 
 仓库也保存了本次远端运行导出的 [来源比例审计](../assets/reports/h200_mixture_source_probe.json)、[baseline MMLU](../assets/reports/mmlu_baseline_mixture_5x100.json)、[TTT MMLU](../assets/reports/mmlu_ttt_mixture_5x100.json)、[baseline valid PPL](../assets/reports/ppl_baseline_mixture_valid.json)、[baseline test PPL](../assets/reports/ppl_baseline_mixture_test.json)、[TTT no-adapt valid PPL](../assets/reports/ppl_ttt_mixture_noadapt_valid.json)、[TTT no-adapt test PPL](../assets/reports/ppl_ttt_mixture_noadapt_test.json)、[TTT adapt valid PPL](../assets/reports/ppl_ttt_mixture_adapt_valid.json) 和 [TTT adapt test PPL](../assets/reports/ppl_ttt_mixture_adapt_test.json)。
+
+## 其他 benchmark 诊断
+
+| 任务 | Plain baseline | TTT no-adapt | 协议 |
+|---|---:|---:|---|
+| ARC-Challenge | 12/100 | 11/100 | test 前 100 题，答案文本 continuation |
+| PIQA | 57/100 | 57/100 | validation 前 100 题，答案文本 continuation |
+| GSM8K | 0/100 | 0/100 | greedy numeric exact match |
+| HumanEval | 0/50 | 0/50 | 官方测试执行，pass@1 |
+
+合成长上下文 key-value 诊断在 256、512、1024 请求长度各取 16 题；baseline、TTT no-adapt 和 TTT adapt 的 exact match 全部为 0。这一项是 RULER/LongBench 的前置工程诊断，不能当作公开套件分数。
+
+对应的 [ARC 结果](../assets/reports/arc_challenge_baseline_100.json)、[TTT ARC 结果](../assets/reports/arc_challenge_ttt_100.json)、[PIQA 结果](../assets/reports/piqa_baseline_100.json)、[TTT PIQA 结果](../assets/reports/piqa_ttt_100.json)、[GSM8K baseline](../assets/reports/gsm8k_baseline_100.json)、[GSM8K TTT](../assets/reports/gsm8k_ttt_100.json)、[HumanEval baseline](../assets/reports/humaneval_baseline_50.json)、[HumanEval TTT](../assets/reports/humaneval_ttt_50.json) 和 [长上下文 JSON](../assets/reports/long_ttt_noadapt_16.json) 已随仓库保存。

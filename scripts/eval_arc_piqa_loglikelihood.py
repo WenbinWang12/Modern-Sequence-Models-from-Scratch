@@ -108,9 +108,10 @@ def evaluate(checkpoint_path: Path, data_path: Path, task: str, *, limit: int | 
             skipped += 1
     samples = len(rows) - skipped
     metadata_path = checkpoint_path / "metadata.json" if checkpoint_path.is_dir() else checkpoint_path
+    split = "test" if task == "arc" else "validation"
     return {
         "protocol_version": "arc_piqa_loglikelihood_v1",
-        "protocol": f"{task} validation split; zero-shot answer-text continuation log-likelihood; byte tokenizer; no adaptation",
+        "protocol": f"{task} {split} split; zero-shot answer-text continuation log-likelihood; byte tokenizer; no adaptation",
         "task": task,
         "checkpoint": str(checkpoint_path),
         "checkpoint_metadata_sha256": _sha256(metadata_path) if metadata_path.is_file() else None,

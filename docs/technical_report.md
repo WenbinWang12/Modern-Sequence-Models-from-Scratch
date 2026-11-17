@@ -451,3 +451,9 @@ TTT 模型达到“可发表/可发布”之前，必须同时满足：
 PPL 是每个 split 128 个随机窗口、约 65k 有效 token；MMLU 是零样本答案字母 continuation log-likelihood，byte tokenizer、最大 512 token、TTT 适配关闭。该 MMLU 结果属于 diagnostic：模型只有约 15M 参数且没有 instruction tuning，且 professional_law 由于上下文上限跳过 95/100 题，不能和公开厂商榜单比较，也不能据此宣称 TTT 的通用能力下降或提升。正式 benchmark release 仍需 tokenizer 冻结、多 seed、污染审计和数学/代码/长上下文任务。
 
 同一协议下又抽取 HellaSwag validation 前 100 题：plain baseline 与 TTT no-adapt 都为 32/100（32%），没有观察到差异。该子集和 byte-token 设置同样只用于诊断；完整 validation split、长度归一化、更多 seed 和污染审计完成前，不把它写成能力结论。
+
+### 18.2 其他公开 benchmark 与长上下文前置诊断（measured）
+
+在同一 H200 混合数据配对上，ARC-Challenge test 前 100 题为 baseline 12/100、TTT no-adapt 11/100；PIQA validation 前 100 题两者均为 57/100。GSM8K test 前 100 题 greedy numeric exact match 两者均为 0/100；HumanEval 官方测试前 50 题两者均为 pass@1 0/50。
+
+这些生成和选择结果都来自 15M、byte-token、非 instruction-tuned base model，只能证明评测链路已经可以运行。合成长上下文 key-value 前置诊断在 256、512、1024 请求长度各取 16 题，plain baseline、TTT no-adapt 与 TTT adapt 的 exact match 均为 0。该诊断不是 RULER 或 LongBench 分数；正式结果仍需使用固定 revision 的公开套件、多 seed、污染检查和完整任务集合。

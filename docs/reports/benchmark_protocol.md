@@ -64,6 +64,12 @@ baseline 只替换 checkpoint 路径和 `CUDA_VISIBLE_DEVICES=7`。评测结果�
 
 ARC 与 PIQA 使用 `scripts/eval_arc_piqa_loglikelihood.py`。ARC 输入为官方 JSONL 的 `question.stem`、`choices`、`answerKey` 字段，PIQA 输入为 `goal`、`sol1`、`sol2`、`label` 字段；脚本将答案文本作为 continuation 评分，并记录超过 512 token 的跳过样本。它们与 MMLU 一样先作为小规模诊断，正式结果仍需完整 split、多 seed 和污染审计。
 
+H200 15M 混合数据配对的前 100 题诊断为：ARC-Challenge baseline 12/100、TTT no-adapt 11/100；PIQA baseline 和 TTT no-adapt 都是 57/100。它们均为 byte tokenizer、no-adapt、512-token 上限，不能解释成正式榜单差异。
+
+GSM8K 使用 greedy numeric exact match：test 前 100 题 baseline 和 TTT 都是 0/100。HumanEval 使用官方测试执行前 50 题，baseline 和 TTT 的 pass@1 都是 0/50。当前模型是 15M、byte-token、非 instruction-tuned base model，这两个生成任务结果只用于确认评测链路。
+
+RULER/LongBench 的前置 synthetic key-value 诊断在 256、512、1024 请求长度各取 16 题：baseline、TTT no-adapt 和 TTT adapt 的 exact match 全部为 0。它不是公开 RULER/LongBench 分数；正式测评仍需固定套件 revision、任务集合、答案归一化、多 seed 和污染审计。
+
 ## 3. 污染与可比性检查
 
 在正式评测前，训练语料、tokenizer 训练文本和 benchmark 的题目/答案需要做 exact match、Unicode NFC 归一化后的匹配、长子串匹配和近似匹配。每个 benchmark 还要固定 revision、split、prompt、shot 数、答案归一化、超时规则和重复次数。闭源模型只能作为外部参考，不能在不等价协议下写成“击败”。

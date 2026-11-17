@@ -124,6 +124,14 @@
 
 {% include parts/results_4_7.zh.md %}
 
+<div class="report-table" markdown>
+
+{% table extended_benchmarks %}
+
+</div>
+
+表 9a　本项目要求的扩展诊断。ARC、PIQA 和 GPQA 使用答案文本 continuation 评分；GSM8K 和 HumanEval 使用 greedy generation；BBH 是指定的单个子任务。合成长上下文一行是 RULER/LongBench 的工程前置诊断，不是正式套件分数。
+
 ### 4.8 消融
 
 <figure markdown="span" class="report-figure">

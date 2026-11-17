@@ -371,6 +371,45 @@ def table_benchmarks(r, lang, which="all"):
     return markdown_table(header, rows)
 
 
+def table_extended_benchmarks(r, lang):
+    """输出扩展 benchmark 的有效样本数、分数和协议版本。"""
+    data = r["extended_benchmarks"]
+    header = {
+        "zh": ["任务", "适配", "有效样本", "分数", "协议"],
+        "en": ["Task", "Adaptation", "Valid samples", "Score", "Protocol"],
+    }[lang]
+    labels = {
+        "arc": "ARC-Challenge",
+        "piqa": "PIQA",
+        "gpqa": "GPQA",
+        "gsm8k": "GSM8K",
+        "humaneval": "HumanEval",
+        "bbh": "BBH sports_understanding",
+        "synthetic_long_context": "Synthetic long-context preflight",
+    }
+    rows = []
+    for key in sorted(data.keys()):
+        entry = data[key]
+        task = labels.get(str(entry["task"]), str(entry["task"]))
+        adaptation = entry["adaptation"]
+        mode = "—" if adaptation is None else ("on" if adaptation else "off")
+        samples = entry["samples"]
+        skipped = entry["skipped"] or 0
+        valid = "—" if samples is None else f"{int(samples) - int(skipped)}/{int(samples)}"
+        score = entry["score"]
+        if score is not None:
+            score_text = percent(score)
+        elif entry["results"]:
+            score_text = ", ".join(
+                f"{int(point['context_length_request'])}: {percent(point['exact_match'])}"
+                for point in entry["results"]
+            )
+        else:
+            score_text = "—"
+        rows.append([task, mode, valid, score_text, entry["protocol_version"] or "—"])
+    return markdown_table(header, rows, ["l", "c", "r", "r", "l"])
+
+
 def table_reference_models(r, lang):
     bench = r["benchmarks"]
     header = {
@@ -852,6 +891,7 @@ TABLES = {
     "benchmarks": table_benchmarks,
     "benchmarks_ours": lambda r, lang: table_benchmarks(r, lang, "ours"),
     "benchmarks_reference": lambda r, lang: table_benchmarks(r, lang, "reference"),
+    "extended_benchmarks": table_extended_benchmarks,
     "perplexity": table_perplexity,
     "crosscheck": table_crosscheck,
     "cost": table_cost,

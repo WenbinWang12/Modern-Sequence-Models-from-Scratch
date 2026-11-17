@@ -124,6 +124,14 @@ Table 9. Language-modelling metrics (lower is better). WikiText-103 test and PG-
 
 {% include parts/results_4_7.en.md %}
 
+<div class="report-table" markdown>
+
+{% table extended_benchmarks %}
+
+</div>
+
+Table 9a. Extended diagnostics requested for this project. ARC, PIQA and GPQA use answer-text continuation scoring; GSM8K and HumanEval use greedy generation; BBH is the named single-task diagnostic. The synthetic long-context row is a RULER/LongBench engineering preflight, not an official suite score.
+
 ### 4.8 Ablations
 
 <figure markdown="span" class="report-figure">

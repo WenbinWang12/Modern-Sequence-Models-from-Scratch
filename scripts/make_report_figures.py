@@ -972,6 +972,42 @@ def collect_benchmarks(directory, results):
         }
 
 
+def collect_extended_benchmarks(directory, results):
+    """汇总 ARC、PIQA、GPQA、GSM8K、HumanEval、BBH 和长上下文前置诊断。"""
+    if not directory.exists():
+        return
+    table = {}
+    for path in sorted(directory.glob("*.json")):
+        report = read_json(path)
+        task = report.get("task")
+        if task is None:
+            for candidate in ("gsm8k", "humaneval", "bbh", "arc", "piqa", "gpqa"):
+                if path.stem.endswith(f"_{candidate}"):
+                    task = candidate
+                    break
+        adaptation = report.get("adaptation", report.get("adapt"))
+        if adaptation is None:
+            adaptation = "_adapt_" in f"_{path.stem}_" and "_noadapt_" not in f"_{path.stem}_"
+        if "results" in report and report.get("protocol_version", "").startswith("synthetic_"):
+            score = None
+        else:
+            score = report.get("accuracy", report.get("pass_at_1"))
+        table[path.stem] = {
+            "protocol_version": report.get("protocol_version"),
+            "task": task or ("synthetic_long_context" if "results" in report else path.stem),
+            "adaptation": adaptation,
+            "correct": report.get("correct", report.get("passed")),
+            "samples": report.get("samples"),
+            "skipped": report.get("skipped", 0),
+            "score": score,
+            "results": report.get("results"),
+            "checkpoint": report.get("checkpoint"),
+            "data": report.get("data"),
+        }
+    if table:
+        results["extended_benchmarks"] = table
+
+
 def collect_audits(directory, data, results):
     audits = {}
     for name in ("sampler_main", "matched_batches", "duplicates", "benchmark_overlap"):
@@ -1082,6 +1118,7 @@ def copy_raw(args):
         "evals": [path for path in args.evals.glob("*.json") if not path.name.startswith(("curve_", "latency_"))],
         "bench": (args.runs / "bench").glob("*.json"),
         "benchmarks": args.benchmarks.glob("*.json"),
+        "extended_benchmarks": (args.extended_benchmarks).glob("*.json"),
         "benchmarks/reference": [
             path for path in (args.benchmarks / "reference").glob("*.json") if "limit" not in path.stem
         ],
@@ -1106,6 +1143,7 @@ def main() -> None:
     parser.add_argument("--runs", type=Path, default=Path("outputs"))
     parser.add_argument("--evals", type=Path, default=Path("outputs/evals"))
     parser.add_argument("--benchmarks", type=Path, default=Path("outputs/benchmarks-v2"))
+    parser.add_argument("--extended-benchmarks", type=Path, default=Path("outputs/benchmarks-extended"))
     parser.add_argument("--audits", type=Path, default=Path("outputs/audits"))
     parser.add_argument("--niah", type=Path, default=Path("outputs/niah"))
     parser.add_argument("--data", type=Path, default=Path("data/tokens"))
@@ -1119,6 +1157,7 @@ def main() -> None:
     table = collect_ablations(args.evals, args.runs, results)
     collect_dynamic(args.evals, results)
     collect_benchmarks(args.benchmarks, results)
+    collect_extended_benchmarks(args.extended_benchmarks, results)
     collect_audits(args.audits, args.data, results)
     collect_provenance(args.runs, results)
     collect_interruptions(args.runs, results)

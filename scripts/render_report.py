@@ -368,6 +368,8 @@ def table_crosscheck(r, lang):
         ("lambada_openai", "perplexity", "perplexity,none"),
         ("wikitext", "word_perplexity", "word_perplexity,none"),
         ("wikitext", "bits_per_byte", "bits_per_byte,none"),
+        ("blimp", "macro_acc", "acc,none"),
+        ("mmlu", "acc", "acc,none"),
     ]
     f4 = fixed(4)
     rows = []
@@ -667,7 +669,47 @@ def table_sampler(r, lang):
     return markdown_table(header, rows)
 
 
+def table_sessions(r, lang):
+    names = ARM_NAMES[lang]
+    data = r["sessions"]
+    arms = [arm for arm in ("full", "swa", "ttt") if data[arm]]
+    header = {
+        "zh": [
+            "模型",
+            "已读上下文（token）",
+            "快权重（MiB）",
+            "KV 缓存（MiB）",
+            "会话状态合计（MiB）",
+            "逐 token 解码（token/s）",
+        ],
+        "en": [
+            "Model",
+            "Context read (tokens)",
+            "Fast weights (MiB)",
+            "KV cache (MiB)",
+            "Session state, total (MiB)",
+            "Token-by-token decoding (tokens/s)",
+        ],
+    }[lang]
+    rows = []
+    for arm in arms:
+        for row in data[arm]["rows"].raw():
+            state = row["state_bytes"]
+            rows.append(
+                [
+                    names[arm],
+                    grouped(row["context_length"]),
+                    f"{state['fast_weights'] / 2**20:.1f}" if state["fast_weights"] else "–",
+                    f"{state['kv_cache'] / 2**20:.1f}",
+                    f"{row['persistent_state_bytes'] / 2**20:.1f}",
+                    grouped(row["decode_tokens_per_second"]),
+                ]
+            )
+    return markdown_table(header, rows)
+
+
 TABLES = {
+    "sessions": table_sessions,
     "main": table_main,
     "ranges": table_ranges,
     "long": table_long,
@@ -687,9 +729,11 @@ TABLES = {
     "sampler": table_sampler,
 }
 
+INCLUDE = re.compile(r"\{% include ([\w./-]+) %\}")
 CONDITIONAL = re.compile(r"\{% if (.+?) %\}\n?(.*?)(?:\{% else %\}\n?(.*?))?\{% endif %\}\n?", re.DOTALL)
 TABLE = re.compile(r"\{% table (\w+) %\}")
-EXPRESSION = re.compile(r"\{\{(.+?)\}\}")
+# 表达式两侧必须有空格，避免与 LaTeX 里连续的花括号混淆。
+EXPRESSION = re.compile(r"\{\{ (.+?) \}\}")
 
 
 def render(template, results, lang):
@@ -707,6 +751,7 @@ def render(template, results, lang):
         "B": billions,
         "K": thousands,
         "gib": gib,
+        "GB": lambda value, digits=1: f"{value / 1e9:.{digits}f}",
         "n": grouped,
         "abs": abs,
         "min": min,
@@ -734,7 +779,22 @@ def render(template, results, lang):
 
     text = CONDITIONAL.sub(conditional, template)
     text = TABLE.sub(table, text)
-    return EXPRESSION.sub(expression, text)
+    text = EXPRESSION.sub(expression, text)
+    if "{%" in text or "{{ " in text:
+        raise ValueError("模板中有未被处理的指令。")
+    return prune_references(text)
+
+
+def prune_references(text):
+    """只保留正文引用过的参考文献；正文引用了没有定义的文献时报错。"""
+    definition = re.compile(r"^\[\^([\w-]+)\]: ")
+    body = [line for line in text.split("\n") if not definition.match(line)]
+    cited = set(re.findall(r"\[\^([\w-]+)\]", "\n".join(body)))
+    defined = {match.group(1) for line in text.split("\n") if (match := definition.match(line))}
+    if cited - defined:
+        raise ValueError(f"正文引用了未定义的参考文献：{sorted(cited - defined)}")
+    kept = [line for line in text.split("\n") if not (match := definition.match(line)) or match.group(1) in cited]
+    return "\n".join(kept)
 
 
 def main() -> None:
@@ -749,7 +809,10 @@ def main() -> None:
         template = args.templates / f"technical_report.{lang}.md"
         if not template.exists():
             continue
-        text = render(template.read_text(encoding="utf-8"), results, lang)
+        source = template.read_text(encoding="utf-8")
+        for _ in range(3):  # 允许被包含的文件再包含别的文件，最多三层
+            source = INCLUDE.sub(lambda match: (args.templates / match.group(1)).read_text(encoding="utf-8"), source)
+        text = render(source, results, lang)
         output.write_bytes(text.encode("utf-8"))
         print(f"rendered {output} ({len(text.splitlines())} lines)")
 

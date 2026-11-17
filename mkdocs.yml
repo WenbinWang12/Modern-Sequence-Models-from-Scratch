@@ -47,12 +47,14 @@ extra_javascript:
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
   - https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.min.js
   - javascripts/mermaid.js
+  - javascripts/language.js
 extra_css:
   - stylesheets/extra.css
 
 markdown_extensions:
   - admonition
   - attr_list
+  - footnotes
   - md_in_html
   - pymdownx.arithmatex:
       generic: true
@@ -114,8 +116,8 @@ nav:
       - TTT-E2E 与长上下文: frontier/ttt_e2e_long_context.md
       - Looped Transformer: frontier/loop_transformer.md
   - 附录:
+      - TTT-E2E 技术报告: technical_report.md
       - 复现命令: reproducibility.md
-      - TTT 技术报告: technical_report.md
       - CPU Pilot 训练曲线: reports/cpu_pilot_1m.md
       - H200 15M Scaling: reports/h200_scaling.md
       - Benchmark 测评协议: reports/benchmark_protocol.md
@@ -154,4 +156,5 @@ nav:
           - TTT and linear attention: frontier/en/ttt_linear_attention.md
           - TTT-E2E and long context: frontier/en/ttt_e2e_long_context.md
           - Looped Transformer: frontier/en/loop_transformer.md
+      - TTT-E2E technical report: technical_report_en.md
       - English benchmark protocol: reports/benchmark_protocol_en.md

@@ -1,5 +1,8 @@
 # CPU Pilot 1M：训练曲线
 
+!!! note "历史记录"
+    本页是 2026-11-17 流程验证阶段的记录（小模型、字节级 tokenizer、WikiText-2），用于确认训练和评测链路可用，不代表模型能力。正式实验和结论见 [TTT-E2E 技术报告](../technical_report.md)。
+
 这张图读取远端 `cpu-pilot-1m-formal/metrics.jsonl` 的已记录点，展示训练 loss/NLL、吞吐、梯度范数和快权重范数。图中的最后一步会随着训练推进而更新；缺少的指标不会被补成零。
 
 ![TTT-E2E CPU pilot training metrics](../assets/reports/cpu_pilot_1m_training.svg)

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 
 import matplotlib
@@ -388,6 +389,9 @@ def figure_training(theme, mode, runs, evals, output, results):
             "median_step_seconds": float(np.median(seconds[len(seconds) // 10 :])),
             "peak_device_bytes": max(row.get("device_peak_bytes", 0) for row in rows),
             "max_grad_norm": max(row["grad_norm"] for row in rows[len(rows) // 10 :]),
+            # 预热结束之后，外循环梯度范数超过裁剪阈值 1.0 的记录步所占比例。
+            "clipped_fraction": float(np.mean([row["grad_norm"] > 1.0 for row in rows[len(rows) // 10 :]])),
+            "wall_clock_hours": float(sum(seconds) * (rows[-1]["step"] / len(rows)) / 3600),
         }
         if "inner_grad_norm" in rows[-1]:
             results["training"][arm].update(
@@ -957,13 +961,14 @@ def collect_benchmarks(directory, results):
         results["benchmarks"] = table
     crosscheck = sorted((directory / "lm-eval").rglob("results_*.json"))
     if crosscheck:
+        merged = {}
+        for path in crosscheck:  # 不同任务分几次运行，合并它们的结果
+            for task, values in read_json(path)["results"].items():
+                merged[task] = {key: value for key, value in values.items() if isinstance(value, (int, float))}
         report = read_json(crosscheck[-1])
         results["lm_eval_crosscheck"] = {
             "versions": {key: report.get(key) for key in ("lm_eval_version", "transformers_version", "date")},
-            "results": {
-                task: {key: value for key, value in values.items() if isinstance(value, (int, float))}
-                for task, values in report["results"].items()
-            },
+            "results": merged,
         }
 
 
@@ -992,6 +997,52 @@ def collect_audits(directory, data, results):
         results["audits"] = audits
 
 
+def collect_provenance(runs, results):
+    """每个训练运行的源码摘要、配置摘要和软件版本；摘要的算法见 ttt/provenance.py。"""
+    provenance = {"runs": {}}
+    for run in sorted(path for path in runs.iterdir() if (path / "run_metadata.json").exists()):
+        if not run.name.startswith(("main-", "abl-", "scale-")):
+            continue
+        metadata = read_json(run / "run_metadata.json")
+        provenance["runs"][run.name] = {
+            "source_sha256": metadata["source_sha256"],
+            "data_manifest_sha256": metadata["data_manifest_sha256"],
+        }
+        if "environment" not in provenance and (run / "environment.json").exists():
+            environment = read_json(run / "environment.json")
+            keys = ("python", "system", "packages")
+            provenance["environment"] = {key: environment[key] for key in keys}
+            provenance["environment"]["gpu"] = next(iter((environment.get("nvidia_smi") or "").splitlines()), "")
+    provenance["source_digests"] = sorted({entry["source_sha256"] for entry in provenance["runs"].values()})
+    if provenance["runs"]:
+        results["provenance"] = provenance
+
+
+def collect_sessions(evals, results):
+    table = {path.stem[len("profile_") :]: read_json(path) for path in sorted(evals.glob("profile_*.json"))}
+    if table:
+        results["sessions"] = table
+
+
+def copy_raw(args):
+    """把本脚本读取的原始评测输出复制到报告目录，供读者核对（曲线和吞吐的原始点已在 results.json 中）。"""
+    groups = {
+        "evals": [path for path in args.evals.glob("*.json") if not path.name.startswith(("curve_", "latency_"))],
+        "bench": (args.runs / "bench").glob("*.json"),
+        "benchmarks": args.benchmarks.glob("*.json"),
+        "benchmarks/reference": [
+            path for path in (args.benchmarks / "reference").glob("*.json") if "limit" not in path.stem
+        ],
+        "benchmarks/lm-eval": (args.benchmarks / "lm-eval").rglob("results_*.json"),
+        "audits": args.audits.glob("*.json"),
+    }
+    for name, paths in groups.items():
+        target = args.output / "raw" / name
+        target.mkdir(parents=True, exist_ok=True)
+        for path in sorted(paths):
+            shutil.copyfile(path, target / path.name)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="生成技术报告图表")
     parser.add_argument("--runs", type=Path, default=Path("outputs"))
@@ -1010,6 +1061,9 @@ def main() -> None:
     collect_dynamic(args.evals, results)
     collect_benchmarks(args.benchmarks, results)
     collect_audits(args.audits, args.data, results)
+    collect_provenance(args.runs, results)
+    collect_sessions(args.evals, results)
+    copy_raw(args)
     for mode, theme in THEMES.items():
         scratch = results if mode == "light" else {}
         figure_training(theme, mode, args.runs, args.evals, args.output, scratch)

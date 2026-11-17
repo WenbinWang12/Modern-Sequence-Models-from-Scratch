@@ -58,6 +58,16 @@ bench() { # bench <output-name> <run-name> [extra eval_benchmarks.py args]
     touch "$out.done" || log "FAILED bench $name"
 }
 
+profile() { # profile <arm>：单会话的状态大小与逐 token 解码速度
+  local out=outputs/evals/profile_$1.json checkpoint
+  [ -f "$out" ] && return 0
+  checkpoint=$(ls -d "outputs/main-$1"/step_*.orbax | sort | tail -n 1)
+  log "profile $1"
+  CUDA_VISIBLE_DEVICES=$gpu JAX_PLATFORMS=cuda XLA_PYTHON_CLIENT_PREALLOCATE=false PYTHONPATH=. \
+    "$python" scripts/profile_report_sessions.py --checkpoint "$checkpoint" --data data/tokens/pg19-test \
+    --context-lengths 2048 8192 32768 --output "$out" >>logs/pipeline_evals.log 2>&1 || log "FAILED profile $1"
+}
+
 make_iso_config() { # 用实测的单步时间决定“与 TTT 等训练时间”的滑窗基线步数
   until complete abl-ttt && complete abl-swa; do sleep 60; done
   local steps
@@ -87,7 +97,8 @@ drain_queue() { # 两张卡共用一个任务列表，mkdir 的原子性保证�
 
 case "$plan" in
 baseline)
-  wait_for main-swa
+  train main_swa main-swa
+  evals curves swa
   evals main swa
   evals long swa
   bench main_swa main-swa
@@ -99,19 +110,26 @@ baseline)
   wait_for main-ttt
   # 三个模型的推理吞吐在同一张空闲的卡上连续测量。
   evals latency swa full ttt
+  profile swa
+  profile full
+  profile ttt
+  evals recall swa full
   drain_queue
   ;;
 ttt)
-  wait_for main-ttt
+  train main_ttt main-ttt
+  evals curves ttt
   evals main ttt
   evals long ttt
   bench main_ttt main-ttt
   bench main_ttt_noadapt main-ttt --no-adapt
   train main_ck main-ck
+  evals curves ck
   evals main ck
   evals long ck
   bench main_ck main-ck
   evals dynamic
+  evals recall ttt ck
   drain_queue
   ;;
 *)

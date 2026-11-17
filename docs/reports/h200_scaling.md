@@ -1,5 +1,8 @@
 # H200 15M Scaling：TTT 与 plain baseline
 
+!!! note "历史记录"
+    本页是 2026-11-17 流程验证阶段的记录（小模型、字节级 tokenizer、WikiText-2），用于确认训练和评测链路可用，不代表模型能力。正式实验和结论见 [TTT-E2E 技术报告](../technical_report.md)。
+
 本实验在 H200 GPU 5 和 GPU 7 上分别运行两个独立进程，没有使用多卡分布式。两组使用相同的 WikiText-2 train split、byte tokenizer、seed、sequence length、batch size、训练步数和 token budget。
 
 | 组别 | GPU | 实际参数 | steps | tokens | train tokens/s | 峰值显存 |

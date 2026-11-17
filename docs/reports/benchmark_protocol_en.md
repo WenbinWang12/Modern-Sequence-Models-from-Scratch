@@ -1,5 +1,8 @@
 # Benchmark protocol and current status
 
+!!! note "Historical record"
+    This page records the pipeline-validation stage of 2026-11-17 (small models, byte-level tokenizer, WikiText-2). It confirms that training and evaluation run end to end and says nothing about model capability. The actual experiments and conclusions are in the [TTT-E2E technical report](../technical_report_en.md).
+
 A benchmark number is meaningful only when it is tied to a checkpoint, data revision, tokenizer, prompt, number of shots, context limit, adaptation setting, and valid sample count. This page records the evaluation tiers used in the project and the protocol already run on H200.
 
 ## Evaluation tiers

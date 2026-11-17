@@ -149,3 +149,63 @@
 [data-md-color-scheme="slate"] .book-figure--diagram .figure-downloads span {
   color: #b9c9da;
 }
+
+/* 技术报告：图占满正文宽度，图注左对齐、不用斜体；数字列用等宽数字对齐。 */
+.md-typeset figure.report-figure {
+  margin: 1.6rem 0 1.8rem;
+  width: 100%;
+  max-width: none;
+}
+
+.md-typeset figure.report-figure img {
+  width: 100%;
+  height: auto;
+}
+
+.md-typeset figure.report-figure figcaption {
+  max-width: none;
+  margin: 0.6rem 0 0;
+  font-style: normal;
+  text-align: left;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .report-table table:not([class]) {
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.md-typeset .report-table table:not([class]) th,
+.md-typeset .report-table table:not([class]) td {
+  padding: 0.5em 0.8em;
+}
+
+.md-typeset .report-keyfacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.6rem;
+  margin: 1.2rem 0 1.6rem;
+}
+
+.md-typeset .report-keyfacts > div {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+}
+
+.md-typeset .report-keyfacts .value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.md-typeset .report-keyfacts .label {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--md-default-fg-color--light);
+}

@@ -1,6 +1,17 @@
 {
+  "protocol_version": "mmlu_loglikelihood_v1",
   "protocol": "MMLU test split; zero-shot answer-letter continuation log-likelihood; byte tokenizer; no adaptation",
   "checkpoint": "outputs/h200-15m-baseline-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c5a6ac43b55a2b52dc2956df4b951db1171fb69360f69b344f1d53c308f7d4bb",
+  "script_sha256": "873ce3aa1cd4fe4ec1132e42250cb58cf13634a51b9828e092f35590c3e0c380",
+  "data_dir": "/home/wang.21020/mmlu-data/mmlu",
+  "data_sha256": {
+    "abstract_algebra": "4be89c0fb1d2419722e88880f6da3da95750367185ecd36f6492a6f74785cf64",
+    "high_school_mathematics": "fe8f7a154834bba30947401ba37ea6c7afdcfba82ddc341c79b5d3016991d290",
+    "college_physics": "079c3696eda22c13b0472de245c7bb4918315b59481964109a4f65d2a35b4243",
+    "computer_security": "8e40f809858db9dd8585036b53984e570b6101f72be2214b85e979c7fafa307f",
+    "professional_law": "eeb81cac576a5f537485b6befd25837b55f64b57e9b2a7e409210d7c8d608820"
+  },
   "subjects": [
     "abstract_algebra",
     "high_school_mathematics",

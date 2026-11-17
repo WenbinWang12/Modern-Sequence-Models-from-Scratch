@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from .dataset import TokenDataset, prepare_sharded_data
+from .data_mixture import MixtureBatchStream
 
 
 class ByteTokenizer:
@@ -54,7 +55,26 @@ def load_tokenizer(name):
 
 class BatchStream:
     def __init__(self, path, *, sequence_length, batch_size, vocab_size, seed=0):
-        self.dataset = TokenDataset(path, vocab_size)
+        self._mixture = None
+        recipe_path = Path(path)
+        if recipe_path.suffix == ".json":
+            try:
+                recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                recipe = None
+            if isinstance(recipe, dict) and recipe.get("format") == MixtureBatchStream.recipe_format:
+                self._mixture = MixtureBatchStream(
+                    recipe_path,
+                    sequence_length=sequence_length,
+                    batch_size=batch_size,
+                    vocab_size=vocab_size,
+                    seed=seed,
+                )
+                self.dataset = self._mixture
+            else:
+                self.dataset = TokenDataset(path, vocab_size)
+        else:
+            self.dataset = TokenDataset(path, vocab_size)
         if self.dataset.size < sequence_length + 1:
             raise ValueError("数据长度不足一个训练样本。")
         self.sequence_length = sequence_length
@@ -67,10 +87,14 @@ class BatchStream:
         return self.next_batch_with_masks()[0]
 
     def next_batch_with_masks(self):
+        if self._mixture is not None:
+            return self._mixture.next_batch_with_masks()
         starts = self.rng.integers(0, self.dataset.size - self.sequence_length, size=self.batch_size)
         return self.dataset.rows(starts, self.sequence_length + 1)
 
     def sample_rows(self, step, indices):
+        if self._mixture is not None:
+            return self._mixture.sample_rows(step, indices)
         starts = []
         for index in indices:
             rng = np.random.default_rng(np.random.SeedSequence((self.seed, int(step), int(index))))
@@ -78,6 +102,8 @@ class BatchStream:
         return self.dataset.rows(starts, self.sequence_length + 1)
 
     def state_dict(self):
+        if self._mixture is not None:
+            return self._mixture.state_dict()
         return {
             "rng": self.rng.bit_generator.state,
             "sha256": self.fingerprint,
@@ -87,6 +113,9 @@ class BatchStream:
         }
 
     def load_state_dict(self, state):
+        if self._mixture is not None:
+            self._mixture.load_state_dict(state)
+            return
         expected = (self.fingerprint, self.sequence_length, self.batch_size, self.seed)
         actual = (state["sha256"], state["sequence_length"], state["batch_size"], state.get("seed", self.seed))
         if actual != expected:

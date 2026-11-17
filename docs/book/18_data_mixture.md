@@ -66,7 +66,7 @@ $$
 
 ## 一次能手算、也能保存的配方计算
 
-当前训练器从一个逻辑 token 流抽窗口，尚未接入来源级混合采样器。下面是在目标 Linux 机器上运行的独立配方计算：它保存上述算例，不会修改训练行为。先完成环境章，再在仓库根目录执行。
+当前训练器现在支持来源级混合 recipe。recipe 中的每个来源指向一个本仓库 manifest，采样器按 probability 选择来源，再从该来源抽取一个窗口。with_replacement 表示来源耗尽后仍允许重复抽样；recipe 摘要、来源摘要、概率和 RNG 状态会进入 checkpoint。下面的算例仍然只用于核对公式，不会修改训练行为。
 
 ~~~bash
 .venv/bin/python - <<'PY'
@@ -79,14 +79,14 @@ total = sum(counts.values())
 weights = {name: (count / total) ** alpha for name, count in counts.items()}
 normalizer = sum(weights.values())
 recipe = {
-    "kind": "teaching_plan_not_connected_to_trainer",
+    "format": "ttt_mixture_v1",
     "formula": "p_j = (N_j / sum(N)) ** alpha / sum_i((N_i / sum(N)) ** alpha)",
     "alpha": alpha,
     "selection_unit": "equal_valid_length_window",
     "target_tokens": 1_000_000_000,
     "exhaustion_policy": "with_replacement",
     "sources": [
-        {"name": name, "available_tokens": counts[name], "probability": value / normalizer}
+        {"name": name, "data": f"manifests/{name}.json", "available_tokens": counts[name], "probability": value / normalizer}
         for name, value in weights.items()
     ],
 }
@@ -98,7 +98,7 @@ for source in recipe["sources"]:
 PY
 ~~~
 
-按上式计算，打印值应依次约为 0.5942、0.2573 和 0.1485。生成的 JSON 可以用于核对公式与预算；它不是训练器已经执行该配方的证据。要完成真正的混合实验，还需要让采样器消费这份定义，并在训练记录中保存实际消费量。
+按上式计算，打印值应依次约为 0.5942、0.2573 和 0.1485。教学 JSON 还需要把 data 路径替换成真实 manifest 才能交给训练器。正式运行应另外记录每个来源实际抽到的窗口数、输入 token 和有效 mask 权重；理论 probability 不是实际消费比例的替代品。
 
 ## 为什么短期比例会波动
 

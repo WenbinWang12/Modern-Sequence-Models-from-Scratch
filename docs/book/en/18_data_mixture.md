@@ -66,7 +66,7 @@ Logs should distinguish selected windows, input tokens, and summed valid mask we
 
 ## A recipe calculation to inspect and save
 
-The current trainer samples from one logical token stream and does not consume a source-mixture recipe. The following standalone calculation runs on the target Linux machine after environment setup. It saves the example above without changing training behavior.
+The trainer now supports a source-mixture recipe. Each source points to a repository manifest; the sampler chooses a source by probability and then samples a window from that source. with_replacement permits revisits after a source is exhausted, while the recipe digest, source digests, probabilities, and RNG state enter the checkpoint. The following calculation still only checks the formula and does not change training behavior.
 
 ~~~bash
 .venv/bin/python - <<'PY'
@@ -79,14 +79,14 @@ total = sum(counts.values())
 weights = {name: (count / total) ** alpha for name, count in counts.items()}
 normalizer = sum(weights.values())
 recipe = {
-    "kind": "teaching_plan_not_connected_to_trainer",
+    "format": "ttt_mixture_v1",
     "formula": "p_j = (N_j / sum(N)) ** alpha / sum_i((N_i / sum(N)) ** alpha)",
     "alpha": alpha,
     "selection_unit": "equal_valid_length_window",
     "target_tokens": 1_000_000_000,
     "exhaustion_policy": "with_replacement",
     "sources": [
-        {"name": name, "available_tokens": counts[name], "probability": value / normalizer}
+        {"name": name, "data": f"manifests/{name}.json", "available_tokens": counts[name], "probability": value / normalizer}
         for name, value in weights.items()
     ],
 }
@@ -98,7 +98,7 @@ for source in recipe["sources"]:
 PY
 ~~~
 
-The formula predicts printed probabilities of approximately 0.5942, 0.2573, and 0.1485, in that order. The JSON lets us inspect the calculation and budget. It does not establish that training used the recipe: that requires a sampler consuming the definition and logs recording actual consumption.
+The formula predicts printed probabilities of approximately 0.5942, 0.2573, and 0.1485, in that order. Replace the example data paths with real manifests before training. A production run should also record selected windows, input tokens, and valid mask weights per source; the theoretical probabilities are not a substitute for observed consumption.
 
 ## Why short-run proportions fluctuate
 

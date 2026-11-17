@@ -5,16 +5,22 @@
 
 技术报告中的 benchmark 不是一张可以随意挑选的榜单。每个分数都必须绑定模型检查点、数据版本、tokenizer、提示模板、shot 数、上下文上限、适配开关和有效样本数。本页把公开报告中常见的测评按能力分层，并记录本项目已经实际运行的协议。
 
+## 0. 与 1.0 主报告的关系
+
+仓库最近的实验流水线已经切换到技术报告 1.0 的主配方。主配方使用 GPT-2 BPE 词表（\(V=50{,}257\)）、FineWeb-Edu 与 PG-19 的 50/50 混合、4,096 token 上下文和约 1.3 亿参数的四组匹配模型。原始结果入口是 [`docs/assets/report/results.json`](../assets/report/results.json)，完整方法、数据版本和复现实验命令见 [TTT-E2E 技术报告](../technical_report.md)。
+
+本页下面保留的 15M、byte-token 结果是更早的流程验证记录。它们可以证明评测入口能运行，不能替代 1.0 主实验。当前 `results.json` 中已经有滑窗基线和公开参考模型的完整条目；全注意力、无更新对照和 TTT-E2E 的主表在流水线完成前仍可能显示占位符。占位符应继续保留，不能把旧的 15M 诊断分数写成 1.0 主实验结果。
+
 ## 1. 分层测评矩阵
 
 | 层级 | 任务 | 主要回答的问题 | 当前状态 |
 | --- | --- | --- | --- |
 | 训练健康度 | held-out NLL、PPL、数据混合比例、重复率 | 模型是否学会了训练分布，训练是否稳定 | 已运行 |
-| 基础知识与常识 | MMLU、ARC-E/ARC-C、OpenBookQA、PIQA、HellaSwag、WinoGrande | 小模型是否形成可迁移的知识和常识判断 | MMLU 诊断脚本已完成 |
-| 数学推理 | GSM8K、MATH、AIME/AMC | 能否进行多步符号推理 | 待 tokenizer 和模型规模稳定后运行 |
-| 代码 | HumanEval、MBPP、LiveCodeBench | 代码生成、执行正确性和时间切分泛化 | 待运行 |
-| 难知识与推理 | BBH、GPQA、TruthfulQA | 长链推理、专业知识和事实性 | 待运行 |
-| 长上下文 | RULER、LongBench、DROP | 随上下文长度增长时的检索和组合能力 | 已有合成检索诊断，正式套件待运行 |
+| 基础知识与常识 | MMLU、ARC-E/ARC-C、OpenBookQA、PIQA、HellaSwag、WinoGrande | 小模型是否形成可迁移的知识和常识判断 | 1.0 滑窗与公开参考模型已入库；TTT 主表待完成 |
+| 数学推理 | GSM8K、MATH、AIME/AMC | 能否进行多步符号推理 | GSM8K 有 15M 流程诊断；1.0 主实验待运行 |
+| 代码 | HumanEval、MBPP、LiveCodeBench | 代码生成、执行正确性和时间切分泛化 | HumanEval 有 15M 流程诊断；1.0 主实验待运行 |
+| 难知识与推理 | BBH、GPQA、TruthfulQA | 长链推理、专业知识和事实性 | BBH/GPQA 有 15M 流程诊断；1.0 主实验待运行 |
+| 长上下文 | RULER、LongBench、DROP | 随上下文长度增长时的检索和组合能力 | 1.0 有 NIAH/合成诊断；正式套件待运行 |
 | 中文能力 | CMMLU、C-Eval | 中文知识和考试型推理 | 双语 tokenizer 冻结后运行 |
 
 这些层级不能互相替代。比如 PPL 较低不能推出 GSM8K 较高；MMLU 的零样本答案选择也不能替代代码执行评测。正式论文表格至少要覆盖知识/常识、数学或代码、以及长上下文中的三类，并同时给出 held-out NLL 作为训练分布指标。

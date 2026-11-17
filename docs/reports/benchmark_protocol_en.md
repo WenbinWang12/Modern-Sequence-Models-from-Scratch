@@ -5,16 +5,22 @@
 
 A benchmark number is meaningful only when it is tied to a checkpoint, data revision, tokenizer, prompt, number of shots, context limit, adaptation setting, and valid sample count. This page records the evaluation tiers used in the project and the protocol already run on H200.
 
+## 0. Relation to the 1.0 report
+
+The repository's current experiment pipeline has moved to the 1.0 technical-report recipe. It uses the GPT-2 BPE vocabulary (\(V=50{,}257\)), a 50/50 FineWeb-Edu and PG-19 mixture, a 4,096-token context, and four matched models of about 130M parameters. The raw-results entry point is [`docs/assets/report/results.json`](../assets/report/results.json); the [TTT-E2E technical report](../technical_report_en.md) records the method, data revisions, and reproduction commands.
+
+The 15M byte-token numbers retained below are an earlier pipeline-validation record. They show that an evaluation entry point runs, but they do not replace the 1.0 main experiment. At present `results.json` contains complete entries for the sliding-window arm and public reference models. The full-attention, no-update-control, and TTT-E2E rows may still contain placeholders until the pipeline finishes. Those placeholders should remain visible rather than turning the older 15M diagnostics into 1.0 main-experiment results.
+
 ## Evaluation tiers
 
 | Tier | Tasks | Question | Status |
 | --- | --- | --- | --- |
 | Training health | held-out NLL/PPL, mixture proportions, repetition | Did the model learn the target distribution and remain stable? | Measured |
-| Knowledge and commonsense | MMLU, ARC-E/ARC-C, OpenBookQA, PIQA, HellaSwag, WinoGrande | Does a small model transfer knowledge and commonsense judgments? | MMLU and HellaSwag diagnostics |
-| Mathematics | GSM8K, MATH, AIME/AMC | Can the model perform multi-step symbolic reasoning? | Run after tokenizer and scale are fixed |
-| Code | HumanEval, MBPP, LiveCodeBench | Does generated code execute correctly and generalize across time? | Planned |
-| Hard reasoning | BBH, GPQA, TruthfulQA | Long-chain reasoning, expert knowledge, and factuality | Planned |
-| Long context | RULER, LongBench, DROP | Retrieval and composition as context grows | Synthetic probe exists; suite pending |
+| Knowledge and commonsense | MMLU, ARC-E/ARC-C, OpenBookQA, PIQA, HellaSwag, WinoGrande | Does a small model transfer knowledge and commonsense judgments? | 1.0 sliding-window and public-reference rows are present; TTT main rows pending |
+| Mathematics | GSM8K, MATH, AIME/AMC | Can the model perform multi-step symbolic reasoning? | GSM8K has a 15M pipeline diagnostic; 1.0 main run pending |
+| Code | HumanEval, MBPP, LiveCodeBench | Does generated code execute correctly and generalize across time? | HumanEval has a 15M pipeline diagnostic; 1.0 main run pending |
+| Hard reasoning | BBH, GPQA, TruthfulQA | Long-chain reasoning, expert knowledge, and factuality | BBH/GPQA have 15M pipeline diagnostics; 1.0 main run pending |
+| Long context | RULER, LongBench, DROP | Retrieval and composition as context grows | 1.0 has NIAH/synthetic diagnostics; official suites pending |
 | Chinese | CMMLU, C-Eval | Chinese knowledge and exam-style reasoning | After bilingual tokenizer freeze |
 
 These tiers are complementary. A lower PPL does not imply a higher GSM8K score, and MMLU answer selection does not replace execution-based code evaluation. A release table should cover knowledge/commonsense, mathematics or code, and long context, together with held-out NLL.

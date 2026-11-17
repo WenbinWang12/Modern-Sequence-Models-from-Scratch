@@ -1,0 +1,320 @@
+{
+  "protocol_version": "humaneval_generate_v1",
+  "protocol": "HumanEval; greedy completion; pass@1 when --run-tests is enabled",
+  "checkpoint": "outputs/h200-15m-ttt-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c82e827c1df9f4e360b97afc80c0cf5beb58cb1d7531aba825c2d5be2ba5498b",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/humaneval/HumanEval.jsonl",
+  "data_sha256": "1d49078ba3e2b196b9344535bef34a43021f038fad9561d6ee7c53450609a6a2",
+  "tokenizer": "byte",
+  "adaptation": false,
+  "max_new_tokens": 256,
+  "run_tests": true,
+  "timeout_seconds": 5.0,
+  "limit": 50,
+  "passed": 0,
+  "samples": 50,
+  "skipped": 0,
+  "pass_at_1": 0.0,
+  "records": [
+    {
+      "index": 0,
+      "completion": " , and the story of the story of the sea . The company 's first start of the company was the second season of the season , and the second season of the season was a strong point of the series . The first season of the season was a standard and the story of",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-fz0wtq0a/candidate.py\", line 12\n    , and the story of the story of the sea . The company 's first start of the company was the second season of the season , and the second season of the season was a strong point of the series . The first season of the season was a standard and the story of\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 1,
+      "completion": "unction ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-203hhci4/candidate.py\", line 12\n    unction ) . \n            ^\nSyntaxError: unmatched ')'\n"
+    },
+    {
+      "index": 2,
+      "completion": " , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , and <unk> . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-7ux793u0/candidate.py\", line 12\n    , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , and <unk> . \n                                                                                  ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 3,
+      "completion": "unch . \" The state 's arrangement is a standard of the star 's population , and the second series of the series was a common starling . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-dirobvbr/candidate.py\", line 13\n    unch . \" The state 's arrangement is a standard of the star 's population , and the second series of the series was a common starling . \" \n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 4,
+      "completion": " , and the story of the star 's most important community . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-nrvzgchl/candidate.py\", line 13\n    , and the story of the star 's most important community . \" \n                                                                ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 5,
+      "completion": " , and the second @-@ level part of the start of the season . The state 's are a standard and the story of the story of the series , and the second @-@ life of the series ' first starting in the second half of the season . The second season was a standard ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-3px5en7h/candidate.py\", line 11\n    , and the second @-@ level part of the start of the season . The state 's are a standard and the story of the story of the series , and the second @-@ life of the series ' first starting in the second half of the season . The second season was a standard \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 6,
+      "completion": "��� <unk> ) . The state is a stable in the start of the common starling , and the star 's most common starling is a stable in the star . The state is a standard and the star 's most common starling , and the star 's most common starling is a star @-@ at @-",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-gqnw5txw/candidate.py\", line 12\n    ��� <unk> ) . The state is a stable in the start of the common starling , and the star 's most common starling is a stable in the star . The state is a standard and the star 's most common starling , and the star 's most common starling is a star @-@ at @-\n    ^\nSyntaxError: invalid character '�' (U+FFFD)\n"
+    },
+    {
+      "index": 7,
+      "completion": "unch . \" The story of the concept was a common starling , and the starting point of the story of the story was a common starling . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-djjg6suq/candidate.py\", line 11\n    unch . \" The story of the concept was a common starling , and the starting point of the story of the story was a common starling . \" \n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 8,
+      "completion": "unction , and the state 's population of the state . The company 's popularity is a standard of the star 's population , and the second season of the company 's position is a standard strength of a second star . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-b58vuury/candidate.py\", line 12\n    unction , and the state 's population of the state . The company 's popularity is a standard of the star 's population , and the second season of the company 's position is a standard strength of a second star . \n              ^^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 9,
+      "completion": " , and the second season of the season . \" The first season of the season was a strong point of the series ' first start of the season , and the second season of the season was a strong point of the series . The first season of the consecutive season was t",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-kp3wi_vs/candidate.py\", line 10\n    , and the second season of the season . \" The first season of the season was a strong point of the series ' first start of the season , and the second season of the season was a strong point of the series . The first season of the consecutive season was t\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 10,
+      "completion": " , and the second second @-@ life of the series ' standard story , and the story of the second season . The company 's standard and the story of the story of the story was a strong point of the story of the series . The company 's standard army was a stand",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-3kpgwsc9/candidate.py\", line 20\n    , and the second second @-@ life of the series ' standard story , and the story of the second season . The company 's standard and the story of the story of the story was a strong point of the story of the series . The company 's standard army was a stand\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 11,
+      "completion": "unch . \" The first started in the United States , which was a strong point of the story of the series . The first season of the series was considered a standard and the second season of the series . The first season of the series was released in 1995 , and",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-g7pxs7zy/candidate.py\", line 10\n    unch . \" The first started in the United States , which was a strong point of the story of the series . The first season of the series was considered a standard and the second season of the series . The first season of the series was released in 1995 , and\n           ^\nSyntaxError: unterminated string literal (detected at line 10)\n"
+    },
+    {
+      "index": 12,
+      "completion": " , and the story of the story of the story of the story . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-zvtyq1au/candidate.py\", line 14\n    , and the story of the story of the story of the story . \" \n                                                               ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 13,
+      "completion": " , and the star 's most important political and social and communication of the state . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-1tcci1uj/candidate.py\", line 10\n    , and the star 's most important political and social and communication of the state . \n                                                                                           ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 14,
+      "completion": "unch . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-g8c7by5y/candidate.py\", line 9\n    unch . \" \n           ^\nSyntaxError: unterminated string literal (detected at line 9)\n"
+    },
+    {
+      "index": 15,
+      "completion": " , and the second season of the series ' first season of the series . The first season of the series was released in 1995 , and the second season of the season was released on June 25 , 2003 . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-usvw8qsm/candidate.py\", line 10\n    , and the second season of the series ' first season of the series . The first season of the series was released in 1995 , and the second season of the season was released on June 25 , 2003 . \n                                                                                                                                                                                                    ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 16,
+      "completion": " ( <unk> <unk> ) , and <unk> ( <unk> ) . The story of the story was a strong and a standard of the story of the series . The first section of the series was a standard and the story of the series ' first start of the series . The first season in the second",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-d3jzdvh5/candidate.py\", line 10\n    ( <unk> <unk> ) , and <unk> ( <unk> ) . The story of the story was a strong and a standard of the story of the series . The first section of the series was a standard and the story of the series ' first start of the series . The first season in the second\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 17,
+      "completion": " , and the start of the star 's population . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-wayfd3ji/candidate.py\", line 17\n    , and the start of the star 's population . \n                                                ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 18,
+      "completion": " , and the story of the story of the second season . The first season of the series was a standard and the story of the series ' first start . The first season of the series was a standard and the second season of the season , and the second season of the ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-l9znixf4/candidate.py\", line 12\n    , and the story of the story of the second season . The first season of the series was a standard and the story of the series ' first start . The first season of the series was a standard and the second season of the season , and the second season of the \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 19,
+      "completion": " and the story of the season . The story was a strong and a strong point of the story of the series ' second battles . The state of the season was a strong point of the star , and the second @-@ lowest companion of the series was a strong point of the star",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-v3aezalv/candidate.py\", line 11\n    and the story of the season . The story was a strong and a strong point of the story of the series ' second battles . The state of the season was a strong point of the star , and the second @-@ lowest companion of the series was a strong point of the star\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 20,
+      "completion": " , and the story of the star 's population is a standard of the star 's most important community . The company 's story was a common and the story of the story of the series , which is a standard and the star 's most important police officers . The company",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-stpupd83/candidate.py\", line 12\n    , and the story of the star 's population is a standard of the star 's most important community . The company 's story was a common and the story of the story of the series , which is a standard and the star 's most important police officers . The company\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 21,
+      "completion": " <unk> <unk> <unk> <unk> <unk> <unk> . \" The first star of the season was the first time the start of the season , and the second company was also a standard strength . The story was also a standard of the sea , which was a standard of the second season . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-oze3lvtb/candidate.py\", line 10\n    <unk> <unk> <unk> <unk> <unk> <unk> . \" The first star of the season was the first time the start of the season , and the second company was also a standard strength . The story was also a standard of the sea , which was a standard of the second season . \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 22,
+      "completion": " . The state of the state was a common starling , and the start of the star 's popularity is a standard of the story of the series . The company 's state is a state of the common starling , and the second season of the series was a common starling . The co",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-3ni8d6lb/candidate.py\", line 11\n    . The state of the state was a common starling , and the start of the star 's popularity is a standard of the story of the series . The company 's state is a state of the common starling , and the second season of the series was a common starling . The co\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 23,
+      "completion": " ( <unk> <unk> ) , and <unk> ( <unk> ) , and <unk> ( <unk> ) . The story of the story was a strong and <unk> , which is a common starling in the star 's population . The story is a star @-@ at @-@ home dad , and the second season of the season was a strong",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-tw5tm7mk/candidate.py\", line 10\n    ( <unk> <unk> ) , and <unk> ( <unk> ) , and <unk> ( <unk> ) . The story of the story was a strong and <unk> , which is a common starling in the star 's population . The story is a star @-@ at @-@ home dad , and the second season of the season was a strong\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 24,
+      "completion": " , and the start of the star 's population . \" The state was also a standard and the story of the series ' starting relationship with the star 's production . The story was also a standard and a second series of the series , which was also produced in the ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-cq2tj6k0/candidate.py\", line 8\n    , and the start of the star 's population . \" The state was also a standard and the story of the series ' starting relationship with the star 's production . The story was also a standard and a second series of the series , which was also produced in the \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 25,
+      "completion": " , and the state of the state of the state . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-j6ok2bbt/candidate.py\", line 15\n    , and the state of the state of the state . \" \n                                                  ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 26,
+      "completion": "unch , and the state of the state . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-se4ryhzi/candidate.py\", line 10\n    unch , and the state of the state . \" \n                                        ^\nSyntaxError: unterminated string literal (detected at line 10)\n"
+    },
+    {
+      "index": 27,
+      "completion": " . The statute is a strong point of the star 's popular style , which is a common starling in the star 's popularity of the story . The statute is a standard and the story of the story of the series . The first section of the series was a commercial succes",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-wnqxod6y/candidate.py\", line 8\n    . The statute is a strong point of the star 's popular style , which is a common starling in the star 's popularity of the story . The statute is a standard and the story of the story of the series . The first section of the series was a commercial succes\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 28,
+      "completion": " ( <unk> <unk> ) , and <unk> <unk> ( <unk> ) , and <unk> ( <unk> ) . The story of the story was a strong and <unk> of the story of the series . The company 's producers were also a standard of the story of the series . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-qz6uxxrc/candidate.py\", line 11\n    ( <unk> <unk> ) , and <unk> <unk> ( <unk> ) , and <unk> ( <unk> ) . The story of the story was a strong and <unk> of the story of the series . The company 's producers were also a standard of the story of the series . \n                                                                                                                                                                                                                              ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 29,
+      "completion": " . The story of the story was a common starling , and the story of the story of the series ' second star , and the second season of the series ' first starting in the second half . The second season is the second single of the season , and the second seaso",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-f7vix_9d/candidate.py\", line 11\n    . The story of the story was a common starling , and the story of the story of the series ' second star , and the second season of the series ' first starting in the second half . The second season is the second single of the season , and the second seaso\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 30,
+      "completion": " <unk> <unk> . \" The state of the state was the second single from the state 's population of the series . The state 's architectural and artistic program was a standard of the star 's population , and the second season of the series was released on Septem",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-838hnafq/candidate.py\", line 10\n    <unk> <unk> . \" The state of the state was the second single from the state 's population of the series . The state 's architectural and artistic program was a standard of the star 's population , and the second season of the series was released on Septem\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 31,
+      "completion": " , <unk> <unk> , <unk> <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , and <unk> . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-o8qkfwj5/candidate.py\", line 20\n    , <unk> <unk> , <unk> <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , and <unk> . \n                                                                                              ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 32,
+      "completion": " , <unk> , <unk> , <unk> , and <unk> . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-qps9lrqo/candidate.py\", line 24\n    , <unk> , <unk> , <unk> , and <unk> . \" \n                                            ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 33,
+      "completion": " . The state of the common starling is a standard of the star 's population , and the star 's most important policy of the community . The company 's position is a standard and the star 's population is a standard and the star 's most important police offi",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-a062bfjr/candidate.py\", line 12\n    . The state of the common starling is a standard of the star 's population , and the star 's most important policy of the community . The company 's position is a standard and the star 's population is a standard and the star 's most important police offi\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 34,
+      "completion": " , and the story of the state of the state . \" The state was also a standard of the second season of the season , and the second season of the season was a strong point of the series . The second season was the first time the second season was the first ti",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-334uv7e5/candidate.py\", line 8\n    , and the story of the state of the state . \" The state was also a standard of the second season of the season , and the second season of the season was a strong point of the series . The second season was the first time the second season was the first ti\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 35,
+      "completion": " , and the state of the state of Mantellodon . The state of Venus is a state of the common starling , and the second season of the company 's producers were also a standard of the star . The company 's story was a standard and the story of the series ' fir",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-v9eqqw76/candidate.py\", line 10\n    , and the state of the state of Mantellodon . The state of Venus is a state of the common starling , and the second season of the company 's producers were also a standard of the star . The company 's story was a standard and the story of the series ' fir\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 36,
+      "completion": " , and the star 's most important police officer . \" The first star of the series was a standard of the second season , and the second @-@ length star is a standard of the sea . The story was also a standard of the sea , which is a standard and the story o",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-8nyhkw0w/candidate.py\", line 12\n    , and the star 's most important police officer . \" The first star of the series was a standard of the second season , and the second @-@ length star is a standard of the sea . The story was also a standard of the sea , which is a standard and the story o\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 37,
+      "completion": " . The state of the common starling is a standard of the star 's population , and the star 's most important political and social community . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-3djoq177/candidate.py\", line 12\n    . The state of the common starling is a standard of the star 's population , and the star 's most important political and social community . \" \n                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 38,
+      "completion": " , and the same monument is a star @-@ and @-@ a @-@ half @-@ type star . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-lmo79leh/candidate.py\", line 18\n    , and the same monument is a star @-@ and @-@ a @-@ half @-@ type star . \" \n                                                                               ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 39,
+      "completion": " , and the starter is a standard of the second season of the season . The story was also a standard of the sea , which is a single section of the series . The first season of the series was considered a standard and the second season of the series . The fi",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-s20o3i8r/candidate.py\", line 17\n    , and the starter is a standard of the second season of the season . The story was also a standard of the sea , which is a single section of the series . The first season of the series was considered a standard and the second season of the series . The fi\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 40,
+      "completion": " , and the second @-@ life of the sea . The state of the second season is the second single of the season , and the second season of the season was a strong point of the series . The company 's standard are a standard and the story of the star 's populatio",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-20ff9ypi/candidate.py\", line 20\n    , and the second @-@ life of the sea . The state of the second season is the second single of the season , and the second season of the season was a strong point of the series . The company 's standard are a standard and the story of the star 's populatio\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 41,
+      "completion": "unch and soul . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-_30ibws7/candidate.py\", line 15\n    unch and soul . \" \n                    ^\nSyntaxError: unterminated string literal (detected at line 15)\n"
+    },
+    {
+      "index": 42,
+      "completion": " , and the state of the state of Captain <unk> . The company 's popularity is a state of the common starling , and the star 's population is a state of the community of the community . The common starling is a standard and the star 's most important politi",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-520oq03e/candidate.py\", line 10\n    , and the state of the state of Captain <unk> . The company 's popularity is a state of the common starling , and the star 's population is a state of the community of the community . The common starling is a standard and the star 's most important politi\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 43,
+      "completion": " , and the second @-@ largest <unk> of the star . The company 's population is a standard of the second season of the series . The company 's standard are also a standard structure , and the star 's most important part of the community . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-tmtsy4qx/candidate.py\", line 19\n    , and the second @-@ largest <unk> of the star . The company 's population is a standard of the second season of the series . The company 's standard are also a standard structure , and the star 's most important part of the community . \n                                                                                                                                                                                                                                                 ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 44,
+      "completion": " , and the start of the star 's popularity . The company 's popularity is a standard of the story of the series . The company 's status is a standard and the sister of the star 's population is a standard and the star 's population of the star . The statue",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-l7yhosw4/candidate.py\", line 14\n    , and the start of the star 's popularity . The company 's popularity is a standard of the story of the series . The company 's status is a standard and the sister of the star 's population is a standard and the star 's population of the star . The statue\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 45,
+      "completion": " , and the story of the star 's popular power . \" The state 's architecture is a standard of the star 's population , and the star 's most important political parties in the state of <unk> . The state 's architectural properties are also a standard of the ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-wmfq32np/candidate.py\", line 8\n    , and the story of the star 's popular power . \" The state 's architecture is a standard of the star 's population , and the star 's most important political parties in the state of <unk> . The state 's architectural properties are also a standard of the \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 46,
+      "completion": " , and the start of the star 's popularity . \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-04_2sjgh/candidate.py\", line 18\n    , and the start of the star 's popularity . \" \n                                                  ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 47,
+      "completion": " , and the state of the state of Mantellodon . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-5dbu4wsl/candidate.py\", line 10\n    , and the state of the state of Mantellodon . \n                                                  ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 48,
+      "completion": " , and the second second @-@ life of the second season of the series . The first season of the series is a standard and the story of the series ' first start of the series . The first season is the most important and the star 's most important policy of th",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-myxiq_l8/candidate.py\", line 15\n    , and the second second @-@ life of the second season of the series . The first season of the series is a standard and the story of the series ' first start of the series . The first season is the most important and the star 's most important policy of th\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 49,
+      "completion": " . The standard storm was a standard of the star 's population , and the storm continued to be the standard of the sea . The storm was a standard and the storm was a standard <unk> , which was a strong point of the star 's population . The storm was a stan",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-icg7w0i7/candidate.py\", line 16\n    . The standard storm was a standard of the star 's population , and the storm continued to be the standard of the sea . The storm was a standard and the storm was a standard <unk> , which was a strong point of the star 's population . The storm was a stan\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    }
+  ]
+}

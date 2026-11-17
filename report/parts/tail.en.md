@@ -37,6 +37,9 @@ python scripts/make_report_configs.py
 scripts/report_pipeline.sh 0 baseline   # sliding window → full attention → throughput → ablation queue
 scripts/report_pipeline.sh 1 ttt        # TTT-E2E → no-update control → naive-update baseline → ablation queue
 scripts/run_reference_benchmarks.sh 0   # public reference models + lm-evaluation-harness cross-check
+scripts/run_extended_benchmarks.sh 7 main-full no-adapt 100
+scripts/run_extended_benchmarks.sh 7 main-ttt adapt 100
+scripts/run_extended_benchmarks.sh 7 main-ttt no-adapt 100
 
 The `0` and `1` values are examples of device IDs assigned to a job, not fixed machine-wide IDs. On the H200 run for this report, GPU 7 ran the baseline pipeline and GPU 5 ran the TTT pipeline. The two pipelines were independent and exchanged no cross-device data.
 

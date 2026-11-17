@@ -37,6 +37,9 @@ python scripts/make_report_configs.py
 scripts/report_pipeline.sh 0 baseline   # 滑窗 → 全注意力 → 推理吞吐 → 消融队列
 scripts/report_pipeline.sh 1 ttt        # TTT-E2E → 无更新对照 → 朴素更新基线 → 消融队列
 scripts/run_reference_benchmarks.sh 0   # 公开参考模型 + lm-evaluation-harness 交叉核对
+scripts/run_extended_benchmarks.sh 7 main-full no-adapt 100
+scripts/run_extended_benchmarks.sh 7 main-ttt adapt 100
+scripts/run_extended_benchmarks.sh 7 main-ttt no-adapt 100
 
 这里的 `0` 和 `1` 只是作业分配后的 GPU 编号示例，不是固定的机器编号。本报告在 H200 机器上使用 GPU 7 运行 baseline、GPU 5 运行 TTT，两条流水线彼此独立且不做跨卡通信。
 

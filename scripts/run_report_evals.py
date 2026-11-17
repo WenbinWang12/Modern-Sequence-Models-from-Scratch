@@ -8,7 +8,8 @@
 - ``long``：超出训练长度的评测（窗口 8K/16K/32K），考察滑窗、TTT 与截断全注意力的外推；
 - ``curves``：每个保存的 checkpoint 在固定验证子集上的 loss，用于验证曲线；
 - ``latency``：不同上下文长度下的评测吞吐，用于成本图；
-- ``ablations``：消融臂在 PG-19 validation 上的评测。
+- ``ablations``：消融臂和规模对照臂在 PG-19 validation 上的评测；
+- ``dynamic``：对没有做元训练的对照模型直接做测试时更新，以及 TTT 测试时学习率的敏感性。
 
 每个任务是一次独立的 ``eval_lm_positions.py`` 进程，只使用 ``--gpu`` 指定的单张卡。
 """
@@ -26,7 +27,7 @@ from pathlib import Path
 MAIN_ARMS = ("full", "swa", "ck", "ttt")
 PG19_TEST = "data/tokens/pg19-test"
 PG19_VALIDATION = "data/tokens/pg19-validation"
-FINEWEB_HELDOUT = "data/tokens/fineweb-edu-heldout"
+FINEWEB_HELDOUT = "data/tokens/fineweb-edu-heldout-dedup"
 
 
 def latest_checkpoint(run: Path) -> Path | None:
@@ -195,13 +196,13 @@ def latency_tasks(outputs: Path, arms):
     return tasks
 
 
-def ablation_tasks(outputs: Path):
+def ablation_tasks(outputs: Path, only=None):
     tasks = []
-    for run in sorted(outputs.glob("abl-*")):
-        if not finished(run):
+    for run in sorted([*outputs.glob("abl-*"), *outputs.glob("scale-*")]):
+        if not finished(run) or (only and run.name not in only):
             continue
         checkpoint = latest_checkpoint(run)
-        name = run.name.replace("-", "_")
+        name = run.name.replace("-", "_", 1)
         tasks.append(task(f"{name}__pg19val_w2048", checkpoint, PG19_VALIDATION, 2048, batch=32))
         tasks.append(
             task(
@@ -222,13 +223,40 @@ def ablation_tasks(outputs: Path):
     return tasks
 
 
+def dynamic_tasks(outputs: Path):
+    """朴素测试时更新基线，以及改变测试时内循环学习率的敏感性。"""
+    tasks = []
+    subset = ("--windows-per-document", "5")
+    control = outputs / "main-ck"
+    if finished(control):
+        checkpoint = latest_checkpoint(control)
+        for label, rate in (("0p01", 0.01), ("0p03", 0.03), ("0p1", 0.1), ("0p3", 0.3), ("1", 1.0)):
+            options = ("--force-adapt", "--inner-learning-rate", str(rate))
+            tasks.append(
+                task(f"dynamic_ck_lr{label}__pg19val", checkpoint, PG19_VALIDATION, 4096, extra=(*options, *subset))
+            )
+            tasks.append(task(f"dynamic_ck_lr{label}__pg19test_w4096", checkpoint, PG19_TEST, 4096, extra=options))
+        tasks.append(task("dynamic_ck_off__pg19val", checkpoint, PG19_VALIDATION, 4096, extra=subset))
+    meta = outputs / "main-ttt"
+    if finished(meta):
+        checkpoint = latest_checkpoint(meta)
+        for label, rate in (("0p25", 0.25), ("0p5", 0.5), ("1", 1.0), ("2", 2.0), ("4", 4.0)):
+            options = ("--inner-learning-rate", str(rate), *subset)
+            tasks.append(task(f"dynamic_ttt_lr{label}__pg19val", checkpoint, PG19_VALIDATION, 4096, extra=options))
+        tasks.append(task("dynamic_ttt_off__pg19val", checkpoint, PG19_VALIDATION, 4096, extra=("--no-adapt", *subset)))
+    return tasks
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="批量运行技术报告评测")
-    parser.add_argument("--stage", choices=("main", "long", "curves", "latency", "ablations"), required=True)
+    stages = ("main", "long", "curves", "latency", "ablations", "dynamic")
+    parser.add_argument("--stage", choices=stages, required=True)
     parser.add_argument("--gpu", required=True)
     parser.add_argument("--arms", nargs="+", default=list(MAIN_ARMS))
+    parser.add_argument("--runs", nargs="+", help="ablations 阶段只评测这些运行目录")
     parser.add_argument("--outputs", type=Path, default=Path("outputs"))
     parser.add_argument("--evals", type=Path, default=Path("outputs/evals"))
+    parser.add_argument("--batch-size", type=int, help="覆盖所有任务的批大小（与训练共用显卡时调小）")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -237,7 +265,8 @@ def main() -> None:
         "long": lambda: long_tasks(args.outputs, args.arms),
         "curves": lambda: curve_tasks(args.outputs, args.arms),
         "latency": lambda: latency_tasks(args.outputs, args.arms),
-        "ablations": lambda: ablation_tasks(args.outputs),
+        "ablations": lambda: ablation_tasks(args.outputs, args.runs),
+        "dynamic": lambda: dynamic_tasks(args.outputs),
     }
     tasks = builders[args.stage]()
     args.evals.mkdir(parents=True, exist_ok=True)
@@ -248,9 +277,12 @@ def main() -> None:
         "CUDA_VISIBLE_DEVICES": args.gpu,
         "JAX_PLATFORMS": "cuda",
         "PYTHONPATH": ".",
-        "XLA_PYTHON_CLIENT_MEM_FRACTION": os.environ.get("XLA_PYTHON_CLIENT_MEM_FRACTION", "0.90"),
+        # 评测可能与训练进程共用一张卡：按需申请显存，不预占。
+        "XLA_PYTHON_CLIENT_PREALLOCATE": os.environ.get("XLA_PYTHON_CLIENT_PREALLOCATE", "false"),
     }
     for name, arguments in tasks:
+        if args.batch_size is not None:
+            arguments[arguments.index("--batch-size") + 1] = str(args.batch_size)
         output = args.evals / f"{name}.json"
         if output.exists():
             continue

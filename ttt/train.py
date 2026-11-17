@@ -11,7 +11,7 @@ import numpy as np
 
 from .callbacks import JsonlMetricsCallback, TrainerCallback
 from .checkpoint import load_checkpoint, save_checkpoint
-from .config import load_experiment
+from .config import ExperimentConfig, load_experiment
 from .data import BatchStream
 from .distributed import (
     create_mesh,
@@ -120,8 +120,11 @@ def train(experiment, data_path, output_dir, *, resume=None, initialize_from=Non
     primary = jax.process_index() == 0
     if primary:
         config_path = output_dir / "experiment.json"
-        if config_path.exists() and json.loads(config_path.read_text(encoding="utf-8")) != experiment.to_dict():
-            raise ValueError("输出目录已属于另一份实验配置。")
+        if config_path.exists():
+            # 按配置对象比较，旧版本写出的文件缺少后来新增的默认字段时仍然视为同一份实验。
+            stored = ExperimentConfig.from_dict(json.loads(config_path.read_text(encoding="utf-8")))
+            if stored != experiment:
+                raise ValueError("输出目录已属于另一份实验配置。")
         atomic_json(config_path, experiment.to_dict())
         atomic_json(output_dir / "environment.json", environment_report())
         atomic_json(output_dir / "status.json", {"status": "running", "step": completed})

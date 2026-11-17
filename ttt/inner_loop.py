@@ -17,10 +17,12 @@ class InnerLoopConfig:
     learning_rate: float = 1.0
     clip_norm: float = 1.0
     track_post_loss: bool = False
+    first_order: bool = False  # 外循环不对内循环梯度求导（一阶近似），仅用于消融。
 
     def __post_init__(self):
-        if not isinstance(self.enabled, bool) or not isinstance(self.track_post_loss, bool):
-            raise ValueError("enabled 必须是布尔值。")
+        flags = (self.enabled, self.track_post_loss, self.first_order)
+        if not all(isinstance(flag, bool) for flag in flags):
+            raise ValueError("enabled、track_post_loss 和 first_order 必须是布尔值。")
         for name in ("learning_rate", "clip_norm"):
             value = getattr(self, name)
             if isinstance(value, bool) or not math.isfinite(value) or value <= 0:
@@ -105,6 +107,9 @@ def inner_step(
 
     if inner.enabled and fast_weights:
         (loss, (output, losses)), grads = jax.value_and_grad(objective, has_aux=True)(fast_weights)
+        if inner.first_order:
+            # 把内循环梯度当作常数：前向数值不变，外循环少了穿过更新量的二阶项。
+            grads = jax.lax.stop_gradient(grads)
         lr = inner.learning_rate if learning_rate is None else learning_rate
         updated, norm = sgd_update(fast_weights, grads, lr, inner.clip_norm)
     else:

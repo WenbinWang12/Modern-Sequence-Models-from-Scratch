@@ -79,6 +79,7 @@ def main() -> None:
     parser.add_argument("--max-windows", type=int)
     parser.add_argument("--stream", action="store_true", help="忽略文档边界，把语料当作一条连续 token 流切窗")
     parser.add_argument("--no-adapt", action="store_true")
+    parser.add_argument("--force-adapt", action="store_true", help="对未做元训练的检查点也执行测试时更新")
     parser.add_argument("--inner-learning-rate", type=float)
     parser.add_argument("--sliding-window", type=int, help="评测时覆盖滑窗长度")
     parser.add_argument("--force-sliding", action="store_true", help="评测时把所有层改成滑窗注意力")
@@ -108,6 +109,11 @@ def main() -> None:
     inner = experiment.inner
     if args.no_adapt:
         inner = replace(inner, enabled=False)
+    if args.force_adapt:
+        # 朴素测试时更新（dynamic evaluation）：模型训练时没有见过内循环。
+        if not config.use_fast_mlp:
+            raise ValueError("--force-adapt 需要带快权重 MLP 的模型。")
+        inner = replace(inner, enabled=True)
     if args.inner_learning_rate is not None:
         inner = replace(inner, learning_rate=args.inner_learning_rate)
     params = checkpoint.state.params
@@ -131,11 +137,14 @@ def main() -> None:
     bins = args.window // args.bin
 
     def losses(weights, ids, mask):
-        return sequence_loss(model, weights, ids, inner, mask).token_losses
+        output = sequence_loss(model, weights, ids, inner, mask)
+        # 每个更新块的快权重范数、更新幅度和内循环梯度范数，用于检查长上下文下的适应是否稳定。
+        return output.token_losses, jnp.stack((output.fast_weight_norms, output.update_norms, output.grad_norms))
 
     evaluate = jax.jit(jax.vmap(losses, in_axes=(None, 0, 0)))
     loss_sums = np.zeros((len(windows), bins), dtype=np.float64)
     counts = np.zeros((len(windows), bins), dtype=np.float64)
+    diagnostics = []
     compile_seconds, run_seconds, timed_tokens = None, 0.0, 0
     for offset in range(0, len(windows), args.batch_size):
         batch = windows[offset : offset + args.batch_size]
@@ -145,8 +154,10 @@ def main() -> None:
             ids[row, : length + 1] = tokens[position : position + length + 1]
             mask[row, :length] = 1.0
         started = time.perf_counter()
-        values = np.asarray(evaluate(params, jnp.asarray(ids), jnp.asarray(mask)), dtype=np.float64)
+        values, chunk_statistics = evaluate(params, jnp.asarray(ids), jnp.asarray(mask))
+        values = np.asarray(values, dtype=np.float64)
         elapsed = time.perf_counter() - started
+        diagnostics.append(np.asarray(chunk_statistics, dtype=np.float32)[: len(batch)])
         if compile_seconds is None:
             compile_seconds = elapsed
         else:
@@ -161,6 +172,10 @@ def main() -> None:
     total_tokens = float(counts.sum())
     nll = float(loss_sums.sum() / total_tokens)
     per_bin = loss_sums.sum(axis=0) / np.maximum(counts.sum(axis=0), 1.0)
+    # 形状为 [窗口, 3, 更新块]；只对完整窗口取平均，避免尾部不完整块拉低统计。
+    chunk_statistics = np.concatenate(diagnostics)
+    complete = np.asarray([length == args.window for _, _, length in windows])
+    chunk_means = chunk_statistics[complete].mean(axis=0) if complete.any() else chunk_statistics.mean(axis=0)
     bytes_per_token = manifest.get("stats", {}).get("bytes_per_token")
     metadata_path = args.checkpoint / "metadata.json" if args.checkpoint.is_dir() else args.checkpoint
     summary = {
@@ -176,6 +191,7 @@ def main() -> None:
         "bin": args.bin,
         "include_partial": args.include_partial,
         "stream": args.stream,
+        "force_adapt": args.force_adapt,
         "adapt": bool(inner.enabled and config.use_fast_mlp),
         "inner_learning_rate": inner.learning_rate,
         "eval_overrides": {key: (list(value) if isinstance(value, tuple) else value) for key, value in changes.items()},
@@ -189,6 +205,9 @@ def main() -> None:
         "perplexity": math.exp(nll),
         "bits_per_byte": None if not bytes_per_token else nll / math.log(2) / bytes_per_token,
         "nll_by_position_bin": per_bin.tolist(),
+        "fast_weight_norm_by_chunk": chunk_means[0].tolist(),
+        "inner_update_norm_by_chunk": chunk_means[1].tolist(),
+        "inner_grad_norm_by_chunk": chunk_means[2].tolist(),
         "compile_and_first_batch_seconds": compile_seconds,
         "eval_tokens_per_second": timed_tokens / run_seconds if run_seconds else None,
         "batch_size": args.batch_size,
@@ -203,9 +222,8 @@ def main() -> None:
         document=np.asarray([document for document, _, _ in windows], dtype=np.int32),
         position=np.asarray([position for _, position, _ in windows], dtype=np.int64),
     )
-    print(
-        json.dumps({key: value for key, value in summary.items() if key != "nll_by_position_bin"}, ensure_ascii=False)
-    )
+    printed = {key: value for key, value in summary.items() if not key.endswith(("_bin", "_by_chunk"))}
+    print(json.dumps(printed, ensure_ascii=False))
 
 
 if __name__ == "__main__":

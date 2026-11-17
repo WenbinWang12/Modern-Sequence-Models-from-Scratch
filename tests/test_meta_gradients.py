@@ -48,3 +48,25 @@ def test_model_gradient_matches_finite_difference(model_and_params):
     epsilon = 0.005
     numeric = (objective(value + epsilon) - objective(value - epsilon)) / (2 * epsilon)
     np.testing.assert_allclose(analytic, numeric, rtol=0.03, atol=0.0001)
+
+
+def test_first_order_keeps_forward_and_drops_second_order_terms(model_and_params):
+    model, params = model_and_params
+    tokens = jnp.asarray([1, 2, 3, 4, 5, 6, 7])
+    exact = InnerLoopConfig(learning_rate=0.2, clip_norm=100.0)
+    first_order = InnerLoopConfig(learning_rate=0.2, clip_norm=100.0, first_order=True)
+
+    def loss(weights, inner):
+        return sequence_loss(model, weights, tokens, inner).loss
+
+    # 前向只取决于更新后的快权重，一阶近似不改变损失值。
+    np.testing.assert_allclose(loss(params, exact), loss(params, first_order), rtol=1e-6)
+    exact_grads = jax.grad(loss)(params, exact)
+    first_order_grads = jax.grad(loss)(params, first_order)
+    assert all(np.isfinite(np.asarray(value)).all() for value in jax.tree.leaves(first_order_grads))
+    # 去掉穿过内循环梯度的二阶项后，外循环梯度必须发生变化。
+    difference = sum(
+        float(jnp.sum(jnp.abs(a - b)))
+        for a, b in zip(jax.tree.leaves(exact_grads), jax.tree.leaves(first_order_grads), strict=True)
+    )
+    assert difference > 1e-6

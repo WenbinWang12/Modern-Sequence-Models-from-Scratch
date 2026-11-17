@@ -18,6 +18,7 @@ import argparse
 import hashlib
 import json
 import multiprocessing
+import re
 import time
 import uuid
 from pathlib import Path
@@ -25,13 +26,21 @@ from pathlib import Path
 import numpy as np
 
 _ENCODING = None
+_EXCLUDED = frozenset()
 
 
-def _initialize(encoding_name: str) -> None:
-    global _ENCODING
+def _initialize(encoding_name: str, excluded=()) -> None:
+    global _ENCODING, _EXCLUDED
     import tiktoken
 
     _ENCODING = tiktoken.get_encoding(encoding_name)
+    _EXCLUDED = frozenset(excluded)
+
+
+def document_digest(text: str) -> str:
+    """与 audit_report_data.py 相同的规范化全文摘要：小写、连续空白压成一个空格。"""
+    normalised = re.sub(r"\s+", " ", text.lower()).strip()
+    return hashlib.blake2b(normalised.encode("utf-8"), digest_size=12).hexdigest()
 
 
 def _encode_documents(texts: list[str]) -> tuple[np.ndarray, np.ndarray]:
@@ -50,7 +59,7 @@ def _text_file_task(task):
     paths = task
     texts = [Path(path).read_text(encoding="utf-8", errors="replace") for path in paths]
     tokens, lengths = _encode_documents(texts)
-    return tokens, lengths, [Path(path).name for path in paths], sum(len(text.encode("utf-8")) for text in texts)
+    return tokens, lengths, [Path(path).name for path in paths], sum(len(text.encode("utf-8")) for text in texts), 0
 
 
 def _parquet_task(task):
@@ -62,9 +71,10 @@ def _parquet_task(task):
     if limit is not None:
         texts = texts[:limit]
     texts = [text for text in texts if isinstance(text, str) and text.strip()]
-    tokens, lengths = _encode_documents(texts)
-    names = [f"{Path(path).name}:{row_group}:{index}" for index in range(len(texts))]
-    return tokens, lengths, names, sum(len(text.encode("utf-8")) for text in texts)
+    kept = [text for text in texts if document_digest(text) not in _EXCLUDED] if _EXCLUDED else texts
+    tokens, lengths = _encode_documents(kept)
+    names = [f"{Path(path).name}:{row_group}:{index}" for index in range(len(kept))]
+    return tokens, lengths, names, sum(len(text.encode("utf-8")) for text in kept), len(texts) - len(kept)
 
 
 def sha256_file(path: Path) -> str:
@@ -112,6 +122,8 @@ def main() -> None:
     parser.add_argument("--processes", type=int, default=48)
     parser.add_argument("--documents-per-task", type=int, default=32)
     parser.add_argument("--max-documents", type=int)
+    parser.add_argument("--exclude-digests", help="JSON 文件，内含需要剔除的文档摘要列表")
+    parser.add_argument("--exclude-key", default="fineweb_edu.heldout_duplicate_digests")
     args = parser.parse_args()
 
     output = Path(args.output).resolve()
@@ -124,9 +136,14 @@ def main() -> None:
     if encoding.n_vocab > 65536:
         raise ValueError("uint16 分片只支持不超过 65536 的词表。")
     worker, tasks = build_tasks(args)
+    excluded = ()
+    if args.exclude_digests:
+        excluded = json.loads(Path(args.exclude_digests).read_text(encoding="utf-8"))
+        for key in args.exclude_key.split("."):
+            excluded = excluded[key]
     version = uuid.uuid4().hex
     records, starts, names = [], [0], []
-    buffer, buffered, total_tokens, total_bytes = [], 0, 0, 0
+    buffer, buffered, total_tokens, total_bytes, skipped = [], 0, 0, 0, 0
     started = time.time()
 
     def flush(count: int) -> None:
@@ -140,9 +157,12 @@ def main() -> None:
         buffer, buffered = ([rest] if rest.size else []), int(rest.size)
 
     with multiprocessing.get_context("spawn").Pool(
-        args.processes, initializer=_initialize, initargs=(args.encoding,)
+        args.processes, initializer=_initialize, initargs=(args.encoding, tuple(excluded))
     ) as pool:
-        for index, (tokens, lengths, task_names, byte_count) in enumerate(pool.imap(worker, tasks, chunksize=1), 1):
+        for index, (tokens, lengths, task_names, byte_count, dropped) in enumerate(
+            pool.imap(worker, tasks, chunksize=1), 1
+        ):
+            skipped += dropped
             if tokens.size:
                 buffer.append(tokens)
                 buffered += int(tokens.size)
@@ -185,9 +205,11 @@ def main() -> None:
             "tokens": total_tokens,
             "utf8_bytes": total_bytes,
             "bytes_per_token": total_bytes / total_tokens,
+            "excluded_duplicate_documents": skipped,
         },
         "inputs": [str(path) for path in args.input],
         "max_documents": args.max_documents,
+        "exclude_digests": args.exclude_digests,
         "documents_index_sha256": sha256_file(output / "documents.npy"),
     }
     temporary = output / "manifest.json.tmp"

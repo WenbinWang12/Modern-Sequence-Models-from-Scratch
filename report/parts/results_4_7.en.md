@@ -1,1 +1,3 @@
-To be written.
+The public benchmarks use zero-shot prompts and fixed answer normalisation. The four models in this report share the GPT-2 BPE tokenizer, while each public reference model is evaluated with its native tokenizer and records that choice in the run metadata. Table 6 compares the four pre-trained base models in this report, Table 8 evaluates public models with the same script, and Table 9 adds language-modelling metrics. Public models generally use far larger corpora and token budgets, so these tables provide protocol and scale context rather than a leaderboard claim for the small models.
+
+Generation tasks are also sensitive to prompt format, context truncation and answer parsing. Valid sample counts, confidence intervals, raw JSON and script revisions should be released with the tables. The 15M byte-token pipeline diagnostics remain on the historical page and are kept separate from the 1.0 main experiment.

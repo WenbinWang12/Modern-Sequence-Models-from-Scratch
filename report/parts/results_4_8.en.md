@@ -1,1 +1,3 @@
-To be written.
+The ablations change one declared variable at a time and use independent PG-19 validation windows. Table 10 covers the presence and use of fast weights, inner-loop learning rate, update chunk, suffix length and sliding-window size. The table reports held-out loss, while median step times and token counts remain in the run metadata and the resource comparison is reported in Section 4.10. This keeps a slower configuration from appearing to provide a free gain.
+
+The ablations explain the mechanism of the main experiment. They are not a license to select the most favourable configuration and rewrite the main table. Configurations, seeds, token budgets and evaluation scripts are recorded in run metadata, which should be checked before comparing loss differences across repeated runs.

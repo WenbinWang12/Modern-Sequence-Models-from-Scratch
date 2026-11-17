@@ -1,1 +1,5 @@
-To be written.
+Table 3 and Figure 4 extend evaluation from the 4K training length to 32K. Full attention supplies two references: the untruncated run shows direct attention on a longer input, while the last-4K run restricts visible history to a range seen during training. Sliding-window attention and TTT-E2E continue to process the 32K input under their own runtime rules, so the position-wise differences combine state compression, window truncation and extrapolation error.
+
+{% if r.fig_context_32k.paired.ttt_minus_swa %}Across the 32K PG-19 windows, the paired TTT-E2E minus sliding-window difference is {{ f3(r.fig_context_32k.paired.ttt_minus_swa.all.mean) }} nats per token, with a 95% confidence interval of {{ ci(r.fig_context_32k.paired.ttt_minus_swa.all.ci95) }}. The position ranges in Table 3 show whether this aggregate difference is concentrated after the training length.{% endif %}
+
+The 32K experiment is a length-extrapolation diagnostic. It is not training at 32K and it does not replace RULER or LongBench task scores. Reading it with fast-weight norms, session-state measurements and position ranges helps distinguish state drift, local windows and distribution shift beyond the training length.

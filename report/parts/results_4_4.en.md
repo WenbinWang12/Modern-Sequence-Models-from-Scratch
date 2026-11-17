@@ -1,1 +1,3 @@
-To be written.
+Attribution requires both structural controls and training curves. The TTT-E2E versus sliding-window gap asks whether a test-time state can recover information lost to truncation. The comparison with full attention shows how far a fixed-size state remains from complete in-window history. The no-update control isolates the difference between having fast-weight parameters and actually updating them with gradients. Figure 7 tests whether a gain is only an early-training effect.
+
+These controls do not turn one matched experiment into a universal law. Inner-loop learning rate, update frequency, fast-weight placement and gradient clipping jointly determine the state dynamics, while the ablation and cost tables provide the required context. A defensible interpretation must consider quality differences, paired intervals and resource use together.

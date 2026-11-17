@@ -1,1 +1,3 @@
-To be written.
+Table 2 and Figure 3 divide loss by position within the window. The first ranges mainly test local modelling, while later ranges expose the history truncation imposed by a fixed sliding window. TTT-E2E updates every 256 tokens, so update boundaries can create interpretable pieces in the curve. They are update boundaries, not extra training data or a larger attention window.
+
+Paired differences use the same windows from the same books, with intervals obtained by resampling books. This shows whether a model gap is consistent across books and separates an average gain from a few influential documents. A gap that grows with position points toward history compression, whereas a nearly constant gap is more consistent with local modelling or optimisation differences.

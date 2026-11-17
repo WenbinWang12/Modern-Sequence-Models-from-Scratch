@@ -1,1 +1,5 @@
-To be written.
+Table 13 puts single-step training throughput, peak memory and parameter count together. Table 14 measures the arrays retained after reading contexts of different lengths and the token-by-token decoding speed that follows. Full attention, sliding-window attention and TTT have different context scaling, so a single tokens-per-second number cannot summarise their costs.
+
+{% if r.training_cost.ttt and r.training_cost.swa %}At the reported 4K training setting, TTT-E2E processes {{ f2(r.training_cost.ttt.tokens_per_second / r.training_cost.swa.tokens_per_second) }} times as many input tokens per second as the sliding-window arm's measured rate. This ratio is tied to the batch, sequence length, checkpointing policy and H200 software environment in Table 13.{% endif %}
+
+TTT-E2E adds the cost of computing inner-loop gradients, storing fast weights and applying updates. A deployment budget also includes compilation caches, batch size, concurrent sessions, checkpoint I/O and recovery. The H200 single-device measurements provide a reproducible relative comparison and are not absolute throughput claims for every hardware or serving stack.

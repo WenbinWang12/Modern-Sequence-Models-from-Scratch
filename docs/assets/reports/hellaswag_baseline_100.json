@@ -1,0 +1,15 @@
+{
+  "protocol_version": "hellaswag_loglikelihood_v1",
+  "protocol": "HellaSwag validation split; zero-shot continuation log-likelihood; byte tokenizer; no adaptation",
+  "checkpoint": "outputs/h200-15m-baseline-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c5a6ac43b55a2b52dc2956df4b951db1171fb69360f69b344f1d53c308f7d4bb",
+  "script_sha256": "e1621f961c5c4d31f21718eb714a8cf96857d2d8746d4ce688633b4a7ede5fa1",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/hellaswag/hellaswag_val_100.jsonl",
+  "data_sha256": "36979d49682dc83b5a235f639476f3d2580a38069547b374b35d175a78f9b8ff",
+  "limit": 100,
+  "max_length": 512,
+  "correct": 32,
+  "samples": 100,
+  "skipped": 0,
+  "accuracy": 0.32
+}

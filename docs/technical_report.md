@@ -448,3 +448,5 @@ TTT 模型达到“可发表/可发布”之前，必须同时满足：
 | TTT adapt | 2.6765 | 2.6223 | not run |
 
 PPL 是每个 split 128 个随机窗口、约 65k 有效 token；MMLU 是零样本答案字母 continuation log-likelihood，byte tokenizer、最大 512 token、TTT 适配关闭。该 MMLU 结果属于 diagnostic：模型只有约 15M 参数且没有 instruction tuning，且 professional_law 由于上下文上限跳过 95/100 题，不能和公开厂商榜单比较，也不能据此宣称 TTT 的通用能力下降或提升。正式 benchmark release 仍需 tokenizer 冻结、多 seed、污染审计和数学/代码/长上下文任务。
+
+同一协议下又抽取 HellaSwag validation 前 100 题：plain baseline 与 TTT no-adapt 都为 32/100（32%），没有观察到差异。该子集和 byte-token 设置同样只用于诊断；完整 validation split、长度归一化、更多 seed 和污染审计完成前，不把它写成能力结论。

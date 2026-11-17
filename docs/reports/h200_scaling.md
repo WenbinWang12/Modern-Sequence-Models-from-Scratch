@@ -41,4 +41,6 @@ PPL 使用 WikiText-2 validation/test，各 128 个随机窗口、约 65k 有效
 
 混合 recipe SHA256 为 `f033e8e281813f7652e1d489193e3e7ce9dc5846419807165d83c5a8dc4aa610`；MMLU 压缩包 SHA256 为 `91d1fe0e3a0dde2e8d8af25f537ee0ec6c6378a499845c80f78f67cbe2d38e9e`。原始 JSON 结果保存在 H200 的 `outputs/benchmarks/` 目录，后续应在多 seed、固定 tokenizer 和更大模型上重复后再进入论文主表。
 
+HellaSwag validation 前 100 题的 continuation 诊断中，baseline 与 TTT no-adapt 都是 32/100（32%）；它们使用完全相同的 byte tokenizer、512 token 上限和题目子集，因此这里只能说本次小样本没有观察到差异。仓库也保存了 [baseline HellaSwag JSON](../assets/reports/hellaswag_baseline_100.json) 和 [TTT HellaSwag JSON](../assets/reports/hellaswag_ttt_100.json)。
+
 仓库也保存了本次远端运行导出的 [来源比例审计](../assets/reports/h200_mixture_source_probe.json)、[baseline MMLU](../assets/reports/mmlu_baseline_mixture_5x100.json)、[TTT MMLU](../assets/reports/mmlu_ttt_mixture_5x100.json)、[baseline valid PPL](../assets/reports/ppl_baseline_mixture_valid.json)、[baseline test PPL](../assets/reports/ppl_baseline_mixture_test.json)、[TTT no-adapt valid PPL](../assets/reports/ppl_ttt_mixture_noadapt_valid.json)、[TTT no-adapt test PPL](../assets/reports/ppl_ttt_mixture_noadapt_test.json)、[TTT adapt valid PPL](../assets/reports/ppl_ttt_mixture_adapt_valid.json) 和 [TTT adapt test PPL](../assets/reports/ppl_ttt_mixture_adapt_test.json)。

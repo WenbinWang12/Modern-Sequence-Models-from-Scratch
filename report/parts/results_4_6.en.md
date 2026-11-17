@@ -1,3 +1,5 @@
 Table 4's verbatim-recall probe copies a span of already observed tokens later in the window and measures the loss reduction on the repeated span. It tests whether the model uses a previously seen surface sequence, which is different from semantic memory. Table 5 supplies a second position-sensitive test by placing a key-value sentence at ten depths and comparing the answer likelihood with and without the needle.
 
 Recall and needle results should be read alongside the 32K loss. A model can have a lower average NLL while remaining unstable on verbatim repetition or deep retrieval, and a retrieval gain can also reflect a local pattern. The raw results preserve each depth and context length so that a single average cannot hide the time structure of state updates.
+
+{% if r.evaluation_failures.resource_exhausted_count %}The evaluation log also records {{ n(r.evaluation_failures.resource_exhausted_count) }} GPU memory-allocation failure message(s). These failures are kept in the raw pipeline log and are not converted into zero scores. A missing arm in the needle table therefore means that its evaluation did not produce a valid JSON result.{% endif %}

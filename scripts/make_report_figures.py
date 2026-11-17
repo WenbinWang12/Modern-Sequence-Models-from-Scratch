@@ -1043,6 +1043,22 @@ def collect_interruptions(runs, results):
         results["interruptions"] = {"total": total, "runs": records}
 
 
+def collect_evaluation_failures(runs, results):
+    """记录流水线评测日志中的资源失败，避免把失败误解为零分。"""
+    log_path = runs.parent / "logs" / "pipeline_evals.log"
+    if not log_path.exists():
+        return
+    resource_failures = []
+    for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if "RESOURCE_EXHAUSTED" in line:
+            resource_failures.append(line.strip())
+    if resource_failures:
+        results["evaluation_failures"] = {
+            "resource_exhausted_count": len(resource_failures),
+            "log": "logs/pipeline_evals.log",
+        }
+
+
 def collect_niah(directory, results):
     """单针检索：准确率，以及“针在场 vs 不在场”的答案对数似然差。"""
     table = {}
@@ -1078,6 +1094,11 @@ def copy_raw(args):
         target.mkdir(parents=True, exist_ok=True)
         for path in sorted(paths):
             shutil.copyfile(path, target / path.name)
+    pipeline_log = args.runs.parent / "logs" / "pipeline_evals.log"
+    if pipeline_log.exists():
+        target = args.output / "raw" / "logs"
+        target.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(pipeline_log, target / pipeline_log.name)
 
 
 def main() -> None:
@@ -1101,6 +1122,7 @@ def main() -> None:
     collect_audits(args.audits, args.data, results)
     collect_provenance(args.runs, results)
     collect_interruptions(args.runs, results)
+    collect_evaluation_failures(args.runs, results)
     collect_sessions(args.evals, results)
     collect_niah(args.niah, results)
     copy_raw(args)

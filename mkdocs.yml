@@ -117,6 +117,7 @@ nav:
       - 复现命令: reproducibility.md
       - TTT 技术报告: technical_report.md
       - CPU Pilot 训练曲线: reports/cpu_pilot_1m.md
+      - H200 15M Scaling: reports/h200_scaling.md
       - 验证记录: validation.md
       - 工程对齐: industry_alignment.md
       - 生产要求: production_requirements.md

@@ -424,3 +424,15 @@ TTT 模型达到“可发表/可发布”之前，必须同时满足：
 | 0.1 | 2026-11-17 | CPU pilot、PPL、profile、技术报告草稿 | measured / not measured 混合，不能作能力发布 |
 | 0.2 | 待定 | AdamW/Muon 配对、plain baseline、多 seed | planned |
 | 1.0 | 待定 | GPU 规模、完整 benchmark、安全和复现包 | release gate |
+
+## 18. H200 15M scaling（measured）
+
+在 H200 GPU 5 和 GPU 7 上分别运行独立的 TTT 与 plain baseline，未使用分布式通信。两组实际参数量均为 15,449,856，训练 10,000 步、40,960,000 个 token，使用相同的 WikiText-2 train split、byte tokenizer、seed 和 sequence length 512。
+
+| 组别 | GPU | train tokens/s | 峰值显存 | validation PPL | test PPL |
+|---|---:|---:|---:|---:|---:|
+| Plain baseline | 7 | 约 57.2k | 0.84 GiB | 2.7279 | 2.6865 |
+| TTT no-adapt | 5 | 约 19.5k | 1.87 GiB | 2.7522 | 2.7082 |
+| TTT adapt | 5 | 推理适应额外计算 | 同上 | 2.6642 | 2.6109 |
+
+这组结果有两个同时成立的结论：TTT 的 no-adapt checkpoint 略差于 plain baseline；启用会话内适应后，test PPL 比 plain baseline 低约 0.0755。代价是训练吞吐约低 2.9 倍、状态和显存更大。由于这是单 seed、单数据集、byte tokenizer 的配对 pilot，不能写成普适架构优势；下一步需要 Muon/AdamW、多 seed、子词 tokenizer、更大数据和标准 benchmark。

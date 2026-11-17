@@ -13,12 +13,38 @@ hide:
 
 ## Abstract
 
-To be written.
+We implement end-to-end test-time training (TTT-E2E) from scratch: while reading a context, the model runs gradient descent on one set of MLPs in its last few blocks using the text it has just read, and training differentiates through those updates so that the model learns to be updated this way. On two H200 GPUs we trained four models of about 138M parameters at 4,096 context, with identical data, batch order, optimiser and token budget: full attention, sliding-window attention (window 512), a control with TTT's architecture and parameter count but no updates, and TTT-E2E. The corpus is half FineWeb-Edu and half PG-19, 786,432,000 GPT-2 BPE tokens in total.
+
+The headline numbers go into this abstract once all four models have finished training.
+The report measures three factors separately: the extra parameters, the test-time updates, and the meta-learning during training. The no-update control answers the first, switching updates off in the same checkpoint answers the second, and running test-time gradient updates on a model that was never meta-trained (dynamic evaluation) answers the third. On cost, TTT-E2E's training throughput is 0.36× that of sliding-window attention, while its per-token inference cost and session state are independent of context length.
+
+We measure the method's limits as well: a verbatim-recall probe and a RULER-style single-needle retrieval task ask how much detail survives compression into weights. Ten public zero-shot benchmarks use a protocol checked metric by metric against lm-evaluation-harness (the GPT-2 cross-check is in Section 4.7), alongside public models trained on one to three orders of magnitude more data. Data audits cover the sampling mixture, duplication between training and evaluation sets, and verbatim occurrences of benchmark items in the training corpus. Every number on this page is produced by a script from raw evaluation output, and that output ships with the repository.
 
 
 ## 1 Introduction
 
-To be written.
+Long-context language models face a basic cost conflict. Full attention lets every token read all of the preceding text directly, but the compute per generated token and the state that must be kept both grow linearly with the length already read. Restricting attention to a recent window makes both constant, at the price of losing almost everything outside the window. Recurrent approaches compress the history into a fixed-size state, which turns the question into what to compress and how.
+
+TTT-E2E[^ttte2e] answers it by compressing the history into part of the model's own weights, using gradient descent to do the compressing. As the model reads, it trains itself to predict the next token on the text it has just read, updating only one set of MLPs in the last few blocks; training then uses meta-learning so the model is prepared to be updated that way. At 3B parameters and 164B training tokens the original paper reports that within 128K of context, TTT-E2E's loss scales with context length the way full attention does, while inference latency does not grow with context.
+
+This report implements the method from scratch and tests it at a scale that two GPUs can reproduce end to end. We train four models of about 138M parameters with identical data, batch order, optimiser and token budget, and ask five questions:
+
+1. How much of the prediction quality lost to a limited window does TTT-E2E recover, and how far is it from full attention? (Sections 4.2 and 4.3)
+2. How much of any gain comes from the test-time updates themselves rather than from the extra parameters, and is plain test-time gradient descent on a model that was never meta-trained enough? (Section 4.4)
+3. What happens once the context exceeds the training length? (Section 4.5)
+4. What is lost by compressing history into weights? (Section 4.6)
+5. What does it cost in training and in inference? (Section 4.10)
+
+Section 4.7 places these models next to public models of similar size under one zero-shot protocol to anchor absolute levels; Sections 4.8 and 4.9 cover ablations, seeds and model size; Section 5 is the data audit.
+
+**Relation to prior work.** Continuing to apply gradient updates on the test sequence goes back at least to dynamic evaluation[^dyneval][^dynevaltr]; fast weights[^fastweights] supply the view of weights that change along a sequence; learning an initialisation by differentiating through an inner loop is MAML[^maml], with the first-order variant in Reptile[^reptile]. Test-time training for out-of-distribution generalisation is Sun et al.[^ttt], and building it into sequence-model layers appears in TTT layers[^tttlayers] and Titans[^titans]. State-space and linear recurrent models such as Mamba[^mamba] and Gated DeltaNet[^gdn] pursue the same constant inference cost; Transformers that restrict attention or reuse state across segments include Transformer-XL[^transformerxl], Longformer[^longformer], the Compressive Transformer[^pg19] and Block-Recurrent Transformers[^blockrecurrent]. This report implements and evaluates TTT-E2E and its controls only; it does not reimplement the other methods.
+
+**Contributions.**
+
+- A complete JAX implementation: training with second-order gradients, stateful streaming inference, checkpointing and restore, and tests that make correctness checkable (causality, outer-loop gradients, streaming consistency).
+- A strictly matched set of controls that separates the extra parameters, the test-time updates and the meta-learning.
+- Evaluation at eight times the training length, a verbatim-recall probe, public benchmarks, and a comparison with public models under one protocol.
+- Full traceability: every number on this page is generated by a script from raw evaluation output, and both the output and the scripts are in the repository.
 
 
 ## 2 Method
@@ -199,7 +225,12 @@ No hyper-parameter was tuned for any single model: the four share the table abov
   <figcaption>Figure 2. Training. Left: training loss (exponential moving average). Centre and right: loss of the checkpoints saved every 1,000 steps on PG-19 validation (first 5 windows of each book, 250 in total) and on FineWeb-Edu held-out (256 windows). All four models read exactly the same batch at every step.</figcaption>
 </figure>
 
-To be written.
+All four models ran to 12,000 steps and 786,432,000 tokens with no divergence, no loss spikes and no restarts. Gradient clipping rarely bound: after warm-up, the outer-loop gradient norm exceeded the threshold of 1.0 on 0.4% of logged steps for sliding-window attention and 0.8% for TTT-E2E.
+
+Training losses are not comparable across the four. Full attention can read the whole window at every position during training and so has a lower training loss by construction, while sliding-window attention sees only the last 512 positions; and TTT-E2E's training loss is measured *after* its fast weights have been updated the way they will be at test time, which is a different quantity again. The left panel of Figure 2 serves only to confirm that all four runs converged cleanly. The comparable quantities are in the middle and right panels: one evaluation protocol, one set of held-out windows.
+
+The validation curves show something as important as the final numbers: TTT-E2E leads sliding-window attention from early in training, and the gap does not close as training proceeds (Figure 7, right). The gain is therefore not an advantage that merely reflects undertraining.
+TTT-E2E's inner loop stays active throughout training. The fast-weight norm grows from 75.3 at initialisation to 134.1, each inner update has a norm of about 0.99, and the inner gradient norm sits near 1.21 — slightly above the clipping threshold \(\tau=1\), meaning most update steps are clipped to a fixed step size. What the outer loop learns is therefore which direction to move in at a fixed step size, rather than how far to move. Section 4.8's inner-learning-rate ablation shows the corresponding effect.
 
 
 ### 4.2 Main result: held-out loss at 4K context
@@ -460,7 +491,13 @@ To be written.
 
 Table 15. Verbatim overlap between evaluation items and the training corpora. For each item, the first 80 characters of the normalised question text (lower-cased, whitespace collapsed) are matched exactly against all training text (21.9 GB).
 
-To be written.
+**Do evaluation items appear in the training corpus?** FineWeb-Edu comes from public web pages, and public benchmark items also circulate on the web, so this has to be checked rather than assumed. Table 14 reports: no verbatim overlap for HellaSwag, PIQA, WinoGrande or OpenBookQA; under 1% of items for ARC-Easy, ARC-Challenge, SciQ, LAMBADA and MMLU, the largest being MMLU (94 of 12,477, 0.75%). Even if every one of those items were answered correctly — or incorrectly — the task's accuracy would move by no more than that share, which changes none of the conclusions in Section 4.7. Of the 61 WikiText-103 test articles, 2 have a passage that occurs in the training corpus, which is expected: Wikipedia text is widely mirrored on the web.
+
+The check has two known blind spots. First, it finds verbatim overlap only, not paraphrase, translation or answer-only overlap. Second, items whose normalised question text is shorter than 50 characters are not probed (which is why the "items probed" column is below the full item count), so PIQA and OpenBookQA are only partly covered.
+
+**Duplication between training and held-out sets.** PG-19 uses the official splits. Comparing digests of normalised full texts, none of the 150 validation and test books is identical to any of the 28,602 training books, and no book shares a normalised "title + author" string with the training set in the PG-19 metadata. FineWeb-Edu's held-out set comes from a shard that training never used, but web corpora contain cross-shard duplicates: 365 of the 20,000 documents first drawn (1.8%) were identical to a training document. Those were removed, and every FineWeb-Edu number in this report is computed on the de-duplicated set. Near-duplicates, such as pages differing only in headers and footers, were not checked.
+
+**What training actually read.** Replaying the sampler with the training seed gives the shares in Section 3.2: the two sources land within 0.2 percentage points of the 50/50 target. Training covered 19.7% of the FineWeb-Edu training shards and 14.8% of the PG-19 training set, and about nine tenths of the text that was read was read exactly once. Training is therefore close to single-pass, and the models had little opportunity to memorise training text by repetition.
 
 
 ## 6 Discussion and limitations
@@ -542,7 +579,20 @@ Model weights are large and are not stored in the Git repository. Checkpoints re
 ///Footnotes Go Here///
 
 [^ttte2e]: A. Tandon et al. End-to-End Test-Time Training for Long Context. arXiv:2512.23675, 2025.
+[^tttlayers]: Y. Sun et al. Learning to (Learn at Test Time): RNNs with Expressive Hidden States. arXiv:2407.04620, 2024.
+[^ttt]: Y. Sun et al. Test-Time Training with Self-Supervision for Generalization under Distribution Shifts. ICML 2020. arXiv:1909.13231.
+[^maml]: C. Finn, P. Abbeel, S. Levine. Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks. ICML 2017. arXiv:1703.03400.
+[^reptile]: A. Nichol, J. Achiam, J. Schulman. On First-Order Meta-Learning Algorithms. arXiv:1803.02999, 2018.
+[^dyneval]: B. Krause, E. Kahembwe, I. Murray, S. Renals. Dynamic Evaluation of Neural Sequence Models. arXiv:1709.07432, 2017.
+[^dynevaltr]: B. Krause, E. Kahembwe, I. Murray, S. Renals. Dynamic Evaluation of Transformer Language Models. arXiv:1904.08378, 2019.
+[^fastweights]: J. Ba et al. Using Fast Weights to Attend to the Recent Past. arXiv:1610.06258, 2016.
+[^titans]: A. Behrouz, P. Zhong, V. Mirrokni. Titans: Learning to Memorize at Test Time. arXiv:2501.00663, 2024.
+[^mamba]: A. Gu, T. Dao. Mamba: Linear-Time Sequence Modeling with Selective State Spaces. arXiv:2312.00752, 2023.
+[^gdn]: S. Yang, J. Kautz, A. Hatamizadeh. Gated Delta Networks: Improving Mamba2 with Delta Rule. ICLR 2025. arXiv:2412.06464.
+[^transformerxl]: Z. Dai et al. Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context. ACL 2019. arXiv:1901.02860.
+[^longformer]: I. Beltagy, M. E. Peters, A. Cohan. Longformer: The Long-Document Transformer. arXiv:2004.05150, 2020.
 [^pg19]: J. W. Rae, A. Potapenko, S. M. Jayakumar, T. P. Lillicrap. Compressive Transformers for Long-Range Sequence Modelling. arXiv:1911.05507, 2019.
+[^blockrecurrent]: D. Hutchins et al. Block-Recurrent Transformers. arXiv:2203.07852, 2022.
 [^fineweb]: G. Penedo et al. The FineWeb Datasets: Decanting the Web for the Finest Text Data at Scale. arXiv:2406.17557, 2024.
 [^gpt2]: A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever. Language Models are Unsupervised Multitask Learners. OpenAI, 2019.
 [^distil]: V. Sanh, L. Debut, J. Chaumond, T. Wolf. DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter. arXiv:1910.01108, 2019.

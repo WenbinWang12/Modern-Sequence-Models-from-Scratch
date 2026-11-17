@@ -223,6 +223,50 @@ def ablation_tasks(outputs: Path, only=None):
     return tasks
 
 
+RECALL_SOURCE, RECALL_SPAN = 128, 64
+RECALL_TARGETS = (448, 768, 1280, 2304, 3840)  # 与首次出现的距离：320、640、1152、2176、3712
+
+
+def recall_tasks(outputs: Path, arms):
+    """逐字回忆：把一段 64 token 的原文在更远处重复一次，比较重复段和未改动文本上的损失。"""
+    tasks = []
+    subset = ("--windows-per-document", "4")
+    variants = [(arm, arm, ()) for arm in arms]
+    if "ttt" in arms:
+        variants.append(("ttt_noadapt", "ttt", ("--no-adapt",)))
+    for label, arm, options in variants:
+        run = outputs / f"main-{arm}"
+        if not finished(run):
+            continue
+        checkpoint = latest_checkpoint(run)
+        batch = 8 if arm == "full" else 16
+        tasks.append(
+            task(
+                f"recall_{label}__base",
+                checkpoint,
+                PG19_TEST,
+                4096,
+                bin_size=16,
+                batch=batch,
+                extra=(*options, *subset),
+            )
+        )
+        for target in RECALL_TARGETS:
+            span = ("--repeat-span", str(RECALL_SOURCE), str(RECALL_SPAN), str(target))
+            tasks.append(
+                task(
+                    f"recall_{label}__d{target - RECALL_SOURCE}",
+                    checkpoint,
+                    PG19_TEST,
+                    4096,
+                    bin_size=16,
+                    batch=batch,
+                    extra=(*options, *subset, *span),
+                )
+            )
+    return tasks
+
+
 def dynamic_tasks(outputs: Path):
     """朴素测试时更新基线，以及改变测试时内循环学习率的敏感性。"""
     tasks = []
@@ -249,7 +293,7 @@ def dynamic_tasks(outputs: Path):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="批量运行技术报告评测")
-    stages = ("main", "long", "curves", "latency", "ablations", "dynamic")
+    stages = ("main", "long", "curves", "latency", "ablations", "dynamic", "recall")
     parser.add_argument("--stage", choices=stages, required=True)
     parser.add_argument("--gpu", required=True)
     parser.add_argument("--arms", nargs="+", default=list(MAIN_ARMS))
@@ -267,6 +311,7 @@ def main() -> None:
         "latency": lambda: latency_tasks(args.outputs, args.arms),
         "ablations": lambda: ablation_tasks(args.outputs, args.runs),
         "dynamic": lambda: dynamic_tasks(args.outputs),
+        "recall": lambda: recall_tasks(args.outputs, args.arms),
     }
     tasks = builders[args.stage]()
     args.evals.mkdir(parents=True, exist_ok=True)

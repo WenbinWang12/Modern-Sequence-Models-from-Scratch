@@ -220,13 +220,15 @@ class JaxScorer:
         key = (bucket, greedy)
         if key not in self.functions:
             config = self.experiment.model
+            # 交叉熵按 64 个 token 分块：数值不变，但一批几百条序列时不必同时存下整张词表的分数。
+            config = replace(config, loss_token_block_size=min(config.ttt_chunk_size, 64))
             if not self.adaptive:
                 # 不做测试时更新时，块长度不影响数值，只影响填充量。
                 limit = config.sliding_window if config.use_fast_mlp else bucket
                 config = replace(
                     config,
                     ttt_chunk_size=min(bucket, limit),
-                    loss_token_block_size=min(bucket, limit, 256),
+                    loss_token_block_size=min(bucket, limit, 64),
                 )
             model = self.model_class(config)
             jax, jnp = self.jax, self.jnp
@@ -249,7 +251,7 @@ class JaxScorer:
             by_bucket.setdefault(bucket, []).append(index)
         for bucket, indices in sorted(by_bucket.items()):
             budget = self.tokens_per_batch // (8 if greedy else 1)
-            batch_size = max(1, min(512, budget // bucket))
+            batch_size = max(1, min(256, budget // bucket))
             function = self._function(bucket, greedy)
             for offset in range(0, len(indices), batch_size):
                 batch = indices[offset : offset + batch_size]

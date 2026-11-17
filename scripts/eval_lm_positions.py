@@ -84,6 +84,13 @@ def main() -> None:
     parser.add_argument("--sliding-window", type=int, help="评测时覆盖滑窗长度")
     parser.add_argument("--force-sliding", action="store_true", help="评测时把所有层改成滑窗注意力")
     parser.add_argument("--chunk-size", type=int, help="评测时覆盖 TTT 更新块长度")
+    parser.add_argument(
+        "--repeat-span",
+        nargs=3,
+        type=int,
+        metavar=("SOURCE", "LENGTH", "TARGET"),
+        help="把窗口内 [SOURCE, SOURCE+LENGTH) 的 token 复制到 TARGET 处，用于测量对原文片段的逐字回忆",
+    )
     parser.add_argument("--label", default="")
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
@@ -152,6 +159,9 @@ def main() -> None:
         mask = np.zeros((args.batch_size, args.window), dtype=np.float32)
         for row, (_, position, length) in enumerate(batch):
             ids[row, : length + 1] = tokens[position : position + length + 1]
+            if args.repeat_span and length == args.window:
+                source, span, target = args.repeat_span
+                ids[row, target : target + span] = ids[row, source : source + span]
             mask[row, :length] = 1.0
         started = time.perf_counter()
         values, chunk_statistics = evaluate(params, jnp.asarray(ids), jnp.asarray(mask))
@@ -192,6 +202,7 @@ def main() -> None:
         "include_partial": args.include_partial,
         "stream": args.stream,
         "force_adapt": args.force_adapt,
+        "repeat_span": args.repeat_span,
         "adapt": bool(inner.enabled and config.use_fast_mlp),
         "inner_learning_rate": inner.learning_rate,
         "eval_overrides": {key: (list(value) if isinstance(value, tuple) else value) for key, value in changes.items()},

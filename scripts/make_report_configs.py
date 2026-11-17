@@ -113,6 +113,8 @@ def ablation_arms():
         "ck": small_arm("ck"),
         "ttt": small_arm("ttt"),
         "ttt_fo": small_arm(first_order=True),
+        # 把所有 MLP 收窄到 1120，使总参数量与不带 MLP′ 的基线相同。
+        "ttt_matched": small_arm(intermediate=1120),
         "ttt_ilr0p1": small_arm(inner_lr=0.1),
         "ttt_ilr0p3": small_arm(inner_lr=0.3),
         "ttt_ilr3": small_arm(inner_lr=3.0),

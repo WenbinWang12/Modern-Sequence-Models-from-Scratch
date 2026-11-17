@@ -1,0 +1,17 @@
+{
+  "format": "ttt_mixture_v1",
+  "selection_unit": "window",
+  "exhaustion_policy": "with_replacement",
+  "sources": [
+    {
+      "name": "wikitext2",
+      "data": "../../data/public/wikitext2/train-shards/manifest.json",
+      "probability": 0.85
+    },
+    {
+      "name": "tiny_shakespeare",
+      "data": "../../data/public/shakespeare/shards/manifest.json",
+      "probability": 0.15
+    }
+  ]
+}

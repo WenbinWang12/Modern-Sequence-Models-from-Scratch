@@ -7,7 +7,7 @@ A benchmark number is meaningful only when it is tied to a checkpoint, data revi
 | Tier | Tasks | Question | Status |
 | --- | --- | --- | --- |
 | Training health | held-out NLL/PPL, mixture proportions, repetition | Did the model learn the target distribution and remain stable? | Measured |
-| Knowledge and commonsense | MMLU, ARC-E/ARC-C, OpenBookQA, PIQA, HellaSwag, WinoGrande | Does a small model transfer knowledge and commonsense judgments? | MMLU diagnostic script ready |
+| Knowledge and commonsense | MMLU, ARC-E/ARC-C, OpenBookQA, PIQA, HellaSwag, WinoGrande | Does a small model transfer knowledge and commonsense judgments? | MMLU and HellaSwag diagnostics |
 | Mathematics | GSM8K, MATH, AIME/AMC | Can the model perform multi-step symbolic reasoning? | Run after tokenizer and scale are fixed |
 | Code | HumanEval, MBPP, LiveCodeBench | Does generated code execute correctly and generalize across time? | Planned |
 | Hard reasoning | BBH, GPQA, TruthfulQA | Long-chain reasoning, expert knowledge, and factuality | Planned |
@@ -53,6 +53,8 @@ CUDA_VISIBLE_DEVICES=5 JAX_PLATFORMS=cuda PYTHONPATH=. \
 ```
 
 Run the baseline on GPU7 by changing the checkpoint and device. Keep the experiment configuration, dataset hash, script hash, and checkpoint metadata with every result.
+
+On the H200 15M mixture pair, the five-subject MMLU subset gave 116/392 (29.59%) for the plain baseline and 104/392 (26.53%) for TTT no-adapt. On the first 100 HellaSwag validation examples, both models gave 32/100 (32%). These are byte-token, non-instruction-tuned pilot measurements, not leaderboard scores.
 
 ## Contamination and comparability
 

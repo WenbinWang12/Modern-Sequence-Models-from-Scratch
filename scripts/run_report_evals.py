@@ -96,20 +96,9 @@ def long_tasks(outputs: Path, arms):
             continue
         checkpoint = latest_checkpoint(run)
         if arm == "full":
-            # 截断到训练长度的全注意力：每个 token 只看最近 4096 个 token，成本随长度线性增长。
-            extra = ("--force-sliding", "--sliding-window", "4096")
-            tasks.append(
-                task(
-                    "main_full_sw4096__pg19test_w32768",
-                    checkpoint,
-                    PG19_TEST,
-                    32768,
-                    bin_size=256,
-                    batch=2,
-                    extra=extra,
-                )
-            )
-            # 不截断的全注意力：直接外推到训练长度之外。
+            # 全注意力只做"不截断地直接外推"。把它强行改成滑窗注意力不是一个合理的对照：
+            # 模型从未在"只见最近 4096 个位置"的条件下训练过，RoPE 的相对位置分布会被破坏，
+            # 实测 4K 之后损失从约 3.0 跳到 6.1，反映的是设置不当而不是方法的性质。
             tasks.append(task("main_full__pg19test_w8192", checkpoint, PG19_TEST, 8192, bin_size=256, batch=4))
             tasks.append(
                 task(

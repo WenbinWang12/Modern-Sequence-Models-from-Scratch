@@ -316,8 +316,8 @@ def table_ranges(
 
 
 def table_long(r, lang):
-    arms = ("full_sw4096", "swa", "ck", "ttt_noadapt", "ttt")
-    comparisons = (("ttt", "swa"), ("ttt", "full_sw4096"), ("ttt", "ttt_noadapt"))
+    arms = ("swa", "ck", "ttt_noadapt", "ttt")
+    comparisons = (("ttt", "swa"), ("ttt", "ck"), ("ttt", "ttt_noadapt"))
     return table_ranges(r, lang, "fig_context_32k", arms, comparisons)
 
 

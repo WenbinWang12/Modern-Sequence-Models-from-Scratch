@@ -470,7 +470,7 @@ def figure_positions(theme, mode, records, output, results, *, name, title, rang
 
 def collect_long_context(evals, results):
     """超出训练长度的评测：各臂在 32K 窗口上的结果，以及全注意力直接外推的结果。"""
-    records = load_arms(evals, "main_{arm}__pg19test_w32768", ("swa", "ttt", "ck", "ttt_noadapt", "full_sw4096"))
+    records = load_arms(evals, "main_{arm}__pg19test_w32768", ("swa", "ttt", "ck", "ttt_noadapt"))
     extrapolated = {}
     for window in (8192, 16384):
         record = load_eval(evals, f"main_full__pg19test_w{window}")

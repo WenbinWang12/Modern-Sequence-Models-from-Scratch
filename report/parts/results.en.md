@@ -49,7 +49,7 @@ Table 2. Loss on PG-19 test by range of context position, and paired differences
 <figure markdown="span" class="report-figure">
   ![Loss beyond the training length](assets/report/fig_context_32k.light.svg#only-light)
   ![Loss beyond the training length](assets/report/fig_context_32k.dark.svg#only-dark)
-  <figcaption>Figure 4. Loss on PG-19 test when the evaluation window is lengthened to 32,768 tokens, eight times the training length (means over 256 positions; the vertical line marks the training length). The dashed line is full attention extrapolated with no truncation; “last 4K only” restricts the same full-attention model to the range it saw in training. The right panel shows paired differences from sliding-window attention.</figcaption>
+  <figcaption>Figure 4. Loss on PG-19 test when the evaluation window is lengthened to 32,768 tokens, eight times the training length (means over 256 positions; the vertical line marks the training length). The dashed line is full attention extrapolated with no truncation. The right panel shows paired differences from the matched sliding-window, no-update and TTT-no-adapt conditions.</figcaption>
 </figure>
 
 <div class="report-table" markdown>

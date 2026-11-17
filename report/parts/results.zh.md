@@ -49,7 +49,7 @@
 <figure markdown="span" class="report-figure">
   ![超出训练长度时的损失](assets/report/fig_context_32k.light.svg#only-light)
   ![超出训练长度时的损失](assets/report/fig_context_32k.dark.svg#only-dark)
-  <figcaption>图 4　把评测窗口加长到 32,768 个 token（训练长度的 8 倍）时 PG-19 test 上的损失，每 256 个位置取平均，竖线标出训练长度。虚线是不做任何截断、直接外推的全注意力；“只看最近 4K”是把同一个全注意力模型的可见范围限制在训练时见过的长度内。右图是各模型与滑窗注意力的配对差。</figcaption>
+  <figcaption>图 4　把评测窗口加长到 32,768 个 token（训练长度的 8 倍）时 PG-19 test 上的损失，每 256 个位置取平均，竖线标出训练长度。虚线是不做任何截断、直接外推的全注意力；右图显示相对于匹配的滑窗、无更新和 TTT 无更新条件的配对差。</figcaption>
 </figure>
 
 <div class="report-table" markdown>

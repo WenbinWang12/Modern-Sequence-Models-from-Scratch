@@ -1,5 +1,7 @@
-表 13 把单步训练吞吐、峰值显存和参数量放在一起，表 14 则统计会话读取不同长度上下文后保留的实际数组状态以及逐 token 解码速度。全注意力、滑窗和 TTT 的成本随上下文的变化方式不同，单一的 tokens/s 不能概括这些差异。
+{% if r.training_cost.ttt %}**训练。** 表 12 是单张 H200 上的实测吞吐。滑窗注意力最快（{{ K(r.training_cost.swa.tokens_per_second, 0) }} token/s），全注意力 {{ K(r.training_cost.full.tokens_per_second, 0) }}，TTT-E2E 最慢（{{ K(r.training_cost.ttt.tokens_per_second, 0) }}，即滑窗的 {{ f2(r.training_cost.ttt.tokens_per_second / r.training_cost.swa.tokens_per_second) }} 倍）。慢的原因有两部分：后段多一个 MLP′ 的前向，以及每个更新块一次穿过后段的反向传播，再加上外循环要对这条更新链求导。无更新对照跑到 {{ K(r.training_cost.ck.tokens_per_second, 0) }}，说明其中约一半的开销来自额外的 MLP′ 本身，另一半来自内循环。
 
-{% if r.training_cost.ttt and r.training_cost.swa %}在表 13 所列的 4K 训练设置下，TTT-E2E 每秒处理的输入 token 数是滑窗注意力测得速率的 {{ f2(r.training_cost.ttt.tokens_per_second / r.training_cost.swa.tokens_per_second) }} 倍。这个比值绑定于表 13 中的 batch、序列长度、检查点策略和 H200 软件环境。{% endif %}
+第 4.8 节的等时间对照说明了这项成本的后果：同样的墙上时间，滑窗基线能多读 3.7 倍的数据，并因此取得更低的损失。{% endif %}
 
-TTT-E2E 的额外成本来自计算内循环梯度、存储快权重和执行更新。实际部署还需要计入编译缓存、批大小、并发会话、检查点读写和失败恢复。这里的 H200 单卡测量用于复现实验的相对比较，不代表所有硬件和服务栈的绝对吞吐。
+{% if r.sessions.ttt %}**推理。** 表 13 是单个会话实测的状态大小和解码速度。TTT-E2E 的会话状态由快权重（固定 {{ f1(r.sessions.ttt.rows[0].state_bytes.fast_weights / 1048576) }} MiB，与已读长度无关）和滑窗 KV 缓存（同样固定）组成；无论读入 2K 还是 32K 上下文，状态大小和逐 token 解码速度都不变。全注意力的 KV 缓存则随上下文线性增长。
+
+这正是该方法的卖点所在：训练时多付出的代价，换来的是推理时与上下文长度无关的常数成本。在本报告的规模下这个权衡并不划算（模型小、上下文短，注意力本来就不贵），它要到更长的上下文和更大的服务量下才会显现价值——那超出了本报告能验证的范围。{% endif %}

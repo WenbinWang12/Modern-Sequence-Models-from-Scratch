@@ -401,8 +401,7 @@ def table_extended_benchmarks(r, lang):
             score_text = percent(score)
         elif entry["results"]:
             score_text = ", ".join(
-                f"{int(point['context_length_request'])}: {percent(point['exact_match'])}"
-                for point in entry["results"]
+                f"{int(point['context_length_request'])}: {percent(point['exact_match'])}" for point in entry["results"]
             )
         else:
             score_text = "—"
@@ -1010,10 +1009,7 @@ def draft_marker_count(text):
     ``（待补）`` 则来自模板本身。两类占位符都必须进入草稿提示，否则结果
     表补齐后仍可能把未完成的正文误当成定稿。
     """
-    return sum(
-        text.count(marker)
-        for marker in ("«?»", "draft: table", "To be written", "（待补）")
-    )
+    return sum(text.count(marker) for marker in ("«?»", "draft: table", "To be written", "（待补）"))
 
 
 def main() -> None:

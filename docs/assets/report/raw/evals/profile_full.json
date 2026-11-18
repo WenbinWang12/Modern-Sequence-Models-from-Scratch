@@ -1,0 +1,67 @@
+{
+  "checkpoint": "outputs/main-full/step_00012000.orbax",
+  "checkpoint_step": 12000,
+  "adapt": false,
+  "layer_types": [
+    "full_attention"
+  ],
+  "sliding_window": 512,
+  "ttt_chunk_size": 1024,
+  "fast_weight_parameters": 0,
+  "compute_dtype": "bfloat16",
+  "device": "cuda:0",
+  "peak_bytes_in_use": 6231836672,
+  "rows": [
+    {
+      "context_length": 2048,
+      "decode_tokens": 256,
+      "prefill_seconds": 0.008784999139606953,
+      "prefill_tokens_per_second": 233124.6671119912,
+      "decode_seconds": 0.4259161031804979,
+      "decode_tokens_per_second": 601.057339904123,
+      "inner_updates_total": 0,
+      "state_bytes": {
+        "fast_weights": 0,
+        "kv_cache": 151191552,
+        "chunk_cache": 0,
+        "pending_chunk": 1573884,
+        "last_logits": 201028
+      },
+      "persistent_state_bytes": 152765436
+    },
+    {
+      "context_length": 8192,
+      "decode_tokens": 256,
+      "prefill_seconds": 0.04109880607575178,
+      "prefill_tokens_per_second": 199324.52502150091,
+      "decode_seconds": 0.4999765641987324,
+      "decode_tokens_per_second": 512.0239993853877,
+      "inner_updates_total": 0,
+      "state_bytes": {
+        "fast_weights": 0,
+        "kv_cache": 604766208,
+        "chunk_cache": 0,
+        "pending_chunk": 1573884,
+        "last_logits": 201028
+      },
+      "persistent_state_bytes": 606340092
+    },
+    {
+      "context_length": 32768,
+      "decode_tokens": 256,
+      "prefill_seconds": 0.5495460780803114,
+      "prefill_tokens_per_second": 59627.393055858076,
+      "decode_seconds": 0.900620523141697,
+      "decode_tokens_per_second": 284.2484636114858,
+      "inner_updates_total": 0,
+      "state_bytes": {
+        "fast_weights": 0,
+        "kv_cache": 2419064832,
+        "chunk_cache": 0,
+        "pending_chunk": 1573884,
+        "last_logits": 201028
+      },
+      "persistent_state_bytes": 2420638716
+    }
+  ]
+}

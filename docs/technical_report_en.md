@@ -7,15 +7,11 @@ hide:
 
 **Version 1.0 · 18 November 2026**
 
-!!! warning "Draft: 6 values are not in yet"
-    This page was rendered from experiments that are still running. Places marked «?» or carrying a
-    placeholder note fill in automatically once the corresponding run finishes.
-
 ## Abstract
 
 We implement end-to-end test-time training (TTT-E2E) from scratch: while reading a context, the model runs gradient descent on one set of MLPs in its last few blocks using the text it has just read, and training differentiates through those updates so that the model learns to be updated this way. On two H200 GPUs we trained four models of about 138M parameters at 4,096 context, with identical data, batch order, optimiser and token budget: full attention, sliding-window attention (window 512), a control with TTT's architecture and parameter count but no updates, and TTT-E2E. The corpus is half FineWeb-Edu and half PG-19, 786,432,000 GPT-2 BPE tokens in total.
 
-The headline numbers go into this abstract once all four models have finished training.
+On PG-19 test, TTT-E2E's loss per token is 0.072 nats lower than sliding-window attention (95% CI [−0.076, −0.068]) and 0.051 nats lower than full attention. How the gap varies with available context is in Section 4.3, and results with the evaluation window stretched to eight times the training length (32,768 tokens) are in Section 4.5.
 The report measures three factors separately: the extra parameters, the test-time updates, and the meta-learning during training. The no-update control answers the first, switching updates off in the same checkpoint answers the second, and running test-time gradient updates on a model that was never meta-trained (dynamic evaluation) answers the third. On cost, TTT-E2E's training throughput is 0.36× that of sliding-window attention, while its per-token inference cost and session state are independent of context length.
 
 We measure the method's limits as well: a verbatim-recall probe and a RULER-style single-needle retrieval task ask how much detail survives compression into weights. Ten public zero-shot benchmarks use a protocol checked metric by metric against lm-evaluation-harness (the GPT-2 cross-check is in Section 4.7), alongside public models trained on one to three orders of magnitude more data. Data audits cover the sampling mixture, duplication between training and evaluation sets, and verbatim occurrences of benchmark items in the training corpus. Every number on this page is produced by a script from raw evaluation output, and that output ships with the repository.
@@ -204,7 +200,7 @@ No hyper-parameter was tuned for any single model: the four share the table abov
 
 ### 3.4 Evaluation protocol
 
-**Held-out language modelling.** Each PG-19 test book is cut from its start into non-overlapping 4,096-token windows (a trailing partial window is dropped): «?» windows and «?» predicted positions. Every window starts from an empty state: the KV cache is cleared and the fast weights return to \(\phi_0\). The loss at position \(t\) of a window is therefore the loss with exactly \(t\) tokens of context, and binning by position gives loss as a function of context length. FineWeb-Edu held-out documents are short, so they are concatenated as in training and the first 2,048 windows are used. We report mean negative log-likelihood per token (NLL, in nats), perplexity and bits per byte.
+**Held-out language modelling.** Each PG-19 test book is cut from its start into non-overlapping 4,096-token windows (a trailing partial window is dropped): 2,531 windows and 10.37M predicted positions. Every window starts from an empty state: the KV cache is cleared and the fast weights return to \(\phi_0\). The loss at position \(t\) of a window is therefore the loss with exactly \(t\) tokens of context, and binning by position gives loss as a function of context length. FineWeb-Edu held-out documents are short, so they are concatenated as in training and the first 2,048 windows are used. We report mean negative log-likelihood per token (NLL, in nats), perplexity and bits per byte.
 
 **Statistics.** All four models are evaluated on the same windows, so differences between models are estimated as paired differences, with 95% confidence intervals from 2,000 bootstrap resamples over books for PG-19 and over windows for FineWeb-Edu. The intervals reflect sampling error of the evaluation set. They do not include the randomness of retraining, which Section 4.9 estimates separately with multiple seeds.
 
@@ -225,25 +221,36 @@ No hyper-parameter was tuned for any single model: the four share the table abov
   <figcaption>Figure 2. Training. Left: training loss (exponential moving average). Centre and right: loss of the checkpoints saved every 1,000 steps on PG-19 validation (first 5 windows of each book, 250 in total) and on FineWeb-Edu held-out (256 windows). All four models read exactly the same batch at every step.</figcaption>
 </figure>
 
-All four models ran to 12,000 steps and 786,432,000 tokens with no divergence, no loss spikes and no restarts. Gradient clipping rarely bound: after warm-up, the outer-loop gradient norm exceeded the threshold of 1.0 on 0.4% of logged steps for sliding-window attention and 0.8% for TTT-E2E.
+All four models eventually ran to 12,000 steps and 786,432,000 tokens with no divergence or loss spikes. During training, user-level NFS quota exhaustion interrupted checkpoint writes. The supervisor resumed each run from its latest checkpoint and recorded the event in `interruptions.jsonl`. The run recorded 3 automatic recovery event(s). Gradient clipping rarely bound: after warm-up, the outer-loop gradient norm exceeded the threshold of 1.0 on 0.4% of logged steps for sliding-window attention and 0.6% for TTT-E2E.
 
 Training losses are not comparable across the four. Full attention can read the whole window at every position during training and so has a lower training loss by construction, while sliding-window attention sees only the last 512 positions; and TTT-E2E's training loss is measured *after* its fast weights have been updated the way they will be at test time, which is a different quantity again. The left panel of Figure 2 serves only to confirm that all four runs converged cleanly. The comparable quantities are in the middle and right panels: one evaluation protocol, one set of held-out windows.
 
 The validation curves show something as important as the final numbers: TTT-E2E leads sliding-window attention from early in training, and the gap does not close as training proceeds (Figure 7, right). The gain is therefore not an advantage that merely reflects undertraining.
-TTT-E2E's inner loop stays active throughout training. The fast-weight norm grows from 75.3 at initialisation to 134.1, each inner update has a norm of about 0.99, and the inner gradient norm sits near 1.21 — slightly above the clipping threshold \(\tau=1\), meaning most update steps are clipped to a fixed step size. What the outer loop learns is therefore which direction to move in at a fixed step size, rather than how far to move. Section 4.8's inner-learning-rate ablation shows the corresponding effect.
+TTT-E2E's inner loop stays active throughout training. The fast-weight norm grows from 75.3 at initialisation to 132.5, each inner update has a norm of about 0.98, and the inner gradient norm sits near 1.22 — slightly above the clipping threshold \(\tau=1\), meaning most update steps are clipped to a fixed step size. What the outer loop learns is therefore which direction to move in at a fixed step size, rather than how far to move. Section 4.8's inner-learning-rate ablation shows the corresponding effect.
 
 
 ### 4.2 Main result: held-out loss at 4K context
 
 <div class="report-table" markdown>
 
-*(draft: table `main` has no data yet)*
+| Model | PG-19 test NLL | PPL | bits/byte | Δ vs full attention (95% CI) | FineWeb-Edu NLL | PPL |
+|:--|--:|--:|--:|--:|--:|--:|
+| Full attention | 3.052 | 21.16 | 1.151 | – | 3.469 | 32.11 |
+| Sliding window | 3.073 | 21.62 | 1.159 | +0.021 [+0.017, +0.025] | 3.477 | 32.35 |
+| No-update control | 3.050 | 21.13 | 1.151 | −0.002 [−0.005, +0.002] | 3.451 | 31.52 |
+| TTT-E2E (updates off) | 3.080 | 21.75 | 1.162 | +0.027 [+0.021, +0.033] | 3.472 | 32.20 |
+| TTT-E2E | **3.001** | 20.11 | 1.132 | −0.051 [−0.053, −0.049] | **3.415** | 30.41 |
 
 </div>
 
 Table 1. Loss of the final checkpoints on the two held-out sets (lower is better). Differences are paired differences from full attention on the same windows, with 95% confidence intervals in brackets. Bits per byte use the corpus-average bytes per token.
 
-To be written.
+Table 1 gives the final results of all four models on both held-out sets. The paired differences are measured against full attention on the same windows.
+
+On PG-19 test, TTT-E2E's loss per token is 0.051 nats below full attention (95% CI [−0.053, −0.049]) and 0.072 nats below sliding-window attention. FineWeb-Edu held-out points the same way with a smaller margin (0.054 nats below full attention).
+
+The size of that 0.072 nat gap needs a yardstick. In the same table, **widening the attention window from 512 to all 4,096 positions** (sliding window → full attention) is worth only 0.021 nats. At this scale and on this data, test-time updates buy more than twice what letting the model see the whole context buys.
+This is the report's main result, and its scope is narrow: one model size, one data recipe, a training length of 4,096. Section 4.9 repeats it across three seeds and three model sizes, and Section 6 states where the conclusion should not be expected to hold.
 
 
 ### 4.3 Loss as a function of context length
@@ -256,38 +263,69 @@ To be written.
 
 <div class="report-table" markdown>
 
-*(draft: table `ranges` has no data yet)*
+| Context position (tokens) | 0–512 | 512–1K | 1K–2K | 2K–4K | All |
+|:--|--:|--:|--:|--:|--:|
+| Full attention | 3.189 | 3.056 | 3.028 | 3.029 | 3.052 |
+| Sliding window | 3.158 | 3.052 | 3.050 | 3.070 | 3.073 |
+| No-update control | 3.133 | 3.029 | 3.027 | 3.047 | 3.050 |
+| TTT-E2E (updates off) | 3.141 | 3.056 | 3.059 | 3.080 | 3.080 |
+| TTT-E2E | 3.126 | 3.004 | 2.980 | 2.980 | 3.001 |
+| Δ TTT-E2E − Sliding window | −0.031<br>[−0.033, −0.030] | −0.048<br>[−0.050, −0.046] | −0.070<br>[−0.073, −0.067] | −0.090<br>[−0.095, −0.084] | −0.072<br>[−0.076, −0.068] |
+| Δ TTT-E2E − Full attention | −0.062<br>[−0.066, −0.058] | −0.052<br>[−0.054, −0.050] | −0.048<br>[−0.051, −0.046] | −0.049<br>[−0.052, −0.047] | −0.051<br>[−0.053, −0.049] |
+| Δ Sliding window − Full attention | −0.031<br>[−0.034, −0.028] | −0.004<br>[−0.006, −0.002] | +0.022<br>[+0.018, +0.026] | +0.040<br>[+0.034, +0.046] | +0.021<br>[+0.017, +0.025] |
 
 </div>
 
 Table 2. Loss on PG-19 test by range of context position, and paired differences between models (95% confidence intervals).
 
-To be written.
+Figure 3 unfolds the loss by how many tokens have been read inside the window. All four curves nearly coincide over the first 256 tokens — exactly the update chunk \(C=256\). Before the first inner-loop update, TTT-E2E and its updates-off version *are* the same model. The moment the first update lands, the curves separate and the gap keeps widening. This is direct evidence that the mechanism works as designed: the gain appears exactly when updating begins.
 
+Against sliding-window attention, TTT-E2E's advantage grows monotonically with available context: from 0.031 nats over the first 512 tokens to 0.090 nats over 2,048–4,096 (Table 2). That is what compressing history into weights predicts: the more that has been read, the more has been written into the fast weights.
+
+The comparison with full attention has the opposite shape. The advantage is largest when context is shortest (0.062 nats), then narrows and settles near 0.049 nats. A gap at short context cannot come from remembering more history — there is hardly any history there. The likelier explanation is structural: TTT-E2E's suffix carries an extra MLP′, and it was trained under the condition that its weights would be updated. Section 4.4 isolates that part.
 
 ### 4.4 Where the gain comes from
 
-To be written.
+Three things separate TTT-E2E from sliding-window attention: the extra MLP′ in the suffix (parameters), the gradient updates at inference (test-time compute), and the fact that training simulated those updates (meta-learning). Four models plus two dedicated evaluations pull them apart.
 
+**The extra parameters alone.** The no-update control has TTT-E2E's architecture and parameter count and runs no inner loop in training or inference. It is 0.023 nats below sliding-window attention ([−0.024, −0.022]). The extra 14.2M parameters do help, but they account for only part of the total 0.072 nat gap.
+
+**The test-time updates alone.** TTT-E2E is 0.049 nats below the no-update control ([−0.052, −0.046]). The two have identical architecture and parameter count; they differ only in whether the fast weights are updated at inference and whether training simulated that. This is the largest of the three terms.
+**Are updates enough without meta-learning?** This is the decisive question: if plain test-time gradient descent on any ordinary model gave the same gain, the second-order training pass would be wasted effort. We ran the same inner loop directly on the no-update control, sweeping the test-time learning rate. It barely moves: the best setting reaches 3.0456 against 3.0552 without updates. The same machinery applied to the meta-trained TTT-E2E takes it from 3.0793 to 3.0078.
+
+What helps, in other words, is **not the act of updating but having been trained to be updated** — which is exactly what the second-order training pass buys.
+One observation points the other way and is worth recording. Evaluating the trained TTT-E2E with **updates switched off** puts it 0.029 nats *above* the no-update control ([+0.026, +0.032]). Slow weights trained with updates come to **depend** on them: part of the modelling work has been delegated to the inner loop, and removing it leaves a hole. TTT-E2E is therefore not a feature that can be switched off to save compute; it is a design that has to be adopted as a whole.
 
 ### 4.5 Beyond the training length: 32K context
 
 <figure markdown="span" class="report-figure">
   ![Loss beyond the training length](assets/report/fig_context_32k.light.svg#only-light)
   ![Loss beyond the training length](assets/report/fig_context_32k.dark.svg#only-dark)
-  <figcaption>Figure 4. Loss on PG-19 test when the evaluation window is lengthened to 32,768 tokens, eight times the training length (means over 256 positions; the vertical line marks the training length). The dashed line is full attention extrapolated with no truncation; “last 4K only” restricts the same full-attention model to the range it saw in training. The right panel shows paired differences from sliding-window attention.</figcaption>
+  <figcaption>Figure 4. Loss on PG-19 test when the evaluation window is lengthened to 32,768 tokens, eight times the training length (means over 256 positions; the vertical line marks the training length). The dashed line is full attention extrapolated with no truncation. The right panel shows paired differences from the matched sliding-window, no-update and TTT-no-adapt conditions.</figcaption>
 </figure>
 
 <div class="report-table" markdown>
 
-*(draft: table `long` has no data yet)*
+| Context position (tokens) | 0–4K | 4K–8K | 8K–16K | 16K–32K | All |
+|:--|--:|--:|--:|--:|--:|
+| Sliding window | 3.000 | 3.085 | 3.072 | 3.073 | 3.065 |
+| No-update control | 2.977 | 3.061 | 3.049 | 3.051 | 3.042 |
+| TTT-E2E (updates off) | 3.002 | 3.095 | 3.083 | 3.084 | 3.075 |
+| TTT-E2E | 2.928 | 2.978 | 2.954 | 2.936 | 2.945 |
+| Δ TTT-E2E − Sliding window | −0.072<br>[−0.077, −0.067] | −0.107<br>[−0.116, −0.096] | −0.118<br>[−0.129, −0.107] | −0.137<br>[−0.153, −0.121] | −0.120<br>[−0.133, −0.108] |
+| Δ TTT-E2E − No-update control | −0.049<br>[−0.053, −0.044] | −0.083<br>[−0.092, −0.073] | −0.095<br>[−0.105, −0.084] | −0.114<br>[−0.130, −0.099] | −0.097<br>[−0.109, −0.085] |
+| Δ TTT-E2E − TTT-E2E (updates off) | −0.074<br>[−0.081, −0.066] | −0.117<br>[−0.129, −0.104] | −0.129<br>[−0.142, −0.115] | −0.148<br>[−0.166, −0.129] | −0.130<br>[−0.144, −0.115] |
 
 </div>
 
 Table 3. Loss by position range inside 32K windows, and paired differences (95% confidence intervals). Every model was trained at length 4,096 only.
 
-To be written.
+The evaluation window is stretched from 4,096 to 32,768 tokens — eight times the training length — with no fine-tuning and no change to the models. Full attention cannot take part in this comparison: its position encoding was only ever trained within 4,096, so extrapolating to 32K leaves the training distribution. We measured it separately at 8,192 and 16,384; see `full_extrapolation` in `results.json`.
 
+Inside 32K windows, TTT-E2E's advantage over sliding-window attention widens to 0.120 nats ([−0.133, −0.108]), up from 0.072 nats at 4K. Both models lose some ground past the training length (Figure 4, left), but TTT-E2E loses it more slowly.
+
+One distinction matters here. Neither sliding-window attention nor TTT-E2E has a length-extrapolation problem: every layer sees only the last 512 positions, so the relative distances their position encoding meets at 32K are exactly those seen in training. This figure therefore does not measure whether longer inputs can be processed, but whether the fast weights keep accumulating useful information as more is read. The widening advantage says the inner loop still works, without diverging, at eight times the training length.
+The fast-weight diagnostics agree. Across the 32K evaluation, the fast-weight norm after each update chunk changes smoothly and the inner gradient norm stays near the clipping threshold; over 128 update chunks neither diverges nor collapses. That is direct evidence of a stable inner loop far beyond the training length.
 
 ### 4.6 What compression loses: verbatim recall
 
@@ -299,7 +337,13 @@ To be written.
 
 <div class="report-table" markdown>
 
-*(draft: table `recall` has no data yet)*
+| Distance to first occurrence (tokens) | 320 | 640 | 1,152 | 2,176 | 3,712 |
+|:--|--:|--:|--:|--:|--:|
+| Full attention | +1.83<br>[+1.71, +1.94] | +1.53<br>[+1.42, +1.64] | +1.37<br>[+1.27, +1.46] | +0.99<br>[+0.89, +1.08] | +0.52<br>[+0.43, +0.62] |
+| Sliding window | +1.51<br>[+1.40, +1.62] | −0.11<br>[−0.21, −0.01] | −0.15<br>[−0.26, −0.05] | −0.07<br>[−0.17, +0.03] | −0.12<br>[−0.21, −0.03] |
+| No-update control | +1.58<br>[+1.47, +1.69] | −0.12<br>[−0.21, −0.02] | −0.16<br>[−0.26, −0.06] | −0.08<br>[−0.18, +0.02] | −0.12<br>[−0.21, −0.02] |
+| TTT-E2E (updates off) | +1.15<br>[+1.04, +1.25] | −0.12<br>[−0.22, −0.03] | −0.14<br>[−0.25, −0.04] | −0.06<br>[−0.15, +0.04] | −0.08<br>[−0.17, +0.02] |
+| TTT-E2E | +1.58<br>[+1.48, +1.68] | +0.61<br>[+0.52, +0.70] | +0.58<br>[+0.48, +0.67] | +0.65<br>[+0.56, +0.74] | +0.58<br>[+0.49, +0.66] |
 
 </div>
 
@@ -307,14 +351,29 @@ Table 4. Loss reduction on the repeated span (nats, 95% confidence intervals in 
 
 <div class="report-table" markdown>
 
-| Model |
-|:--|
+| Model | 1K | 2K | 4K | 8K | 16K | 32K |
+|:--|--:|--:|--:|--:|--:|--:|
+| Full attention | – | – | – | – | – | – |
+| Sliding window | 2.05 | 1.08 | 0.51 | 0.52 | 0.41 | 0.37 |
+| No-update control | 2.24 | 1.12 | 0.54 | 0.53 | 0.43 | 0.41 |
+| TTT-E2E (updates off) | 2.10 | 1.05 | 0.51 | 0.53 | 0.43 | 0.39 |
+| TTT-E2E | 2.59 | 2.00 | 1.53 | 1.54 | 1.56 | 1.32 |
 
 </div>
 
 Table 5. Needle in a haystack: one sentence, “One of the special magic numbers for &lt;key&gt; is: &lt;7-digit number&gt;.”, is hidden in the haystack text and the model is then asked for that key's number. The table reports how much lower the answer's log-likelihood per token is than when the needle is replaced by an unrelated key–value pair (nats; larger means the needle was used more). The haystack is PG-19 test book text, the needle is placed at ten evenly spaced depths, and the prompt and needle wording come from RULER.
 
-To be written.
+The previous sections show that TTT-E2E uses context better, but not *how*. Compressing history into fixed-size weights must lose something; two probes ask what.
+
+**Verbatim recall.** A 64-token span of the window is copied verbatim to a later position, and we measure how much lower the loss on the repeat is than on unmodified text. Attention can look the original up directly, so full attention gains 1.83 nats at distance 320, decaying slowly to 0.52 nats.
+
+Sliding-window attention falls off a cliff: 1.51 nats at distance 320 (still inside its 512 window), then nothing — or slightly negative — once the span leaves the window (−0.11 at distance 640). Beyond the window it has no memory of text it has read.
+
+TTT-E2E fills that cliff, but differently from attention: 0.61 nats at distance 640, and then **almost no decay with distance** (0.58 nats at 3,712). That is the signature of compression into weights — information is not ordered by recency, it is accumulated into a set of weights. The cost is equally clear: the absolute size is about half of full attention's. The compression is lossy.
+**Single-needle retrieval.** Built after RULER's `niah` task: a sentence stating that some key's special number is a 7-digit value is hidden in haystack text, and the model is asked for it. These are 138M-parameter base models with no instruction tuning, and exact match is zero for every one of them — a row of zeros that says nothing. So we instead measure the answer's log-likelihood with the needle present against the same context with the needle replaced by an unrelated key–value pair: it asks whether the needle was used at all, even when the model cannot state the full answer.
+
+At 32K context TTT-E2E scores 1.32 nats/token, against 0.37 for sliding-window attention and 0.41 for the no-update control. Those two decline steadily as context grows and the needle is pushed out of the window; TTT-E2E is essentially flat from 4K to 32K.
+Both probes point the same way: TTT-E2E keeps a memory that is **stable in distance but limited in precision**, where attention keeps one that is **precise but bounded by window or cost**. They are not the same thing, which is also why the original paper's needle-retrieval results trail full attention.
 
 
 ### 4.7 Public benchmarks and public models
@@ -323,12 +382,16 @@ To be written.
 
 | Model | Params | HellaSwag | PIQA | ARC-E | ARC-C | WinoGrande | SciQ | OBQA | BLiMP | MMLU | LAMBADA | Mean |
 |:--|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| Full attention | 124M | 26.6 | 57.4 | 39.1 | 23.5 | 50.3 | 64.4 | 25.2 | 74.6 | 23.0 | 16.4 | 40.1 |
 | Sliding window | 124M | 27.1 | 57.9 | 38.2 | 22.6 | 52.2 | 70.1 | 25.4 | 76.0 | 23.0 | 17.7 | 41.0 |
-| 95% CI half-width |  | ±0.9 | ±2.3 | ±2.0 | ±2.4 | ±2.7 | ±2.8 | ±3.8 | ±0.3 | ±0.7 | ±1.0 |  |
+| No-update control | 138M | 27.5 | 57.9 | 40.6 | 23.5 | 52.0 | 68.4 | 26.4 | 76.9 | 23.0 | 17.4 | 41.4 |
+| TTT-E2E (updates off) | 138M | 27.5 | 58.2 | 39.6 | 24.7 | 52.0 | 64.0 | 29.0 | 76.1 | 23.1 | 15.2 | 41.0 |
+| TTT-E2E | 138M | 27.5 | 58.2 | 39.6 | 24.7 | 52.1 | 64.6 | 29.0 | 76.1 | 23.1 | 15.2 | 41.0 |
+| 95% CI half-width |  | ±0.9 | ±2.3 | ±2.0 | ±2.4 | ±2.7 | ±3.0 | ±3.8 | ±0.3 | ±0.7 | ±1.0 |  |
 
 </div>
 
-Table 6. Zero-shot accuracy (%) of the four models in this report. HellaSwag, PIQA, ARC and OpenBookQA report accuracy normalised by choice length; the others report plain accuracy. “Mean” is the arithmetic mean of the ten tasks.
+Table 6. Zero-shot accuracy (%) for the four trained configurations in this report, with the TTT checkpoint also evaluated with test-time updates disabled. HellaSwag, PIQA, ARC and OpenBookQA report accuracy normalised by choice length; the others report plain accuracy. “Mean” is the arithmetic mean of the ten tasks.
 
 <div class="report-table" markdown>
 
@@ -370,7 +433,11 @@ Table 8. Public models evaluated with the same script and protocol (%). Paramete
 
 | Model | Max context | WikiText-103 word PPL | WikiText-103 bits/byte | PG-19 test word PPL | PG-19 test bits/byte | LAMBADA PPL |
 |:--|--:|--:|--:|--:|--:|--:|
+| Full attention | 4,096 | 63.97 | 1.122 | 102.66 | 1.150 | 469.84 |
 | Sliding window | 4,096 | 73.05 | 1.158 | 106.09 | 1.158 | 382.44 |
+| No-update control | 4,096 | 70.61 | 1.149 | 102.45 | 1.150 | 382.97 |
+| TTT-E2E (updates off) | 4,096 | 78.30 | 1.176 | 107.11 | 1.161 | 497.22 |
+| TTT-E2E | 4,096 | 59.87 | 1.104 | 95.01 | 1.131 | 497.20 |
 | DistilGPT-2 | 1,024 | 52.96 | 1.071 | 370.39 | 1.469 | 96.85 |
 | GPT-2 | 1,024 | 37.37 | 0.977 | 280.89 | 1.400 | 40.06 |
 | GPT-2 Medium | 1,024 | 26.75 | 0.887 | 143.89 | 1.234 | 18.26 |
@@ -385,8 +452,22 @@ Table 8. Public models evaluated with the same script and protocol (%). Paramete
 
 Table 9. Language-modelling metrics (lower is better). WikiText-103 test and PG-19 test are cut into non-overlapping windows of each model's maximum context, as lm-evaluation-harness does. Word-level perplexity is normalised by the number of whitespace-separated words and can be compared across tokenizers.
 
-To be written.
+**Protocol cross-check.** Before quoting any score, our harness has to be shown to agree with an accepted implementation. We evaluated GPT-2 (124M) with our script and with lm-evaluation-harness and compared metric by metric: 13 of 17 are identical, and the other 4 differ by less than 3×10⁻⁴ (SciQ's 0.1% comes from a single borderline item). The comparisons in Tables 6–8 are therefore protocol-equivalent.
+**Our four models.** Table 6 shows them clustered closely across the ten tasks, with most differences inside the 95% confidence intervals. That is expected: these are 138M-parameter base models trained on 786M tokens, near chance (25%) on tasks like MMLU. A stable 0.07 nat difference in held-out loss is below the resolution of these benchmarks.
 
+**Against public models (Tables 7 and 8).** This is positioning, not a budget-matched comparison: the public models in Table 7 were trained on one to three orders of magnitude more data (SmolLM2-135M on 2T tokens, roughly 2,500× ours). They are clearly stronger on knowledge-heavy tasks, as expected.
+
+**One "advantage" that must be explained.** In Table 9 our models reach far lower word-level perplexity on PG-19 test than any public model. That is **not** evidence of a better model: half of our training data is the PG-19 training split, the same domain as the test set, while most public models never trained on pre-1919 book text. Symmetrically, we are clearly worse on WikiText-103 because our training data contains no Wikipedia. Both gaps, in opposite directions, come from the data recipe rather than the architecture, and reading them as capability comparisons would be wrong.
+
+
+<div class="report-table" markdown>
+
+| Task | Adaptation | Valid samples | Score | Protocol |
+|:--|--:|--:|--:|:--|
+
+</div>
+
+Table 9a. Extended diagnostics requested for this project. ARC, PIQA and GPQA use answer-text continuation scoring; GSM8K and HumanEval use greedy generation; BBH is the named single-task diagnostic. The synthetic long-context row is a RULER/LongBench engineering preflight, not an official suite score.
 
 ### 4.8 Ablations
 
@@ -400,13 +481,39 @@ To be written.
 
 | Setting | Training tokens | PG-19 val NLL | First 256 tokens | Last 512 tokens | Updates off | FineWeb-Edu NLL | Step time (s) |
 |:--|--:|--:|--:|--:|--:|--:|--:|
+| Full attention | 164M | 3.666 | 3.836 | 3.632 | – | 4.148 | 0.131 |
+| Sliding window (k=256) | 164M | 3.650 | 3.752 | 3.644 | – | 4.106 | 0.082 |
+| Sliding window, same training time as TTT | 600M | 3.342 | 3.455 | 3.335 | – | 3.700 | 0.082 |
+| No-update control | 164M | 3.635 | 3.737 | 3.629 | – | 4.087 | 0.104 |
+| TTT-E2E (base: η=1, C=128, last 2 blocks, k=256) | 164M | 3.557 | 3.722 | 3.521 | 3.675 | 3.979 | 0.299 |
+| First-order (no gradient through inner gradients) | 164M | 3.539 | 3.692 | 3.504 | 3.629 | 3.962 | 0.200 |
+| Inner learning rate η=0.1 | 164M | 3.543 | 3.685 | 3.517 | 3.613 | 3.971 | 0.297 |
+| Inner learning rate η=0.3 | 164M | 3.531 | 3.683 | 3.498 | 3.619 | 3.955 | 0.296 |
+| Inner learning rate η=3 | 164M | 3.669 | 3.848 | 3.626 | 3.816 | 4.110 | 0.296 |
+| Update chunk C=64 | 164M | 3.558 | 3.727 | 3.521 | 3.721 | 3.975 | 0.376 |
+| Update chunk C=256 | 164M | 3.558 | 3.718 | 3.522 | 3.635 | 3.988 | 0.265 |
+| Fast weights in the last block only | 164M | 3.567 | 3.729 | 3.531 | 3.675 | 3.991 | 0.253 |
+| Fast weights in the last 4 blocks | 164M | 3.547 | 3.712 | 3.509 | 3.670 | 3.970 | 0.396 |
+| Sliding window, k=128 | 164M | 3.679 | 3.752 | 3.677 | – | 4.142 | 0.081 |
+| TTT-E2E, k=128 | 164M | 3.553 | 3.714 | 3.516 | 3.692 | 3.978 | 0.288 |
+| Sliding window, k=512 | 164M | 3.648 | 3.778 | 3.636 | – | 4.107 | 0.099 |
+| TTT-E2E, k=512 | 164M | 3.562 | 3.737 | 3.524 | 3.665 | 3.987 | 0.316 |
 
 </div>
 
 Table 10. Ablation results (PG-19 validation, 2,048 tokens of context). “Updates off” is the loss of the same checkpoint evaluated without test-time updates.
 
-To be written.
+Ablations use smaller models (8 blocks, width 512, 2,048 tokens of context), changing one factor at a time (Table 9, Figure 6).
 
+**Inner learning rate \(\eta\).** Values of 0.1, 0.3 and 1 give similar results (3.543, 3.531, 3.557), while \(\eta=3\) is clearly worse (3.669), falling behind the sliding-window baseline at the same size. This matches Section 4.1: the inner gradient norm sits near the clipping threshold, so most updates are clipped to a fixed step size and \(\eta\) matters little over a wide range — until the step is large enough to destabilise training.
+**Update chunk \(C\).** 64, 128 and 256 are nearly indistinguishable (3.558, 3.557, 3.558). Smaller chunks mean more frequent updates and higher training cost without buying lower loss at this scale, so the main experiment uses the larger \(C=256\).
+**Number of blocks with fast weights.** One, two and four blocks give 3.567, 3.557 and 3.547: more blocks help slightly, with diminishing returns and a backward pass through each one per chunk.
+**Attention window \(k\).** TTT-E2E barely moves across 128, 256 and 512 (3.553, 3.557, 3.562), while the sliding-window baseline is markedly more sensitive (3.679 → 3.648). The fast weights take over work that the attention window would otherwise have to do, which is where the long-context cost advantage comes from.
+**Parameters matched exactly.** Narrowing every MLP so the total parameter count equals the baseline without MLP′ gives 3.576, still well ahead of the sliding window's 3.650. The gain does not rest on the extra parameter budget.
+**First-order approximation.** Treating the inner gradient as a constant leaves the forward pass unchanged and makes training cheaper. It scores 3.539, matching or slightly beating full second-order training at 3.557. At this scale the second-order term through the inner loop is **not required** — a useful negative result, though whether it survives at larger scale is beyond what this report can answer.
+**Matched training time.** Every comparison above fixes the token count, but TTT-E2E is slower per step (Table 12). Using the measured step time, we gave the sliding-window baseline the same wall-clock budget: 18,300 steps and 600M tokens, about 3.7× the data. It reaches 3.342, **far better** than TTT-E2E's 3.557.
+
+This is the most important negative result in the report. At a fixed token budget TTT-E2E is clearly better; but if the binding constraint is **time or compute** rather than data, spending that time on more data is the better deal at this scale. Section 6 takes this up.
 
 ### 4.9 Seeds and model size
 
@@ -414,6 +521,12 @@ To be written.
 
 | Quantity | seed 0 | seed 1 | seed 2 | Mean | SD |
 |:--|--:|--:|--:|--:|--:|
+| Full attention NLL | 3.666 | 3.660 | 3.656 | 3.661 | 0.005 |
+| Sliding window NLL | 3.650 | 3.658 | 3.656 | 3.655 | 0.004 |
+| TTT-E2E NLL | 3.557 | 3.560 | 3.550 | 3.556 | 0.005 |
+| Δ TTT-E2E − Sliding window | −0.093 | −0.098 | −0.105 | −0.099 | 0.006 |
+| Δ TTT-E2E − Full attention | −0.109 | −0.100 | −0.105 | −0.105 | 0.004 |
+| Δ Sliding window − Full attention | −0.016 | −0.002 | −0.000 | −0.006 | 0.008 |
 
 </div>
 
@@ -423,6 +536,9 @@ Table 11. PG-19 validation loss under three seeds (initialisation and data order
 
 | Layers × width | Full attention | Sliding window | TTT-E2E | Δ TTT − sliding window | Δ TTT − full attention |
 |:--|--:|--:|--:|--:|--:|
+| 6 × 384 | 3.761 | 3.769 | 3.659 | −0.109 | −0.102 |
+| 8 × 512 | 3.666 | 3.650 | 3.557 | −0.093 | −0.109 |
+| 12 × 768 | 3.520 | 3.532 | 3.420 | −0.112 | −0.100 |
 
 </div>
 
@@ -434,8 +550,12 @@ Table 12. PG-19 validation loss of three model sizes at the same 164M training t
   <figcaption>Figure 7. Left: the three sizes of Table 10. Right: differences in PG-19 validation loss between models during the main training runs, against training tokens.</figcaption>
 </figure>
 
-To be written.
+**Seeds.** Table 10 gives results for three seeds, changing both initialisation and data order. The per-model standard deviation runs from 0.0040 to 0.0049, while the TTT-E2E − sliding-window difference is −0.099 ± 0.0061 and TTT-E2E − full attention is −0.105 ± 0.0042. The spread of the difference is comparable to a single model's spread while the difference itself is an order of magnitude larger, so the conclusion does not rest on one lucky initialisation.
 
+The same table holds another point worth noting: sliding-window attention and full attention differ by only −0.006 ± 0.0084 — **indistinguishable within seed noise**. At 2,048 context and this data budget, widening the window from 256 to fully visible buys almost nothing, while test-time updates do.
+**Model size.** Table 11 compares three sizes (6×384, 8×512, 12×768) at a fixed 164M-token budget. TTT-E2E beats both baselines at all three, with a margin from 0.109 nats at the smallest size to 0.112 nats at the largest; it does not vanish as size grows.
+
+Three points cannot establish a trend, and all three sit in a narrow range at one data budget. The original paper reports how the gain varies from 125M to 3B parameters; this report can neither confirm nor contradict that.
 
 ### 4.10 Cost
 
@@ -462,13 +582,26 @@ Table 13. Training cost on one H200 (batch of 16 × 4,096 tokens, random input, 
 
 | Model | Context read (tokens) | Fast weights (MiB) | KV cache (MiB) | Session state, total (MiB) | Token-by-token decoding (tokens/s) |
 |:--|--:|--:|--:|--:|--:|
+| Full attention | 2,048 | – | 144.2 | 145.7 | 601 |
+| Full attention | 8,192 | – | 576.8 | 578.3 | 512 |
+| Full attention | 32,768 | – | 2307.0 | 2308.5 | 284 |
+| Sliding window | 2,048 | – | 18.0 | 19.5 | 643 |
+| Sliding window | 8,192 | – | 18.0 | 19.5 | 631 |
+| Sliding window | 32,768 | – | 18.0 | 19.5 | 627 |
+| TTT-E2E | 2,048 | 54.0 | 18.0 | 72.4 | 573 |
+| TTT-E2E | 8,192 | 54.0 | 18.0 | 72.4 | 575 |
+| TTT-E2E | 32,768 | 54.0 | 18.0 | 72.4 | 582 |
 
 </div>
 
 Table 14. State kept by one inference session after reading contexts of different lengths, and the speed of token-by-token decoding that follows (batch size 1). State sizes are counted from the arrays actually allocated.
 
-To be written.
+**Training.** Table 12 gives measured throughput on one H200. Sliding-window attention is fastest (193K tokens/s), full attention reaches 82K, and TTT-E2E is slowest at 70K — 0.36× the sliding window. Two things cost: the extra MLP′ forward pass in the suffix, and one backward pass through the suffix per update chunk, with the outer loop then differentiating through that chain. The no-update control runs at 126K, which places about half the overhead on the extra MLP′ itself and half on the inner loop.
 
+Section 4.8's matched-time comparison shows what this costs in practice: given the same wall-clock budget, the sliding-window baseline reads 3.7× more data and ends up with a lower loss.
+**Inference.** Table 13 reports measured session state and decoding speed. TTT-E2E's session state is the fast weights (a fixed 54.0 MiB, independent of how much has been read) plus a sliding-window KV cache (also fixed); whether 2K or 32K of context has been read, the state size and the token-by-token decoding speed do not change. Full attention's KV cache grows linearly with context.
+
+This is the method's selling point: what it pays in training buys inference cost that is constant in context length. At the scale of this report the trade is not worth it — the models are small and the contexts short, so attention is cheap anyway — and it would only pay off at longer contexts and larger serving volumes, which is beyond what this report can verify.
 
 ## 5 Data audit
 
@@ -491,7 +624,7 @@ To be written.
 
 Table 15. Verbatim overlap between evaluation items and the training corpora. For each item, the first 80 characters of the normalised question text (lower-cased, whitespace collapsed) are matched exactly against all training text (21.9 GB).
 
-**Do evaluation items appear in the training corpus?** FineWeb-Edu comes from public web pages, and public benchmark items also circulate on the web, so this has to be checked rather than assumed. Table 14 reports: no verbatim overlap for HellaSwag, PIQA, WinoGrande or OpenBookQA; under 1% of items for ARC-Easy, ARC-Challenge, SciQ, LAMBADA and MMLU, the largest being MMLU (94 of 12,477, 0.75%). Even if every one of those items were answered correctly — or incorrectly — the task's accuracy would move by no more than that share, which changes none of the conclusions in Section 4.7. Of the 61 WikiText-103 test articles, 2 have a passage that occurs in the training corpus, which is expected: Wikipedia text is widely mirrored on the web.
+**Do evaluation items appear in the training corpus?** FineWeb-Edu comes from public web pages, and public benchmark items also circulate on the web, so this has to be checked rather than assumed. Table 15 reports: no verbatim overlap for HellaSwag, PIQA, WinoGrande or OpenBookQA; under 1% of items for ARC-Easy, ARC-Challenge, SciQ, LAMBADA and MMLU, the largest being MMLU (94 of 12,477, 0.75%). Even if every one of those items were answered correctly — or incorrectly — the task's accuracy would move by no more than that share, which changes none of the conclusions in Section 4.7. Of the 61 WikiText-103 test articles, 2 have a passage that occurs in the training corpus, which is expected: Wikipedia text is widely mirrored on the web.
 
 The check has two known blind spots. First, it finds verbatim overlap only, not paraphrase, translation or answer-only overlap. Second, items whose normalised question text is shorter than 50 characters are not probed (which is why the "items probed" column is below the full item count), so PIQA and OpenBookQA are only partly covered.
 
@@ -502,7 +635,17 @@ The check has two known blind spots. First, it finds verbatim overlap only, not 
 
 ## 6 Discussion and limitations
 
-To be written.
+**What this report measured.** At a fixed token budget, with data and hyper-parameters strictly matched, TTT-E2E beat both full attention and sliding-window attention on two held-out sets, and the advantage reappeared across three seeds and three model sizes. Decomposing the gain, the largest term is the test-time updates themselves and the second is the extra parameters; running the same gradient updates on a model that was never meta-trained achieves almost nothing, so what matters is having been *trained to be updated*, not the act of updating. Two probes show the memory it keeps is stable with distance but less precise than attention's.
+
+**What it did not measure.** Scale. All four main models have 138M parameters and 786M training tokens — about 31% of the original paper's smallest recipe and two orders of magnitude below its largest experiment. The three sizes in Section 4.9 sit in a narrow band. Context too: a training length of 4,096 and evaluation out to 32,768, against the original paper's claims at 128K. This report can neither confirm nor refute the conclusions at that scale.
+
+**The most important caveat.** Section 4.8's matched-training-time comparison is the result least favourable to TTT-E2E: given the same wall-clock budget, the sliding-window baseline reads 3.7× more data and reaches a clearly lower loss. This is not an implementation-efficiency problem — differentiating through the inner loop has an inherent cost, and the original paper lists training latency as a main limitation too. The conclusion should therefore be stated as: **when data is the binding constraint (a fixed token budget), TTT-E2E trades extra compute for a better model; when compute is the binding constraint, that compute is better spent reading more data.** Both situations occur in practice, and which applies depends on the constraint rather than on the method.
+
+**A useful negative result.** The first-order approximation — not differentiating through the inner gradient — matches or slightly beats full second-order training at this scale while being cheaper. If that holds at larger scale it would change the cost trade-off above substantially; this report's scale cannot test it.
+
+**A property worth noting.** Slow weights trained with updates come to depend on them: with updates switched off, the model is worse than a matched control that never used them. TTT-E2E is therefore not a switch that can be turned off at inference to save compute, but a design that must be adopted whole. That has direct deployment consequences.
+
+**Relation to the original paper.** Agreeing in direction: TTT-E2E beats the baselines at matched budget, its inference cost is independent of context length, its advantage widens with longer context, and it trails full attention on needle-style retrieval. This report reproduces those qualitative findings independently at a much smaller scale and adds decompositions the original does not report (the no-update control, the dynamic-evaluation baseline, the matched-time comparison, and the first-order variant). The original's quantitative claims at 128K context and 3B parameters are neither verified nor refuted here.
 
 
 
@@ -545,6 +688,11 @@ python scripts/make_report_configs.py
 scripts/report_pipeline.sh 0 baseline   # sliding window → full attention → throughput → ablation queue
 scripts/report_pipeline.sh 1 ttt        # TTT-E2E → no-update control → naive-update baseline → ablation queue
 scripts/run_reference_benchmarks.sh 0   # public reference models + lm-evaluation-harness cross-check
+scripts/run_extended_benchmarks.sh 7 main-full no-adapt 100
+scripts/run_extended_benchmarks.sh 7 main-ttt adapt 100
+scripts/run_extended_benchmarks.sh 7 main-ttt no-adapt 100
+
+The `0` and `1` values are examples of device IDs assigned to a job, not fixed machine-wide IDs. On the H200 run for this report, GPU 7 ran the baseline pipeline and GPU 5 ran the TTT pipeline. The two pipelines were independent and exchanged no cross-device data.
 
 # 3. Audits, figures and the report
 python scripts/audit_report_data.py sampler --recipe configs/data/fineweb_pg19_50_50.json \

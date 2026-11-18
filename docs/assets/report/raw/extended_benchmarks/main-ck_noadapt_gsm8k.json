@@ -1,0 +1,618 @@
+{
+  "protocol_version": "gsm8k_generate_v1",
+  "protocol": "GSM8K test split; greedy generation; exact normalized numeric match",
+  "checkpoint": "outputs/main-ck/step_00012000.orbax",
+  "checkpoint_metadata_sha256": "2618df036f15023785a235a4fe146ec46ba686d5006ec3e13bac2c8d15bf0fd9",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/gsm8k/test.jsonl",
+  "data_sha256": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14",
+  "tokenizer": "tiktoken:gpt2",
+  "adaptation": false,
+  "max_new_tokens": 128,
+  "limit": 100,
+  "correct": 3,
+  "samples": 100,
+  "skipped": 0,
+  "accuracy": 0.03,
+  "records": [
+    {
+      "index": 0,
+      "gold": "18",
+      "prediction": "2",
+      "text": " The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2.00. The average cost of a duck egg is $2."
+    },
+    {
+      "index": 1,
+      "gold": "3",
+      "prediction": "1",
+      "text": " The answer is 1. The total length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length of the robe is 1. The length"
+    },
+    {
+      "index": 2,
+      "gold": "70000",
+      "prediction": "100000",
+      "text": " The house was $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000.  He bought a house for $100,000"
+    },
+    {
+      "index": 3,
+      "gold": "540",
+      "prediction": "60",
+      "text": " 1.5 million.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  How many total meters does he run a week?\nAnswer: 1.5 million.  He runs 60 meters each sprint.  How many total meters does he run a week?\nAnswer: 1.5 million.  He runs 60 meters each sprint.  How many total meters does he run a week?\nAnswer: 1.5 million.  He runs 60 meters each sprint.  How many total meters does he run a week?\nAnswer: 1.5 million.  He runs 60 meters each sprint"
+    },
+    {
+      "index": 4,
+      "gold": "20",
+      "prediction": null,
+      "text": " The chickens are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are small.  They are small, but they are"
+    },
+    {
+      "index": 5,
+      "gold": "64",
+      "prediction": null,
+      "text": " The price of a glass is determined by the amount of glass that is used. The price of a glass is determined by the amount of glass that is used.\nQuestion: What is the price of a glass?\nAnswer: The price of a glass is determined by the amount of glass that is used. The price of a glass is determined by the amount of glass that is used.\nQuestion: What is the price of a glass?\nAnswer: The price of a glass is determined by the amount of glass that is used. The price of a glass is determined by the amount of glass that is used.\nQuestion: What"
+    },
+    {
+      "index": 6,
+      "gold": "260",
+      "prediction": null,
+      "text": " Toulouse is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world. It is the largest sheep in the world."
+    },
+    {
+      "index": 7,
+      "gold": "160",
+      "prediction": null,
+      "text": " The load is the amount of load that is needed to run the file. The load is the amount of load that is needed to run the file. The load is the amount of load that is needed to run the file. The load is the amount of load that is needed to run the file. The load is the amount of load that is needed to run the file. The load is the amount of load that is needed to run the file. The load is the amount of load that is needed to run the file. The load is the amount of load that is needed to run the file. The load is the amount of load that"
+    },
+    {
+      "index": 8,
+      "gold": "45",
+      "prediction": "4",
+      "text": " The speed of the 4 hours is about 1.5 mph.  He is able to drive the remaining time of the 4 hours at a speed of 30mph.  He is able to drive the remaining time of the 4 hours at a speed of 30mph.  He is able to drive the remaining time of the 4 hours at a speed of 30mph.  He is able to drive the remaining time of the 4 hours at a speed of 30mph.  He is able to drive the remaining time of the 4 hours at a speed of 30mph.  He is able to drive the remaining time of the 4 hours at a"
+    },
+    {
+      "index": 9,
+      "gold": "460",
+      "prediction": "40",
+      "text": " The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours is $10. The average wage for the first 40 hours"
+    },
+    {
+      "index": 10,
+      "gold": "366",
+      "prediction": "1000",
+      "text": " The program had a total of 1,000 downloads in the first month. The total number of downloads in the second month was 1,000. The total number of downloads in the second month was 1,000. The total number of downloads in the second month was 1,000. The total number of downloads in the second month was 1,000. The total number of downloads in the second month was 1,000. The total number of downloads in the second month was 1,000. The total number of downloads in the second month was 1,000. The total number of downloads in the second month was 1,000. The"
+    },
+    {
+      "index": 11,
+      "gold": "694",
+      "prediction": null,
+      "text": " Toula was the only one who had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She had a large amount of money. She"
+    },
+    {
+      "index": 12,
+      "gold": "13",
+      "prediction": null,
+      "text": " The lemon tree is a tree that grows in the United States. It is a tree that grows in the United States. The lemon tree is a tree that grows in the United States. The lemon tree is a tree that grows in the United States. The lemon tree is a tree that grows in the United States. The lemon tree is a tree that grows in the United States. The lemon tree is a tree that grows in the United States. The lemon tree is a tree that grows in the United States. The lemon tree is a tree that grows in the United States. The lemon tree is a tree that grows in the United States."
+    },
+    {
+      "index": 13,
+      "gold": "18",
+      "prediction": null,
+      "text": " The first two of the two were sold at the green house. The second was sold at the orange house. The third was sold at the orange house. The third was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange house. The fourth was sold at the orange"
+    },
+    {
+      "index": 14,
+      "gold": "60",
+      "prediction": "20",
+      "text": " The percentage of the students enrolled in hip-hop dance was significantly higher than the percentage of the students enrolled in hip-hop dance.\nQuestion: In a dance class of 20 students, 20% enrolled in hip-hop dance, and the rest enrolled in hip-hop dance.\nAnswer: The percentage of the students enrolled in hip-hop dance was significantly higher than the percentage of the students enrolled in hip-hop dance.\nQuestion: In a dance class of 20 students, 20% enrolled in hip-hop dance, and the rest enrolled in hip-hop dance.\nAnswer: The percentage of the students enrolled in hip"
+    },
+    {
+      "index": 15,
+      "gold": "125",
+      "prediction": null,
+      "text": " The merchant is looking to increase the value of the jewelry market by making a choice of the jewelry market. The merchant is looking to increase the value of the jewelry market by making a choice of the jewelry market. The merchant is looking to increase the value of the jewelry market by making a choice of the jewelry market. The merchant is looking to increase the value of the jewelry market by making a choice of the jewelry market. The merchant is looking to increase the value of the jewelry market by making a choice of the jewelry market. The merchant is looking to increase the value of the jewelry market by making a choice of the jewelry market. The merchant"
+    },
+    {
+      "index": 16,
+      "gold": "230",
+      "prediction": "1.5",
+      "text": " The distance covered by the trains is about 1.5 miles. The distance covered by the trains is about 1.5 miles. The distance covered by the trains is about 1.5 miles.\nQuestion: Two trains leave San Rafael at the same time. They start traveling for 80 miles. The distance covered by the trains is about 1.5 miles. The distance covered by the trains is about 1.5 miles.\nQuestion: Two trains leave San Rafael at the same time. They start traveling for 80 miles. The distance covered by the trains is about 1.5 miles.\nQuestion: Two trains leave San Rafael at the"
+    },
+    {
+      "index": 17,
+      "gold": "57500",
+      "prediction": "30",
+      "text": " The average salary for a coach is $30.\nQuestion: What's the difference between a coach and a coach?\nAnswer: The average salary for a coach is $30.\nQuestion: What's the difference between a coach and a coach?\nAnswer: The average salary for a coach is $30.\nQuestion: What's the difference between a coach and a coach?\nAnswer: The average salary for a coach is $30.\nQuestion: What's the difference between a coach and a coach?\nAnswer: The average salary for a coach is $30.\nQuestion: What's the difference between a coach"
+    },
+    {
+      "index": 18,
+      "gold": "7",
+      "prediction": "1",
+      "text": " The average of the eggs in the first week of pregnancy is about 1.5 eggs.  The average of the eggs in the second week of pregnancy is about 1.5 eggs.  The average of the eggs in the third week of pregnancy is about 1.5 eggs.  The average of the eggs in the third week of pregnancy is about 1.5 eggs.  The average of the eggs in the third week of pregnancy is about 1.5 eggs.  The average of the eggs in the third week of pregnancy is about 1.5 eggs.  The average of the eggs in the third week of pregnancy is about 1"
+    },
+    {
+      "index": 19,
+      "gold": "6",
+      "prediction": null,
+      "text": " Marissa is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is a mountain. She is"
+    },
+    {
+      "index": 20,
+      "gold": "15",
+      "prediction": "10",
+      "text": " The orange drink is the most common type of orange drink. It is the most common type of orange drink. It is the most common type of orange drink.\nQuestion: I have 10 liters of orange drink that are three-fourths water and I wish to add it to 15 liters of pineapple drink that is three-fourths water. How much water is in the remaining 24 liters?\nAnswer: The orange drink is the most common type of orange drink. It is the most common type of orange drink.\nQuestion: I have 10 liters of orange drink that are three-fourths water and I wish"
+    },
+    {
+      "index": 21,
+      "gold": "14",
+      "prediction": "6",
+      "text": " Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha. Raymond was born 6 years before Samantha."
+    },
+    {
+      "index": 22,
+      "gold": "7",
+      "prediction": null,
+      "text": " Billy sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the DVD. He sold the"
+    },
+    {
+      "index": 23,
+      "gold": "8",
+      "prediction": null,
+      "text": " A candle is a light that is not burning. It is a light that is not burning. It is a light that is not burning.\nQuestion: A candle burns when it is burning. How many centimeters longer will a candle burn?\nAnswer: A candle burns when it is burning. How many centimeters longer will a candle burn?\nAnswer: A candle burns when it is burning. How many centimeters longer will a candle burn?\nAnswer: A candle burns when it is burning. How many centimeters longer will a candle burn?\nAnswer: A candle burns when it is burning. How many centimeters longer will a candle burn?"
+    },
+    {
+      "index": 24,
+      "gold": "26",
+      "prediction": "19.50",
+      "text": " The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $19.50. The price of the book was $"
+    },
+    {
+      "index": 25,
+      "gold": "2",
+      "prediction": "1.50",
+      "text": " Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50 each. Marie ordered one chicken meal that cost $1.50"
+    },
+    {
+      "index": 26,
+      "gold": "243",
+      "prediction": "22.50",
+      "text": " 1. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment is $22.50. The average price of a garment"
+    },
+    {
+      "index": 27,
+      "gold": "16",
+      "prediction": "2.00",
+      "text": " The average person spends about $2.00 per day on ice cream.  The average person spends about $2.00 per day on ice cream.  The average person spends about $2.00 per day on ice cream.  The average person spends about $2.00 per day on ice cream.  The average person spends about $2.00 per day on ice cream.  The average person spends about $2.00 per day on ice cream.  The average person spends about $2.00 per day on ice cream.  The average person spends about $2.00 per day on ice cream. "
+    },
+    {
+      "index": 28,
+      "gold": "25",
+      "prediction": null,
+      "text": " The first stop was in the middle of the road. He was walking on the left side of the road. He was walking on the right side of the road. He was walking on the left side of the road. He was walking on the left side of the road. He was walking on the right side of the road. He was walking on the left side of the road. He was walking on the right side of the road. He was walking on the left side of the road. He was walking on the left side of the road. He was walking on the right side of the road. He was walking on the left side"
+    },
+    {
+      "index": 29,
+      "gold": "104",
+      "prediction": null,
+      "text": " The shoes are made of two pieces of wood, one of which is made of wood. The other piece is made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made of wood. The shoes are made"
+    },
+    {
+      "index": 30,
+      "gold": "109",
+      "prediction": "1.1",
+      "text": " 1.8.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1."
+    },
+    {
+      "index": 31,
+      "gold": "80",
+      "prediction": null,
+      "text": " The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs in a jar. The average guess is the number of eggs"
+    },
+    {
+      "index": 32,
+      "gold": "35",
+      "prediction": null,
+      "text": " The dog is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog."
+    },
+    {
+      "index": 33,
+      "gold": "70",
+      "prediction": null,
+      "text": " The gold coins are the gold coins of the world.\nQuestion: The gold coins of the world are the gold coins of the world.\nQuestion: The gold coins of the world are the gold coins of the world.\nQuestion: The gold coins of the world are the gold coins of the world.\nQuestion: The gold coins of the world are the gold coins of the world.\nQuestion: The gold coins of the world are the gold coins of the world.\nQuestion: The gold coins of the world are the gold coins of the world.\nQuestion: The gold coins of the world are the gold coins of the"
+    },
+    {
+      "index": 34,
+      "gold": "23",
+      "prediction": "2",
+      "text": " Siobhan has 2 more jewels than the other two.\nQuestion: Siobhan has 2 more jewels than the other two.\nAnswer: Siobhan has 2 more jewels than the other two.\nQuestion: Siobhan has 2 more jewels than the other two.\nAnswer: Siobhan has 2 more jewels than the other two.\nQuestion: Siobhan has 2 more jewels than the other two.\nAnswer: Siobhan has 2 more jewels than the other two.\nQuestion: Siobhan has 2 more jewels than the other two.\nAnswer: Siobhan has 2 more jewels than"
+    },
+    {
+      "index": 35,
+      "gold": "9",
+      "prediction": null,
+      "text": " The average number of points in a given number is the number of points in a given number.  The number of points in a given number is the number of points in a given number.  The number of points in a given number is the number of points in a given number.  The number of points in a given number is the number of points in a given number.  The number of points in a given number is the number of points in a given number.  The number of points in a given number is the number of points in a given number.  The number of points in a given number is the number of points"
+    },
+    {
+      "index": 36,
+      "gold": "75",
+      "prediction": "1.5",
+      "text": " The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average daily intake of yogurt is about 1.5 ounces.  The average"
+    },
+    {
+      "index": 37,
+      "gold": "2",
+      "prediction": "10",
+      "text": " The first lego set is $10. The second lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third lego set is $10. The third"
+    },
+    {
+      "index": 38,
+      "gold": "10",
+      "prediction": null,
+      "text": " The speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed of the speed"
+    },
+    {
+      "index": 39,
+      "gold": "18",
+      "prediction": null,
+      "text": " The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed of the car. The speed of a car is the speed"
+    },
+    {
+      "index": 40,
+      "gold": "8",
+      "prediction": null,
+      "text": " The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is yes. The answer is"
+    },
+    {
+      "index": 41,
+      "gold": "200",
+      "prediction": null,
+      "text": " The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon was a giant, and the dragon was a giant.  The dragon"
+    },
+    {
+      "index": 42,
+      "gold": "26",
+      "prediction": null,
+      "text": " The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room.  The guests were all in the same room"
+    },
+    {
+      "index": 43,
+      "gold": "48",
+      "prediction": null,
+      "text": " The answer is that the amount of calories you eat is not the same as the amount of calories you eat.\nQuestion: The amount of calories you eat is not the same as the amount of calories you eat.\nAnswer: The amount of calories you eat is not the same as the amount of calories you eat.\nQuestion: The amount of calories you eat is not the same as the amount of calories you eat.\nAnswer: The amount of calories you eat is not the same as the amount of calories you eat.\nAnswer: The amount of calories you eat is not the same as the amount of calories you eat.\n"
+    },
+    {
+      "index": 44,
+      "gold": "20",
+      "prediction": "1",
+      "text": " The price of the beeswax candles is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1.00.  The price of the wicks is $1"
+    },
+    {
+      "index": 45,
+      "gold": "104",
+      "prediction": "3",
+      "text": " The average time she spent writing articles on Tuesday was 3 hours.\nQuestion: The average time she spent writing articles on Tuesday was 3 hours.\nAnswer: The average time she spent writing articles on Tuesday was 3 hours.\nAnswer: The average time she spent writing articles on Tuesday was 3 hours.\nAnswer: The average time she spent writing articles on Tuesday was 3 hours.\nAnswer: The average time she spent writing articles on Tuesday was 3 hours.\nAnswer: The average time she spent writing articles on Tuesday was 3 hours.\nAnswer: The average time she spent writing articles on Tuesday was 3 hours.\nAnswer:"
+    },
+    {
+      "index": 46,
+      "gold": "163",
+      "prediction": null,
+      "text": "  The post-it notes were in the same package as the coffee.  The post-it notes were in the same package as the coffee.  The post-it notes were in the same package as the coffee.  The post-it notes were in the same package as the coffee.  The post-it notes were in the same package as the coffee.  The post-it notes were in the same package as the coffee.  The post-it notes were in the same package as the coffee.  The post-it notes were in the same package as the coffee.  The post-it notes were in"
+    },
+    {
+      "index": 47,
+      "gold": "800",
+      "prediction": "50",
+      "text": " The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red ties cost $50 each.  The red"
+    },
+    {
+      "index": 48,
+      "gold": "8",
+      "prediction": "6",
+      "text": " The wire was cut into pieces 6 inches long. How many pieces did she obtain?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she obtain?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she obtain?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she obtain?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she obtain?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she obtain?\nAnswer: The wire was cut into pieces 6 inches"
+    },
+    {
+      "index": 49,
+      "gold": "30",
+      "prediction": "1000",
+      "text": " The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In the building is 1,000. The total number of unoccupied units In"
+    },
+    {
+      "index": 50,
+      "gold": "294",
+      "prediction": "2",
+      "text": " The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,000. The average egg farm is $2,"
+    },
+    {
+      "index": 51,
+      "gold": "5",
+      "prediction": null,
+      "text": " The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of high pressure.  The ship is in a state of"
+    },
+    {
+      "index": 52,
+      "gold": "15",
+      "prediction": "15",
+      "text": " The book bag is getting too heavy for him. He needs to remove 15 pounds from it. He needs to remove 15 pounds from it. He needs to remove 15 pounds from it.\nQuestion: The book bag is getting too heavy for him. He needs to remove 15 pounds from it. He needs to remove 15 pounds from it.\nAnswer: The book bag is getting too heavy for him. He needs to remove 15 pounds from it. He needs to remove 15 pounds from it.\nQuestion: The book bag is getting too heavy for him. He needs to remove 15 pounds from it. He needs to remove 15 pounds from"
+    },
+    {
+      "index": 53,
+      "gold": "40",
+      "prediction": "40",
+      "text": "  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck is $40.  The average cost of a truck"
+    },
+    {
+      "index": 54,
+      "gold": "40",
+      "prediction": null,
+      "text": " The Doubtfire sisters are the only cats that have had kittens. They are the only cats that have had kittens.\nQuestion: The Doubtfire sisters are the only cats that have had kittens.\nAnswer: The Doubtfire sisters are the only cats that have had kittens.\nAnswer: The Doubtfire sisters are the only cats that have had kittens.\nAnswer: The Doubtfire sisters are the only cats that have had kittens.\nAnswer: The Doubtfire sisters are the only cats that have had kittens.\nAnswer: The Doubtfire sisters are the only cats that have had kittens.\nAnswer"
+    },
+    {
+      "index": 55,
+      "gold": "14",
+      "prediction": "30",
+      "text": " Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops. Jean has 30 lollipops."
+    },
+    {
+      "index": 56,
+      "gold": "3",
+      "prediction": "7",
+      "text": " The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a movie. The average person spends $7 on a"
+    },
+    {
+      "index": 57,
+      "gold": "83",
+      "prediction": "1000",
+      "text": " The maximum number of boxes which can be loaded onto the truck is 1,000. The total number of boxes which can be loaded onto the truck is 1,000. The total number of boxes which can be loaded onto the truck is 1,000.\nQuestion: The total number of boxes which can be loaded onto the truck is 1,000. The total number of boxes which can be loaded onto the truck is 1,000. The total number of boxes which can be loaded onto the truck is 1,000.\nQuestion: The total number of boxes which can be loaded onto the truck is 1,000. The total number"
+    },
+    {
+      "index": 58,
+      "gold": "57",
+      "prediction": "4.00",
+      "text": " The first item in the bill was a $4.00 tip.  The second item was a $4.00 tip.  The third item was a $4.00 tip.  The third item was a $4.00 tip.  The third item was a $4.00 tip.  The third item was a $4.00 tip.  The fourth item was a $4.00 tip.  The fourth item was a $4.00 tip.  The fourth item was a $4.00 tip.  The fourth item was a $4.00 tip.  The fourth item was a"
+    },
+    {
+      "index": 59,
+      "gold": "187",
+      "prediction": null,
+      "text": " The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the raspberries. The raspberries are the largest of the rasp"
+    },
+    {
+      "index": 60,
+      "gold": "17",
+      "prediction": "1",
+      "text": " The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is 1. The number of oranges in the basket is"
+    },
+    {
+      "index": 61,
+      "gold": "1430",
+      "prediction": "500",
+      "text": " The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is $500.  The price of the brooch is"
+    },
+    {
+      "index": 62,
+      "gold": "25000",
+      "prediction": "40",
+      "text": " The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40 years. The average age of the pension is 40"
+    },
+    {
+      "index": 63,
+      "gold": "1596",
+      "prediction": "140",
+      "text": " The amount of money that the streaming company charged her was $1,000.\nQuestion: Aleena subscribed to a streaming service that charges her $140 per month. If the streaming company charged her the initial amount for the first half of the year and then charged her 10% less money on the other half of the year, calculate the total amount she had paid for the streaming service by the end of the year.\nAnswer: The amount of money that the streaming company charged her was $1,000.\nQuestion: Aleena subscribed to a streaming service that charges her $140 per month. If the streaming company charged her the"
+    },
+    {
+      "index": 64,
+      "gold": "300",
+      "prediction": "1.5",
+      "text": " The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average distance between the two stations is about 1.5 miles. The average"
+    },
+    {
+      "index": 65,
+      "gold": "36",
+      "prediction": "2",
+      "text": " The average person spends about 2 hours on TV and reading.  He spends about 2 hours on TV and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours on reading and reading.  He spends about 2 hours"
+    },
+    {
+      "index": 66,
+      "gold": "48",
+      "prediction": null,
+      "text": " The school has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach has only one coach. The coach"
+    },
+    {
+      "index": 67,
+      "gold": "595",
+      "prediction": null,
+      "text": " The largest of the gems was a small diamond, about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The diamond was about the size of a small pear.  The"
+    },
+    {
+      "index": 68,
+      "gold": "36",
+      "prediction": null,
+      "text": " The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average teacher is one of the most important teachers.\nQuestion: The average"
+    },
+    {
+      "index": 69,
+      "gold": "60",
+      "prediction": "1",
+      "text": " The amount of money that Bailey started with was $1,000,000. The amount of money that Bailey started with was $1,000,000. The amount of money that Bailey started with was $1,000,000.\nQuestion: Bailey started with $1,000,000. She received $1,000,000. She received $1,000,000.\nAnswer: Bailey started with $1,000,000. She received $1,000,000.\nQuestion: Bailey started with $1,000,000. She received $1,000,000. She received $1,"
+    },
+    {
+      "index": 70,
+      "gold": "7425",
+      "prediction": "1",
+      "text": " The average student spends $15.00 per week on the weekdays.  If she spends $15.00 per week on the weekdays, how much money does she make in 1 week?\nAnswer: The average student spends $15.00 per week on the weekdays.  If she spends $15.00 per week on the weekdays, how much money does she make in 1 week?\nAnswer: The average student spends $15.00 per week on the weekdays.  If she spends $15.00 per week on the weekdays, how much money does she make in 1 week?\nAnswer"
+    },
+    {
+      "index": 71,
+      "gold": "60",
+      "prediction": null,
+      "text": " Kelian has two recipes for preparing the dishes. The first recipe is the recipe for preparing the dishes. The second recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing the dishes. The third recipe is the recipe for preparing"
+    },
+    {
+      "index": 72,
+      "gold": "221",
+      "prediction": "3",
+      "text": " The average American spends $3 a slice of cheesecake. That’s a lot of money.\nQuestion: Tommy is fundraising for his charity by selling brownies for $3 a slice and cheessylvas for $3 a slice. If Tommy sells 43 brownies and 23 slices of cheessylvas, how much money does Tommy raise?\nAnswer: The average American spends $3 a slice and cheessylvas for $3 a slice. That’s a lot of money.\nQuestion: Tommy is fundraising for his charity by selling brownies for $3 a slice and cheessylvas for $3 a slice."
+    },
+    {
+      "index": 73,
+      "gold": "255",
+      "prediction": "1",
+      "text": " Shiela is a $1,000,000,000 dollar company. The company is a $1,000,000,000 dollar company. The company is a $1,000,000,000 dollar company. The company is a $1,000,000,000 dollar company. The company is a $1,000,000,000 dollar company. The company is a $1,000,000,000 dollar company. The company is a $1,000,000,000 dollar company. The company is a $1,000,000,000 dollar company. The company is a $1,"
+    },
+    {
+      "index": 74,
+      "gold": "88",
+      "prediction": "1.75",
+      "text": " The price of a marigold is $1.75 per pot. The price of a marigold is $1.75 per pot. The price of a marigold is $1.75 per pot. The price of a marigold is $1.75 per pot. The price of a marigold is $1.75 per pot. The price of a marigold is $1.75 per pot. The price of a marigold is $1.75 per pot. The price of a marigold is $1.75 per pot. The price of a marigold is"
+    },
+    {
+      "index": 75,
+      "gold": "60",
+      "prediction": null,
+      "text": " The average square footage of a level is the average square footage of a level. The average square footage of a level is the average square footage of a level. The average square footage of a level is the average square footage of a level.\nQuestion: Luke is spending time at the beach building sandcastles. He is spending time at the beach building sandcastles. He is spending time at the beach building sandcastles. He is spending time at the beach building sandcastles. He is spending time at the beach building sandcastles.\nQuestion: Luke is spending time at the beach building sandcastles. He is"
+    },
+    {
+      "index": 76,
+      "gold": "5",
+      "prediction": null,
+      "text": " The first year is the first year of the puppy’s life. The second year is the first year of the puppy’s life. The third year is the first year of the puppy’s life. The third year is the first year of the puppy’s life. The fourth year is the first year of the puppy’s life. The fourth year is the first year of the puppy’s life. The fourth year is the first year of the puppy’s life. The fourth year is the first year of the puppy’s life. The fourth year is the first year of"
+    },
+    {
+      "index": 77,
+      "gold": "100",
+      "prediction": "4",
+      "text": " If Raymond does half as much laundry, and Sarah does 4 times as much laundry, then the difference in the amount of laundry Raymond and David do is equal to the difference in the amount of laundry Raymond and David do.\nQuestion: If Raymond does half as much laundry, and Sarah does 4 times as much laundry, then the difference in the amount of laundry Raymond and David do is equal to the difference in the amount of laundry Raymond and David do.\nAnswer: If Raymond does half as much laundry, and Sarah does 4 times as much laundry, then the difference in the amount of laundry Raymond and David do is equal to the difference"
+    },
+    {
+      "index": 78,
+      "gold": "6",
+      "prediction": null,
+      "text": " The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price of a flower is determined by the price of the flowers. The price"
+    },
+    {
+      "index": 79,
+      "gold": "70",
+      "prediction": null,
+      "text": " The groomer is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog.  He is a very good dog"
+    },
+    {
+      "index": 80,
+      "gold": "10",
+      "prediction": null,
+      "text": " The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the room. The water was in the middle of the"
+    },
+    {
+      "index": 81,
+      "gold": "17",
+      "prediction": "23",
+      "text": " Charlie had 10 stickers. He bought 21 stickers from a store in the mall and got 23 stickers for his birthday. How many stickers does Charlie have left?\nAnswer: Charlie had 10 stickers. He bought 21 stickers from a store in the mall and got 23 stickers for his birthday. How many stickers does Charlie have left?\nAnswer: Charlie had 10 stickers. He bought 21 stickers from a store in the mall and got 23 stickers for his birthday. How many stickers does Charlie have left?\nAnswer: Charlie had 10 stickers. He bought 21 stickers from a store in the mall and got 23 stickers for his birthday. How many stickers"
+    },
+    {
+      "index": 82,
+      "gold": "623",
+      "prediction": "2",
+      "text": " The ratio of pounds to pounds is the ratio of pounds to pounds.\nQuestion: Grace weighs 2 pounds. Alex weighs 2 pounds less than 4 times what Grace weighs.\nQuestion: Grace weighs 2 pounds. Alex weighs 2 pounds less than 4 times what Grace weighs.\nQuestion: Grace weighs 2 pounds. Alex weighs 2 pounds less than 4 times what Grace weighs.\nQuestion: Grace weighs 2 pounds. Alex weighs 2 pounds less than 4 times what Grace weighs.\nQuestion: Grace weighs 2 pounds. Alex weighs 2 pounds less than 4 times what Grace weighs.\nQuestion: Grace weighs 2 pounds. Alex weighs 2 pounds less than"
+    },
+    {
+      "index": 83,
+      "gold": "600",
+      "prediction": null,
+      "text": " The rose bush is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub in the world. It is the largest shrub"
+    },
+    {
+      "index": 84,
+      "gold": "15",
+      "prediction": null,
+      "text": " The team was in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a football game. They were in the middle of a"
+    },
+    {
+      "index": 85,
+      "gold": "44",
+      "prediction": null,
+      "text": " The quilt block is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper. It is made of a piece of paper"
+    },
+    {
+      "index": 86,
+      "gold": "22",
+      "prediction": null,
+      "text": " The alarm was set to ring three times a day. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times. The alarm was set to ring three times."
+    },
+    {
+      "index": 87,
+      "gold": "9360",
+      "prediction": "600",
+      "text": " The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600 in a month. The company pays the employees $600"
+    },
+    {
+      "index": 88,
+      "gold": "8000",
+      "prediction": "10",
+      "text": " Harald's first record sold 10 times as many copies as Harald's.\nQuestion: The first record sold 10 times as many copies as Harald's.\nQuestion: The first record sold 10 times as many copies as Harald's.\nQuestion: The first record sold 10 times as many copies as Harald's.\nQuestion: The first record sold 10 times as many copies as Harald's.\nQuestion: The first record sold 10 times as many copies as Harald's.\nQuestion: The first record sold 10 times as many copies as Harald's.\nQuestion: The first record sold 10 times as"
+    },
+    {
+      "index": 89,
+      "gold": "24",
+      "prediction": "2",
+      "text": " $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2.00 per person.\nQuestion: The average person spends $2"
+    },
+    {
+      "index": 90,
+      "gold": "225",
+      "prediction": "1.5",
+      "text": " The answer is that the average adult will eat about 1.5 pounds of potato salad.  If the average adult is eating about 1.5 pounds of potato salad, how many pounds of potato salad will Ted need to bring to the picnic?  If the average adult is eating about 1.5 pounds of potato salad, how many pounds of potato salad will Ted need to bring to the picnic?  If the average adult is eating about 1.5 pounds of potato salad, how many pounds of potato salad will Ted need to bring to the picnic?  If the average adult is eating about 1.5 pounds of potato salad, how"
+    },
+    {
+      "index": 91,
+      "gold": "28",
+      "prediction": null,
+      "text": " Jan has three times the number of pets as Marcia. If you have two pets, how many total pets do the three have?\nAnswer: Jan has three times the number of pets as Marcia. If you have two pets, how many total pets do the three have?\nAnswer: Jan has three times the number of pets as Marcia. If you have two pets, how many total pets do the three have?\nAnswer: Jan has three times the number of pets as Marcia. If you have two pets, how many total pets do the three have?\nAnswer: Jan has three times the number of pets"
+    },
+    {
+      "index": 92,
+      "gold": "4",
+      "prediction": "1.1",
+      "text": " 1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1."
+    },
+    {
+      "index": 93,
+      "gold": "36",
+      "prediction": "38",
+      "text": " The reason for the delay is that Gerald was able to run the 400-meter hurdles in 38 seconds.  The reason for the delay is that Gerald was able to run the 400-meter hurdles in 38 seconds.  The reason for the delay is that Gerald was able to run the 400-meter hurdles in 38 seconds. \nQuestion: Lee used to run the 400-meter hurdles in 38 seconds.  The reason for the delay is that Gerald was able to run the 400-meter hurdles in 38 seconds.  The reason for the delay is that Gerald was able to run the 400-meter hurdles in 38 seconds. \n"
+    },
+    {
+      "index": 94,
+      "gold": "348",
+      "prediction": null,
+      "text": " The number of dogs in the neighborhood is one of the most important factors in determining the number of pets in the neighborhood. The number of dogs in the neighborhood is one of the most important factors in determining the number of pets in the neighborhood.\nQuestion: In a neighborhood, the number of dogs in the neighborhood is one of the most important factors in determining the number of pets in the neighborhood. The number of dogs in the neighborhood is one of the most important factors in determining the number of pets in the neighborhood.\nQuestion: In a neighborhood, the number of dogs in the neighborhood is one of the most important factors in determining the number"
+    },
+    {
+      "index": 95,
+      "gold": "40",
+      "prediction": null,
+      "text": " The girls are in the girl scout.\nQuestion: The girls are in the girl scout. How many girls are not in the girl scout?\nAnswer: The girls are in the girl scout. How many girls are not in the girl scout?\nAnswer: The girls are in the girl scout. How many girls are not in the girl scout?\nAnswer: The girls are in the girl scout. How many girls are not in the girl scout?\nAnswer: The girls are in the girl scout. How many girls are not in the girl scout?\nAnswer: The girls are in the girl scout. How many girls are"
+    },
+    {
+      "index": 96,
+      "gold": "3",
+      "prediction": "3",
+      "text": " Harry slept 3/3 of what Harry slept. He slept 3/3 of what Harry slept.\nQuestion: Harry slept 3/3 of what Harry slept. He slept 3/3 of what Harry slept.\nQuestion: Harry slept 3/3 of what Harry slept. He slept 3/3 of what Harry slept.\nQuestion: Harry slept 3/3 of what Harry slept. He slept 3/3 of what Harry slept.\nQuestion: Harry slept 3/3 of what Harry slept. He slept 3/3 of what Harry slept.\nQuestion: Harry slept 3/3 of what Harry slept. He slept 3"
+    },
+    {
+      "index": 97,
+      "gold": "12",
+      "prediction": "1.5",
+      "text": " The average American consumes about 1.5 pounds of tomatoes per day.\nQuestion: When Freda cooks canned tomatoes, she loses half of her volume. How many tomatoes did Freda use?\nAnswer: The average American consumes about 1.5 pounds of tomatoes per day. How many tomatoes did Freda use?\nAnswer: The average American consumes about 1.5 pounds of tomatoes per day. How many tomatoes did Freda use?\nAnswer: The average American consumes about 1.5 pounds of tomatoes per day. How many tomatoes did Freda use?\nAnswer: The average American consumes about 1.5 pounds of tomatoes"
+    },
+    {
+      "index": 98,
+      "gold": "5",
+      "prediction": "15",
+      "text": " The car is moving in the first 15 minutes of the jam. The car is moving in the second 15 minutes of the jam. The car is moving in the second 15 minutes of the jam. The car is moving in the second 15 minutes of the jam. The car is moving in the second 15 minutes of the jam. The car is moving in the third 15 minutes of the jam. The car is moving in the third 15 minutes of the jam. The car is moving in the third 15 minutes of the jam. The car is moving in the third 15 minutes of the jam. The car is moving in the third 15 minutes of the"
+    },
+    {
+      "index": 99,
+      "gold": "58",
+      "prediction": null,
+      "text": " The potted plants are not the only plants that are growing in the garden. They are the only plants that are growing in the garden. The potted plants are the only plants that are growing in the garden. The potted plants are the only plants that are growing in the garden.\nQuestion: Mary is a gardener. She is a gardener. She has a garden that is full of plants. She has a garden that is full of plants. She has a garden that is full of plants. She has a garden that is full of plants. She has a garden that is full of plants. She has a garden that"
+    }
+  ]
+}

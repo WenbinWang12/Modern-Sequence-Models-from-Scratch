@@ -464,6 +464,34 @@ TTT-E2E 填上了这道断崖，但填的方式与注意力不同：距离 640 �
 
 | 任务 | 适配 | 有效样本 | 分数 | 协议 |
 |:--|--:|--:|--:|:--|
+| ARC-Challenge | off | 100/100 | 20.0 | arc_piqa_loglikelihood_v1 |
+| BBH sports_understanding | off | 100/100 | 0.0 | bbh_greedy_v1 |
+| GPQA | off | 30/65 | 23.1 | arc_piqa_loglikelihood_v1 |
+| GSM8K | off | 100/100 | 3.0 | gsm8k_generate_v1 |
+| HumanEval | off | 100/100 | 0.0 | humaneval_generate_v1 |
+| PIQA | off | 100/100 | 51.0 | arc_piqa_loglikelihood_v1 |
+| Synthetic long-context preflight | off | — | 256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0 | synthetic_kv_retrieval_v1 |
+| ARC-Challenge | off | 1158/1165 | 20.1 | arc_piqa_loglikelihood_v1 |
+| BBH sports_understanding | off | 250/250 | 0.0 | bbh_greedy_v1 |
+| GPQA | off | 64/256 | 22.7 | arc_piqa_loglikelihood_v1 |
+| GSM8K | off | 1319/1319 | 0.9 | gsm8k_generate_v1 |
+| HumanEval | off | 164/164 | 0.0 | humaneval_generate_v1 |
+| PIQA | off | 1800/1819 | 53.7 | arc_piqa_loglikelihood_v1 |
+| Synthetic long-context preflight | off | — | 256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0 | synthetic_kv_retrieval_v1 |
+| ARC-Challenge | on | 1158/1165 | 20.4 | arc_piqa_loglikelihood_v1 |
+| BBH sports_understanding | on | 250/250 | 0.0 | bbh_greedy_v1 |
+| GPQA | on | 64/256 | 24.6 | arc_piqa_loglikelihood_v1 |
+| GSM8K | on | 1319/1319 | 0.8 | gsm8k_generate_v1 |
+| HumanEval | on | 164/164 | 0.0 | humaneval_generate_v1 |
+| PIQA | on | 1800/1819 | 53.9 | arc_piqa_loglikelihood_v1 |
+| Synthetic long-context preflight | on | — | 256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0 | synthetic_kv_retrieval_v1 |
+| ARC-Challenge | off | 100/100 | 24.0 | arc_piqa_loglikelihood_v1 |
+| BBH sports_understanding | off | 100/100 | 0.0 | bbh_greedy_v1 |
+| GPQA | off | 30/65 | 26.2 | arc_piqa_loglikelihood_v1 |
+| GSM8K | off | 100/100 | 2.0 | gsm8k_generate_v1 |
+| HumanEval | off | 100/100 | 0.0 | humaneval_generate_v1 |
+| PIQA | off | 100/100 | 55.0 | arc_piqa_loglikelihood_v1 |
+| Synthetic long-context preflight | off | — | 256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0 | synthetic_kv_retrieval_v1 |
 
 </div>
 

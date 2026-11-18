@@ -394,18 +394,31 @@ def table_extended_benchmarks(r, lang):
         adaptation = entry["adaptation"]
         mode = "—" if adaptation is None else ("on" if adaptation else "off")
         samples = entry["samples"]
-        skipped = entry["skipped"] or 0
+        if isinstance(samples, Box):
+            samples = samples.raw()
+        skipped = entry["skipped"]
+        if isinstance(skipped, Box):
+            skipped = skipped.raw()
+        skipped = skipped or 0
         valid = "—" if samples is None else f"{int(samples) - int(skipped)}/{int(samples)}"
         score = entry["score"]
+        if isinstance(score, Box):
+            score = score.raw()
+        results = entry["results"]
+        if isinstance(results, Box):
+            results = results.raw()
         if score is not None:
             score_text = percent(score)
-        elif entry["results"]:
+        elif results:
             score_text = ", ".join(
-                f"{int(point['context_length_request'])}: {percent(point['exact_match'])}" for point in entry["results"]
+                f"{int(point['context_length_request'])}: {percent(point['exact_match'])}" for point in results
             )
         else:
             score_text = "—"
-        rows.append([task, mode, valid, score_text, entry["protocol_version"] or "—"])
+        protocol = entry["protocol_version"]
+        if isinstance(protocol, Box):
+            protocol = protocol.raw()
+        rows.append([task, mode, valid, score_text, protocol or "—"])
     return markdown_table(header, rows, ["l", "c", "r", "r", "l"])
 
 

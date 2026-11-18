@@ -1,7 +1,7 @@
 # Benchmark 测评协议与当前进度
 
-!!! note "历史记录"
-    本页是 2026-11-17 流程验证阶段的记录（小模型、字节级 tokenizer、WikiText-2），用于确认训练和评测链路可用，不代表模型能力。正式实验和结论见 [TTT-E2E 技术报告](../technical_report.md)。
+!!! note "版本说明"
+    本页同时保留 2026-11-17 的 15M 流程验证记录和 1.0 主配方的 H200 结果。两者的模型规模、tokenizer、数据和上下文长度不同，必须按小节中的协议分别解读。正式实验和结论见 [TTT-E2E 技术报告](../technical_report.md)。
 
 技术报告中的 benchmark 不是一张可以随意挑选的榜单。每个分数都必须绑定模型检查点、数据版本、tokenizer、提示模板、shot 数、上下文上限、适配开关和有效样本数。本页把公开报告中常见的测评按能力分层，并记录本项目已经实际运行的协议。
 
@@ -9,24 +9,25 @@
 
 仓库最近的实验流水线已经切换到技术报告 1.0 的主配方。主配方使用 GPT-2 BPE 词表（\(V=50{,}257\)）、FineWeb-Edu 与 PG-19 的 50/50 混合、4,096 token 上下文和约 1.3 亿参数的四组匹配模型。原始结果入口是 [`docs/assets/report/results.json`](../assets/report/results.json)，完整方法、数据版本和复现实验命令见 [TTT-E2E 技术报告](../technical_report.md)。
 
-本页下面保留的 15M、byte-token 结果是更早的流程验证记录。它们可以证明评测入口能运行，不能替代 1.0 主实验。当前 `results.json` 中已经有滑窗基线和公开参考模型的完整条目；全注意力、无更新对照和 TTT-E2E 的主表在流水线完成前仍可能显示占位符。占位符应继续保留，不能把旧的 15M 诊断分数写成 1.0 主实验结果。
+本页下面保留的 15M、byte-token 结果是更早的流程验证记录，不能替代 1.0 主实验。1.0 主实验的训练曲线、消融、NIAH、扩展 benchmark 原始 JSON 和资源失败记录均已写入 `docs/assets/report/results.json`。扩展 benchmark 的有效样本数、跳过数和协议版本以技术报告表 9a 为准。
 
 ## 1. 分层测评矩阵
 
 | 层级 | 任务 | 主要回答的问题 | 当前状态 |
 | --- | --- | --- | --- |
 | 训练健康度 | held-out NLL、PPL、数据混合比例、重复率 | 模型是否学会了训练分布，训练是否稳定 | 已运行 |
-可复现的扩展 runner 是 `scripts/run_extended_benchmarks.sh`，为指定的最终检查点运行 ARC-Challenge、PIQA、GPQA、GSM8K、HumanEval、`sports_understanding` BBH 诊断和合成键值长上下文前置检查。合成行用于验证 RULER/LongBench 接入，不会被当作正式套件分数。
-| 基础知识与常识 | MMLU、ARC-E/ARC-C、OpenBookQA、PIQA、HellaSwag、WinoGrande | 小模型是否形成可迁移的知识和常识判断 | 1.0 滑窗与公开参考模型已入库；TTT 主表待完成 |
-| 数学推理 | GSM8K、MATH、AIME/AMC | 能否进行多步符号推理 | GSM8K 有 15M 流程诊断；1.0 主实验待运行 |
-| 代码 | HumanEval、MBPP、LiveCodeBench | 代码生成、执行正确性和时间切分泛化 | HumanEval 有 15M 流程诊断；1.0 主实验待运行 |
-| 难知识与推理 | BBH、GPQA、TruthfulQA | 长链推理、专业知识和事实性 | BBH/GPQA 有 15M 流程诊断；1.0 主实验待运行 |
-| 长上下文 | RULER、LongBench、DROP | 随上下文长度增长时的检索和组合能力 | 1.0 有 NIAH/合成诊断；正式套件待运行 |
+| 基础知识与常识 | MMLU、ARC-E/ARC-C、OpenBookQA、PIQA、HellaSwag、WinoGrande | 小模型是否形成可迁移的知识和常识判断 | 1.0 已完成 ARC-Challenge、PIQA。MMLU、ARC-E、OpenBookQA 和 WinoGrande 尚未纳入主表 |
+| 数学推理 | GSM8K、MATH、AIME/AMC | 能否进行多步符号推理 | 1.0 已完成完整 GSM8K。MATH、AIME/AMC 尚未运行 |
+| 代码 | HumanEval、MBPP、LiveCodeBench | 代码生成、执行正确性和时间切分泛化 | 1.0 已完成完整 HumanEval。MBPP、LiveCodeBench 尚未运行 |
+| 难知识与推理 | BBH、GPQA、TruthfulQA | 长链推理、专业知识和事实性 | 1.0 已完成 GPQA 与 `sports_understanding` BBH 诊断。BBH 全套和 TruthfulQA 尚未运行 |
+| 长上下文 | RULER、LongBench、DROP | 随上下文长度增长时的检索和组合能力 | 1.0 已完成 NIAH 与 256–8192 synthetic preflight。正式 RULER、LongBench、DROP 尚未运行 |
 | 中文能力 | CMMLU、C-Eval | 中文知识和考试型推理 | 双语 tokenizer 冻结后运行 |
+
+可复现的扩展 runner 是 `scripts/run_extended_benchmarks.sh`，为指定的最终检查点运行 ARC-Challenge、PIQA、GPQA、GSM8K、HumanEval、`sports_understanding` BBH 诊断和合成键值长上下文前置检查。合成行用于验证 RULER/LongBench 接入，不会被当作正式套件分数。
 
 这些层级不能互相替代。比如 PPL 较低不能推出 GSM8K 较高；MMLU 的零样本答案选择也不能替代代码执行评测。正式论文表格至少要覆盖知识/常识、数学或代码、以及长上下文中的三类，并同时给出 held-out NLL 作为训练分布指标。
 
-## 2. 当前 MMLU 诊断协议
+## 2. 15M MMLU 诊断协议
 
 仓库中的 `scripts/eval_mmlu_loglikelihood.py` 使用 MMLU test split 的 CSV 文件，对每道题构造；`scripts/eval_hellaswag_loglikelihood.py` 使用 HellaSwag validation 的四个 completion 做同类 continuation 评分。
 
@@ -86,11 +87,21 @@ RULER/LongBench 的前置 synthetic key-value 诊断在 256、512、1024 请求�
 
 当前 15M 配置的 `max_position_embeddings` 为 2048，而官方 RULER 的标准 context bands 从 4K 开始；直接截断到 2048 会改变任务定义，所以本轮不冒充官方 RULER 分数。LongBench 同样需要按 task 固定原始输入、答案归一化和长度策略；在 tokenizer 与长上下文配置冻结前不静默截断，暂只保留 synthetic preflight。
 
-## 3. 污染与可比性检查
+## 3. 1.0 主配方扩展 benchmark
+
+`scripts/run_extended_benchmarks.sh` 在 GPU5 和 GPU7 上分别以单卡运行了三个主条件。`main-full` 和 `main-ttt adapt` 使用完整公开 split；`main-ttt no-adapt` 与 `main-ck no-adapt` 使用前 100 题诊断，GPQA 因有效题目数固定为 65。ARC、PIQA、GPQA 是答案文本 continuation 的零样本 log-likelihood，GSM8K 和 HumanEval 是 greedy generation，HumanEval 同时执行官方测试。BBH 只运行 `sports_understanding` 子任务，仍是诊断而非 BBH 总分。
+
+完整主模型和 TTT adapt 的结果已经进入技术报告表 9a。主模型 ARC 1158/1165、PIQA 1800/1819、GPQA 58/256、GSM8K 12/1319、HumanEval 0/164、BBH 0/250；TTT adapt 对应为 1158/1165、980/1819、63/256、10/1319、0/164、0/250。GPQA 的大量跳过来自固定 512-token 上限，不能把有效样本比例误读为题目准确率。
+
+TTT no-adapt 的 100 题诊断为 ARC 24/100、PIQA 55/100、GPQA 17/65、GSM8K 2/100、HumanEval 0/100、BBH 0/100；checkpoint-only 条件对应为 20/100、51/100、15/65、3/100、0/100、0/100。它们的样本量较小，只用于检查配对条件和评测链路，不能和完整 split 的分数直接比较。
+
+合成长上下文行在 256、512、1024、2048、4096、8192 请求长度各取 32 题，四个主条件全部为 0/32。它是 RULER/LongBench 接入的工程前置检查，不是公开套件分数。全注意力 NIAH 重试在 1K、2K、4K、8K、16K 完成并写入 `main_full_retry.json`，请求 32K 时因需要分配约 72.3 GiB 而触发 `RESOURCE_EXHAUSTED`；报告保留该失败记录，不将缺失的 32K 结果写成零分。
+
+## 4. 污染与可比性检查
 
 在正式评测前，训练语料、tokenizer 训练文本和 benchmark 的题目/答案需要做 exact match、Unicode NFC 归一化后的匹配、长子串匹配和近似匹配。每个 benchmark 还要固定 revision、split、prompt、shot 数、答案归一化、超时规则和重复次数。闭源模型只能作为外部参考，不能在不等价协议下写成“击败”。
 
-## 4. Release gate
+## 5. Release gate
 
 当前结果仍属于 pilot。进入技术报告主表前，需要补齐：
 

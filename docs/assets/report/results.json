@@ -3977,6 +3977,516 @@
    }
   }
  },
+ "extended_benchmarks": {
+  "main-ck_noadapt_arc": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "arc",
+   "adaptation": false,
+   "correct": 20,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.2,
+   "results": null,
+   "checkpoint": "outputs/main-ck/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/arc/arc_challenge_test.jsonl"
+  },
+  "main-ck_noadapt_bbh": {
+   "protocol_version": "bbh_greedy_v1",
+   "task": "bbh",
+   "adaptation": false,
+   "correct": 0,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-ck/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/bbh/sports_understanding.json"
+  },
+  "main-ck_noadapt_gpqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "gpqa",
+   "adaptation": false,
+   "correct": 15,
+   "samples": 65,
+   "skipped": 35,
+   "score": 0.23076923076923078,
+   "results": null,
+   "checkpoint": "outputs/main-ck/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gpqa/gpqa_test.jsonl"
+  },
+  "main-ck_noadapt_gsm8k": {
+   "protocol_version": "gsm8k_generate_v1",
+   "task": "gsm8k",
+   "adaptation": false,
+   "correct": 3,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.03,
+   "results": null,
+   "checkpoint": "outputs/main-ck/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gsm8k/test.jsonl"
+  },
+  "main-ck_noadapt_humaneval": {
+   "protocol_version": "humaneval_generate_v1",
+   "task": "humaneval",
+   "adaptation": false,
+   "correct": 0,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-ck/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/humaneval/humaneval_test.jsonl"
+  },
+  "main-ck_noadapt_piqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "piqa",
+   "adaptation": false,
+   "correct": 51,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.51,
+   "results": null,
+   "checkpoint": "outputs/main-ck/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/piqa/piqa_validation.jsonl"
+  },
+  "main-ck_noadapt_synthetic_long_context": {
+   "protocol_version": "synthetic_kv_retrieval_v1",
+   "task": "synthetic_long_context",
+   "adaptation": false,
+   "correct": null,
+   "samples": null,
+   "skipped": 0,
+   "score": null,
+   "results": [
+    {
+     "context_length_request": 256,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 512,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 1024,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 2048,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 4096,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 8192,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    }
+   ],
+   "checkpoint": "outputs/main-ck/step_00012000.orbax",
+   "data": null
+  },
+  "main-full_noadapt_arc": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "arc",
+   "adaptation": false,
+   "correct": 234,
+   "samples": 1165,
+   "skipped": 7,
+   "score": 0.20085836909871244,
+   "results": null,
+   "checkpoint": "outputs/main-full/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/arc/arc_challenge_test.jsonl"
+  },
+  "main-full_noadapt_bbh": {
+   "protocol_version": "bbh_greedy_v1",
+   "task": "bbh",
+   "adaptation": false,
+   "correct": 0,
+   "samples": 250,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-full/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/bbh/sports_understanding.json"
+  },
+  "main-full_noadapt_gpqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "gpqa",
+   "adaptation": false,
+   "correct": 58,
+   "samples": 256,
+   "skipped": 192,
+   "score": 0.2265625,
+   "results": null,
+   "checkpoint": "outputs/main-full/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gpqa/gpqa_test.jsonl"
+  },
+  "main-full_noadapt_gsm8k": {
+   "protocol_version": "gsm8k_generate_v1",
+   "task": "gsm8k",
+   "adaptation": false,
+   "correct": 12,
+   "samples": 1319,
+   "skipped": 0,
+   "score": 0.009097801364670205,
+   "results": null,
+   "checkpoint": "outputs/main-full/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gsm8k/test.jsonl"
+  },
+  "main-full_noadapt_humaneval": {
+   "protocol_version": "humaneval_generate_v1",
+   "task": "humaneval",
+   "adaptation": false,
+   "correct": 0,
+   "samples": 164,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-full/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/humaneval/humaneval_test.jsonl"
+  },
+  "main-full_noadapt_piqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "piqa",
+   "adaptation": false,
+   "correct": 977,
+   "samples": 1819,
+   "skipped": 19,
+   "score": 0.537108301264431,
+   "results": null,
+   "checkpoint": "outputs/main-full/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/piqa/piqa_validation.jsonl"
+  },
+  "main-full_noadapt_synthetic_long_context": {
+   "protocol_version": "synthetic_kv_retrieval_v1",
+   "task": "synthetic_long_context",
+   "adaptation": false,
+   "correct": null,
+   "samples": null,
+   "skipped": 0,
+   "score": null,
+   "results": [
+    {
+     "context_length_request": 256,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 512,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 1024,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 2048,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 4096,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 8192,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    }
+   ],
+   "checkpoint": "outputs/main-full/step_00012000.orbax",
+   "data": null
+  },
+  "main-ttt_adapt_arc": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "arc",
+   "adaptation": true,
+   "correct": 238,
+   "samples": 1165,
+   "skipped": 7,
+   "score": 0.20429184549356222,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/arc/arc_challenge_test.jsonl"
+  },
+  "main-ttt_adapt_bbh": {
+   "protocol_version": "bbh_greedy_v1",
+   "task": "bbh",
+   "adaptation": true,
+   "correct": 0,
+   "samples": 250,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/bbh/sports_understanding.json"
+  },
+  "main-ttt_adapt_gpqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "gpqa",
+   "adaptation": true,
+   "correct": 63,
+   "samples": 256,
+   "skipped": 192,
+   "score": 0.24609375,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gpqa/gpqa_test.jsonl"
+  },
+  "main-ttt_adapt_gsm8k": {
+   "protocol_version": "gsm8k_generate_v1",
+   "task": "gsm8k",
+   "adaptation": true,
+   "correct": 10,
+   "samples": 1319,
+   "skipped": 0,
+   "score": 0.0075815011372251705,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gsm8k/test.jsonl"
+  },
+  "main-ttt_adapt_humaneval": {
+   "protocol_version": "humaneval_generate_v1",
+   "task": "humaneval",
+   "adaptation": true,
+   "correct": 0,
+   "samples": 164,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/humaneval/humaneval_test.jsonl"
+  },
+  "main-ttt_adapt_piqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "piqa",
+   "adaptation": true,
+   "correct": 980,
+   "samples": 1819,
+   "skipped": 19,
+   "score": 0.5387575590984057,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/piqa/piqa_validation.jsonl"
+  },
+  "main-ttt_adapt_synthetic_long_context": {
+   "protocol_version": "synthetic_kv_retrieval_v1",
+   "task": "synthetic_long_context",
+   "adaptation": true,
+   "correct": null,
+   "samples": null,
+   "skipped": 0,
+   "score": null,
+   "results": [
+    {
+     "context_length_request": 256,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 512,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 1024,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 2048,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 4096,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 8192,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    }
+   ],
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": null
+  },
+  "main-ttt_noadapt_arc": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "arc",
+   "adaptation": false,
+   "correct": 24,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.24,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/arc/arc_challenge_test.jsonl"
+  },
+  "main-ttt_noadapt_bbh": {
+   "protocol_version": "bbh_greedy_v1",
+   "task": "bbh",
+   "adaptation": false,
+   "correct": 0,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/bbh/sports_understanding.json"
+  },
+  "main-ttt_noadapt_gpqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "gpqa",
+   "adaptation": false,
+   "correct": 17,
+   "samples": 65,
+   "skipped": 35,
+   "score": 0.26153846153846155,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gpqa/gpqa_test.jsonl"
+  },
+  "main-ttt_noadapt_gsm8k": {
+   "protocol_version": "gsm8k_generate_v1",
+   "task": "gsm8k",
+   "adaptation": false,
+   "correct": 2,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.02,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/gsm8k/test.jsonl"
+  },
+  "main-ttt_noadapt_humaneval": {
+   "protocol_version": "humaneval_generate_v1",
+   "task": "humaneval",
+   "adaptation": false,
+   "correct": 0,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.0,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/humaneval/humaneval_test.jsonl"
+  },
+  "main-ttt_noadapt_piqa": {
+   "protocol_version": "arc_piqa_loglikelihood_v1",
+   "task": "piqa",
+   "adaptation": false,
+   "correct": 55,
+   "samples": 100,
+   "skipped": 0,
+   "score": 0.55,
+   "results": null,
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": "/home/wang.21020/modern-sequence-run/data/public/piqa/piqa_validation.jsonl"
+  },
+  "main-ttt_noadapt_synthetic_long_context": {
+   "protocol_version": "synthetic_kv_retrieval_v1",
+   "task": "synthetic_long_context",
+   "adaptation": false,
+   "correct": null,
+   "samples": null,
+   "skipped": 0,
+   "score": null,
+   "results": [
+    {
+     "context_length_request": 256,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 512,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 1024,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 2048,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 4096,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    },
+    {
+     "context_length_request": 8192,
+     "correct": 0,
+     "samples": 32,
+     "skipped": 0,
+     "exact_match": 0.0
+    }
+   ],
+   "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+   "data": null
+  }
+ },
  "audits": {
   "sampler_main": {
    "recipe": "/home/wang.21020/modern-sequence-run/configs/data/fineweb_pg19_50_50.json",
@@ -5052,6 +5562,153 @@
       "1.00": 0.0
      },
      "seconds": 9.414817387936637
+    }
+   }
+  },
+  "full_retry": {
+   "model": {
+    "kind": "ttt_checkpoint",
+    "checkpoint": "outputs/main-full/step_00012000.orbax",
+    "step": 12000,
+    "adapt": false,
+    "max_length": 32768,
+    "prefix_token": "always <|endoftext|>"
+   },
+   "results": {
+    "noise_1024": {
+     "haystack": "noise",
+     "length": 1024,
+     "samples": 30,
+     "accuracy": 0.0,
+     "accuracy_ci95": [
+      0.0,
+      0.11351339317396876
+     ],
+     "answer_nll_per_token": 4.077636965417436,
+     "control_answer_nll_per_token": 8.208306935368752,
+     "needle_gain_per_token": 4.130669969951316,
+     "mean_prompt_tokens": 1005.0666666666667,
+     "accuracy_by_depth": {
+      "0.00": 0.0,
+      "0.11": 0.0,
+      "0.22": 0.0,
+      "0.33": 0.0,
+      "0.44": 0.0,
+      "0.56": 0.0,
+      "0.67": 0.0,
+      "0.78": 0.0,
+      "0.89": 0.0,
+      "1.00": 0.0
+     },
+     "seconds": 6.599542622920126
+    },
+    "noise_2048": {
+     "haystack": "noise",
+     "length": 2048,
+     "samples": 30,
+     "accuracy": 0.0,
+     "accuracy_ci95": [
+      0.0,
+      0.11351339317396876
+     ],
+     "answer_nll_per_token": 4.304914902550044,
+     "control_answer_nll_per_token": 8.40640872286767,
+     "needle_gain_per_token": 4.101493820317627,
+     "mean_prompt_tokens": 2030.3333333333333,
+     "accuracy_by_depth": {
+      "0.00": 0.0,
+      "0.11": 0.0,
+      "0.22": 0.0,
+      "0.33": 0.0,
+      "0.44": 0.0,
+      "0.56": 0.0,
+      "0.67": 0.0,
+      "0.78": 0.0,
+      "0.89": 0.0,
+      "1.00": 0.0
+     },
+     "seconds": 6.001548644155264
+    },
+    "noise_4096": {
+     "haystack": "noise",
+     "length": 4096,
+     "samples": 30,
+     "accuracy": 0.0,
+     "accuracy_ci95": [
+      0.0,
+      0.11351339317396876
+     ],
+     "answer_nll_per_token": 4.8604098603604955,
+     "control_answer_nll_per_token": 8.590057099119146,
+     "needle_gain_per_token": 3.729647238758651,
+     "mean_prompt_tokens": 4080.0333333333333,
+     "accuracy_by_depth": {
+      "0.00": 0.0,
+      "0.11": 0.0,
+      "0.22": 0.0,
+      "0.33": 0.0,
+      "0.44": 0.0,
+      "0.56": 0.0,
+      "0.67": 0.0,
+      "0.78": 0.0,
+      "0.89": 0.0,
+      "1.00": 0.0
+     },
+     "seconds": 6.677904882002622
+    },
+    "noise_8192": {
+     "haystack": "noise",
+     "length": 8192,
+     "samples": 30,
+     "accuracy": 0.0,
+     "accuracy_ci95": [
+      0.0,
+      0.11351339317396876
+     ],
+     "answer_nll_per_token": 6.034539605900645,
+     "control_answer_nll_per_token": 8.292264881134033,
+     "needle_gain_per_token": 2.257725275233388,
+     "mean_prompt_tokens": 8176.7,
+     "accuracy_by_depth": {
+      "0.00": 0.0,
+      "0.11": 0.0,
+      "0.22": 0.0,
+      "0.33": 0.0,
+      "0.44": 0.0,
+      "0.56": 0.0,
+      "0.67": 0.0,
+      "0.78": 0.0,
+      "0.89": 0.0,
+      "1.00": 0.0
+     },
+     "seconds": 7.922087237937376
+    },
+    "noise_16384": {
+     "haystack": "noise",
+     "length": 16384,
+     "samples": 30,
+     "accuracy": 0.0,
+     "accuracy_ci95": [
+      0.0,
+      0.11351339317396876
+     ],
+     "answer_nll_per_token": 7.47819468455047,
+     "control_answer_nll_per_token": 10.252786743397616,
+     "needle_gain_per_token": 2.774592058847146,
+     "mean_prompt_tokens": 16354.966666666667,
+     "accuracy_by_depth": {
+      "0.00": 0.0,
+      "0.11": 0.0,
+      "0.22": 0.0,
+      "0.33": 0.0,
+      "0.44": 0.0,
+      "0.56": 0.0,
+      "0.67": 0.0,
+      "0.78": 0.0,
+      "0.89": 0.0,
+      "1.00": 0.0
+     },
+     "seconds": 13.478227786021307
     }
    }
   },

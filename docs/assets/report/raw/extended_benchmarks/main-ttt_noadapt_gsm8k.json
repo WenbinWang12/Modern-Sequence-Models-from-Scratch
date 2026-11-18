@@ -1,0 +1,618 @@
+{
+  "protocol_version": "gsm8k_generate_v1",
+  "protocol": "GSM8K test split; greedy generation; exact normalized numeric match",
+  "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+  "checkpoint_metadata_sha256": "5eef3180b7cff3b39b05ba59cd1cdd1de671c6edd57a9cc62c9ecd9be3524863",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/gsm8k/test.jsonl",
+  "data_sha256": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14",
+  "tokenizer": "tiktoken:gpt2",
+  "adaptation": false,
+  "max_new_tokens": 128,
+  "limit": 100,
+  "correct": 2,
+  "samples": 100,
+  "skipped": 0,
+  "accuracy": 0.02,
+  "records": [
+    {
+      "index": 0,
+      "gold": "18",
+      "prediction": "1.50",
+      "text": " The average cost of a hen's egg is $1.50 per pound.\nQuestion: The average cost of a hen's egg is $1.50 per pound.\nAnswer: The average cost of a hen's egg is $1.50 per pound.\nQuestion: The average cost of a hen's egg is $1.50 per pound.\nQuestion: The average cost of a hen's egg is $1.50 per pound.\nQuestion: The average cost of a hen's egg is $1.50 per pound.\nQuestion: The average cost of a hen's egg is $1.50 per"
+    },
+    {
+      "index": 1,
+      "gold": "3",
+      "prediction": "1.5",
+      "text": " The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5"
+    },
+    {
+      "index": 2,
+      "gold": "70000",
+      "prediction": "100000",
+      "text": " $50,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He buys a house for $100,000.  He"
+    },
+    {
+      "index": 3,
+      "gold": "540",
+      "prediction": "60",
+      "text": " He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint.  He runs 60 meters each sprint. "
+    },
+    {
+      "index": 4,
+      "gold": "20",
+      "prediction": "20",
+      "text": " The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20.  The average of the two meals of the day is 20"
+    },
+    {
+      "index": 5,
+      "gold": "64",
+      "prediction": "1000",
+      "text": " The price of a glass is $1,000.\nQuestion: The price of a glass is $1,000.\nAnswer: The price of a glass is $1,000.\nQuestion: The price of a glass is $1,000.\nAnswer: The price of a glass is $1,000.\nQuestion: The price of a glass is $1,000.\nAnswer: The price of a glass is $1,000.\nQuestion: The price of a glass is $1,000.\nAnswer: The price of a glass is $1,000.\nQuestion: The price"
+    },
+    {
+      "index": 6,
+      "gold": "260",
+      "prediction": "1000",
+      "text": " The average American sheep in the United States is about 1,000.\nQuestion: Toulouse has a total of 1,000 sheep. How many sheep do Toulouse have?\nAnswer: The average American sheep in the United States is about 1,000.\nQuestion: Toulouse has a total of 1,000 sheep. How many sheep do Toulouse have?\nAnswer: The average American sheep in the United States is about 1,000. How many sheep do Toulouse have?\nAnswer: The average American sheep in the United States is about 1,000. How many sheep do Toul"
+    },
+    {
+      "index": 7,
+      "gold": "160",
+      "prediction": null,
+      "text": " The main difference between the two is that the load is the same. The load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load is the same.\nThe load"
+    },
+    {
+      "index": 8,
+      "gold": "45",
+      "prediction": null,
+      "text": " He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road.  He is in the middle of the road"
+    },
+    {
+      "index": 9,
+      "gold": "460",
+      "prediction": "45",
+      "text": " Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\nAnswer: Eliza worked for 45 hours.\n"
+    },
+    {
+      "index": 10,
+      "gold": "366",
+      "prediction": null,
+      "text": " The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the program. The program had only one copy of the"
+    },
+    {
+      "index": 11,
+      "gold": "694",
+      "prediction": "1000",
+      "text": " The total cost of the food was $1,000, and the total cost of the food was $1,000.\nQuestion: Toula went to the bakery and bought 3 dozen minks which cost $1,000.\nQuestion: Toula went to the bakery and bought 3 dozen minks which cost $1,000.\nQuestion: Toula went to the bakery and bought 3 dozen minks which cost $1,000.\nQuestion: Toula went to the bakery and bought 3 dozen minks which cost $1,000.\nQuestion: Toula went to the bakery and"
+    },
+    {
+      "index": 12,
+      "gold": "13",
+      "prediction": null,
+      "text": " The lemon tree is a tree that grows in the desert. It is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows in the desert. The tree is a tree that grows"
+    },
+    {
+      "index": 13,
+      "gold": "18",
+      "prediction": null,
+      "text": " The first time she was in the house, she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was in the kitchen. She was in the kitchen, and she was"
+    },
+    {
+      "index": 14,
+      "gold": "60",
+      "prediction": "1.5",
+      "text": " The percentage of the total students enrolled in hip-hop dance was 1.5% in the first year of the study.\nQuestion: In a dance class of 20 students, 20% of the students enrolled in hip-hop dance.\nAnswer: The percentage of the total students enrolled in hip-hop dance was 1.5% in the first year of the study.\nQuestion: In a dance class of 20 students, 20% of the students enrolled in hip-hop dance.\nAnswer: The percentage of the total students enrolled in hip-hop dance was 1.5% in the first year of the study.\n"
+    },
+    {
+      "index": 15,
+      "gold": "125",
+      "prediction": "3",
+      "text": " The merchant is looking to make a choice between 3 purchase plans: jewelry worth $5,000 or electronic gadgets worth $8,000. The merchant is looking to make a choice between 3 purchase plans: jewelry worth $5,000 or electronic gadgets worth $8,000. The merchant is looking to make a choice between 3 purchase plans: jewelry worth $5,000 or electronic gadgets worth $8,000. The merchant is looking to make a choice between 3 purchase plans: jewelry worth $5,000 or electronic gadgets worth $8,000. The merchant is looking to make a choice between 3 purchase plans: jewelry worth $"
+    },
+    {
+      "index": 16,
+      "gold": "230",
+      "prediction": "90",
+      "text": " The distance covered by each train is the distance between the two trains. The distance between the two trains is the distance between the two trains.\nQuestion: Two trains leave San Rafael at the same time. They travel for 90 miles. What's the distance covered by each train in the two days?\nAnswer: The distance covered by each train in the two days is the distance between the two trains. The distance covered by each train in the two days is the distance between the two trains.\nQuestion: Two trains leave San Rafael at the same time. What's the distance covered by each train in the two days?\nAnswer:"
+    },
+    {
+      "index": 17,
+      "gold": "57500",
+      "prediction": "20000",
+      "text": " The average salary for a teacher in the United States is $20,000.\nQuestion: What is the average salary for a teacher in the United States?\nAnswer: The average salary for a teacher in the United States is $20,000.\nQuestion: What is the average salary for a teacher in the United States?\nAnswer: The average salary for a teacher in the United States is $20,000.\nQuestion: What is the average salary for a teacher in the United States?\nAnswer: The average salary for a teacher in the United States is $20,000.\nQuestion: What is the average"
+    },
+    {
+      "index": 18,
+      "gold": "7",
+      "prediction": "2",
+      "text": " The egg omelet is a very large egg, about 1/2 of a egg.  The egg omelet is a very large egg, about 1/2 of a egg.  The egg omelet is a very large egg, about 1/2 of a egg.  The egg omelet is a very large egg, about 1/2 of a egg.  The egg omelet is a very large egg, about 1/2 of a egg.  The egg omelet is a very large egg, about 1/2 of a egg.  The egg omelet is a very"
+    },
+    {
+      "index": 19,
+      "gold": "6",
+      "prediction": "1",
+      "text": " The average speed of a car is about 1 mile per hour.\nAnswer: The average speed of a car is about 1 mile per hour.\nAnswer: The average speed of a car is about 1 mile per hour.\nAnswer: The average speed of a car is about 1 mile per hour.\nAnswer: The average speed of a car is about 1 mile per hour.\nAnswer: The average speed of a car is about 1 mile per hour.\nAnswer: The average speed of a car is about 1 mile per hour.\nAnswer: The average speed of a car is about 1 mile per hour.\nAnswer:"
+    },
+    {
+      "index": 20,
+      "gold": "15",
+      "prediction": "15",
+      "text": " I have 10 liters of orange drink that is three-fifths water and I wish to add it to 15 liters of pineapple drink that is three-fifths water.\nAnswer: I have 10 liters of orange drink that is three-fifths water and I wish to add it to 15 liters of pineapple drink that is three-fifths water and I wish to add it to 15 liters of pineapple drink that is three-fifths water and I wish to add it to 15 liters of pineapple drink that is three-fifths water and I wish to add it to 15 liters of pineapple drink that"
+    },
+    {
+      "index": 21,
+      "gold": "14",
+      "prediction": "1900",
+      "text": " The first time I saw him was in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the early 1900s. He was born in the late 1900s. He was born in the late 1900s. He was born in the late 1900"
+    },
+    {
+      "index": 22,
+      "gold": "7",
+      "prediction": "3",
+      "text": " The first 3 people in the world bought a DVD each.  The second one bought a DVD each.  The third one bought a DVD each.  The third one bought a DVD each.  The fourth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each.  The fifth one bought a DVD each"
+    },
+    {
+      "index": 23,
+      "gold": "8",
+      "prediction": "2",
+      "text": " The candle burns by 2 centimeters every hour that it burns. How many centimeters shorter will a candle be after burning from 1:00 PM to 5:00 PM?\nAnswer: The candle burns by 2 centimeters every hour that it burns. How many centimeters shorter will a candle be after burning from 1:00 PM to 5:00 PM?\nAnswer: The candle burns by 2 centimeters every hour that it burns. How many centimeters shorter will a candle be after burning from 1:00 PM to 5:00 PM?\nAnswer: The candle burns by 2 centimeters every hour that it burns. How many centimeters shorter will a candle be"
+    },
+    {
+      "index": 24,
+      "gold": "26",
+      "prediction": "1892",
+      "text": " The book was published in the New York Times in January, 1892. The book was published in the New York Times in 1892. The book was published in the New York Times in 1892. The book was published in the New York Times in 1892. The book was published in the New York Times in 1892. The book was published in the New York Times in 1892. The book was published in the New York Times in 1892. The book was published in the New York Times in 1892. The book was published in the New York Times in 1892. The book was published in the New York Times"
+    },
+    {
+      "index": 25,
+      "gold": "2",
+      "prediction": "1.50",
+      "text": " Marie ordered one chicken meal that cost $1.50 each, 4 apples that cost $1.50 each, and some boxes of pizza that cost $1.50 each.\nAnswer: Marie ordered one chicken meal that cost $1.50 each, 4 apples that cost $1.50 each, and some boxes of pizza that cost $1.50 each.\nAnswer: Marie ordered one chicken meal that cost $1.50 each, 4 apples that cost $1.50 each, and some boxes of pizza that cost $1.50 each.\nAnswer: Marie ordered one chicken meal that cost $1.50"
+    },
+    {
+      "index": 26,
+      "gold": "243",
+      "prediction": "22",
+      "text": " The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22.50. The average cost of a single shirt was $22."
+    },
+    {
+      "index": 27,
+      "gold": "16",
+      "prediction": "1.00",
+      "text": "  The average person spends about $1.00 on ice cream per day.  The average person spends about $1.00 on ice cream per day. \nQuestion:  What is the difference between ice cream and ice cream?\nAnswer:  The difference between ice cream and ice cream is that ice cream is a mixture of ice cream and ice cream.  The difference between ice cream and ice cream is that ice cream is a mixture of ice cream and ice cream. \nQuestion:  What is the difference between ice cream and ice cream?\nAnswer:  The difference between ice cream and ice cream is that ice"
+    },
+    {
+      "index": 28,
+      "gold": "25",
+      "prediction": null,
+      "text": " The first stop was in the middle of the road. The second stop was in the middle of the road. The third stop was in the middle of the road. The third stop was in the middle of the road. The fourth stop was in the middle of the road. The fourth stop was in the middle of the road. The fourth stop was in the middle of the road. The fourth stop was in the middle of the road. The fourth stop was in the middle of the road. The fourth stop was in the middle of the road. The fourth stop was in the middle of the road. The fourth stop was in the middle"
+    },
+    {
+      "index": 29,
+      "gold": "104",
+      "prediction": "33",
+      "text": " The shoe cost is $33, and the shoe cost is $33.\nQuestion: What is the difference between the two types of shoes?\nAnswer: The shoe cost is $33, and the shoe cost is $33.\nQuestion: What is the difference between the two types of shoes?\nAnswer: The shoe cost is $33, and the shoe cost is $33.\nQuestion: What is the difference between the two types of shoes?\nAnswer: The shoe cost is $33, and the shoe cost is $33.\nQuestion: What is the difference between the two types of shoes?\nAnswer:"
+    },
+    {
+      "index": 30,
+      "gold": "109",
+      "prediction": null,
+      "text": " The age of the first child is the same as the age of the first child.\nAnswer: The age of the first child is the same as the age of the first child.\nAnswer: The age of the first child is the same as the age of the first child.\nAnswer: The age of the first child is the same as the age of the first child.\nAnswer: The age of the first child is the same as the age of the first child.\nAnswer: The age of the first child is the same as the age of the first child.\nAnswer: The age of the first child is the"
+    },
+    {
+      "index": 31,
+      "gold": "80",
+      "prediction": null,
+      "text": " The answer is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is: The average guess is"
+    },
+    {
+      "index": 32,
+      "gold": "35",
+      "prediction": "10",
+      "text": " The average dog spends about 10 hours a day.  The average dog spends about 10 hours a day.  The average dog spends about 10 hours a day. \nAnswer: The average dog spends about 10 hours a day.  The average dog spends about 10 hours a day. \nAnswer: The average dog spends about 10 hours a day.  The average dog spends about 10 hours a day. \nAnswer: The average dog spends about 10 hours a day.  The average dog spends about 10 hours a day. \nAnswer: The average dog spends about 10 hours a day.  The average dog spends about 10"
+    },
+    {
+      "index": 33,
+      "gold": "70",
+      "prediction": null,
+      "text": " The coins are made of gold, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver, and silver. The coins are made of silver, silver"
+    },
+    {
+      "index": 34,
+      "gold": "23",
+      "prediction": "1000000",
+      "text": " The number of jewels in the world is 1,000,000.\nQuestion: What is the difference between the two?\nAnswer: The difference between the two is that the two are equal.\nQuestion: What is the difference between the two?\nAnswer: The difference between the two is that the two are equal.\nQuestion: What is the difference between the two?\nAnswer: The difference between the two is that the two are equal.\nQuestion: What is the difference between the two?\nAnswer: The difference between the two is that the two are equal.\nQuestion: What is the difference between the two"
+    },
+    {
+      "index": 35,
+      "gold": "9",
+      "prediction": "1",
+      "text": " The answer is:\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1.0\n- 1.0 = 1"
+    },
+    {
+      "index": 36,
+      "gold": "75",
+      "prediction": "1.00",
+      "text": " The average person spends about $1.00 on yogurt.  The average person spends about $1.00 on yogurt.  The average person spends about $1.00 on yogurt. \nQuestion: The average person spends about $1.00 on yogurt.  The average person spends about $1.00 on yogurt.  The average person spends about $1.00 on yogurt. \nQuestion: The average person spends about $1.00 on yogurt.  The average person spends about $1.00 on yogurt.  The average person spends about $1.00 on yogurt. \nQuestion: The average"
+    },
+    {
+      "index": 37,
+      "gold": "2",
+      "prediction": null,
+      "text": " The first two are the most popular and the last one is the most popular. The first two are the most popular and the last one is the most popular. The last two are the most popular and the last one is the most popular.\nQuestion: John wants to buy a new toy. He wants to buy a new toy. He wants to buy a new toy. He wants to buy a new toy. He wants to buy a new toy. He wants to buy a new toy. He wants to buy a new toy. He wants to buy a new toy. He wants to buy a new toy. He wants to buy a"
+    },
+    {
+      "index": 38,
+      "gold": "10",
+      "prediction": "4",
+      "text": " He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week.  He runs 4 hours a week. "
+    },
+    {
+      "index": 39,
+      "gold": "18",
+      "prediction": null,
+      "text": " The answer is yes.\nQuestion: How many miles can she travel in six hours?\nAnswer: The answer is yes.\nQuestion: How many miles can she travel in six hours?\nAnswer: The answer is yes.\nQuestion: How many miles can she travel in six hours?\nAnswer: The answer is yes.\nQuestion: How many miles can she travel in six hours?\nAnswer: The answer is yes.\nQuestion: How many miles can she travel in six hours?\nAnswer: The answer is yes.\nQuestion: How many miles can she travel in six hours?\nAnswer: The answer"
+    },
+    {
+      "index": 40,
+      "gold": "8",
+      "prediction": "1",
+      "text": " The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\nAnswer: The iPhone is 1 year old.\n"
+    },
+    {
+      "index": 41,
+      "gold": "200",
+      "prediction": null,
+      "text": " The dragon's fire was not a fire, but a fire of fire.  The dragon's fire was a fire of fire, and the dragon's fire was a fire of fire.  The dragon's fire was a fire of fire, and the dragon's fire was a fire of fire.  The dragon's fire was a fire of fire, and the dragon's fire was a fire of fire, and the dragon's fire was a fire of fire, and the dragon's fire was a fire of fire, and the dragon's fire was a fire of fire, and the dragon's fire was a fire of fire, and the dragon"
+    },
+    {
+      "index": 42,
+      "gold": "26",
+      "prediction": null,
+      "text": " The first piece of pie was the one that was left on the stove.  The second piece was the one that was left on the stove.  The third piece was the one that was left on the stove.  The fourth piece was the one that was left on the stove.  The fifth piece was the one that was left on the stove.  The fifth piece was the one that was left on the stove.  The fifth piece was the one that was left on the stove.  The fifth piece was the one that was left on the stove.  The fifth piece was the one that was left on the stove. "
+    },
+    {
+      "index": 43,
+      "gold": "48",
+      "prediction": "1.5",
+      "text": " The answer is 1.5 grams of fat.\nQuestion: What is the difference between a bag of chips and a bag of chips?\nAnswer: The bag of chips is the same as the bag of chips.\nQuestion: What is the difference between a bag of chips and a bag of chips?\nAnswer: The bag of chips is the same as the bag of chips.\nQuestion: What is the difference between a bag of chips and a bag of chips?\nAnswer: The bag of chips is the same as the bag of chips.\nQuestion: What is the difference between a bag of chips and a bag of"
+    },
+    {
+      "index": 44,
+      "gold": "20",
+      "prediction": "10",
+      "text": "  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10.00.  The wicks cost $10."
+    },
+    {
+      "index": 45,
+      "gold": "104",
+      "prediction": "1",
+      "text": " The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is about 1 hour.\nAnswer: The average time spent on a topic is"
+    },
+    {
+      "index": 46,
+      "gold": "163",
+      "prediction": "1000",
+      "text": "  The answer is:  The total number of post-it notes in the package that she purchased was 1,000.  The total number of post-it notes in the package that she purchased was 1,000.  The total number of post-it notes in the package that she purchased was 1,000.  The total number of post-it notes in the package that she purchased was 1,000.  The total number of post-it notes in the package that she purchased was 1,000.  The total number of post-it notes in the package that she purchased was 1,000.  The total"
+    },
+    {
+      "index": 47,
+      "gold": "800",
+      "prediction": "1000",
+      "text": " The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $200 cost of a tie is $1,000.  The $"
+    },
+    {
+      "index": 48,
+      "gold": "8",
+      "prediction": "6",
+      "text": " The wire was cut into pieces 6 inches long. How many pieces did she get?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she get?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she get?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she get?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she get?\nAnswer: The wire was cut into pieces 6 inches long. How many pieces did she get?\nAnswer: The wire was cut into pieces 6 inches"
+    },
+    {
+      "index": 49,
+      "gold": "30",
+      "prediction": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "text": " The total number of unoccupied units in the building is 1,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000"
+    },
+    {
+      "index": 50,
+      "gold": "294",
+      "prediction": "250",
+      "text": " The average egg production in the United States is $1,000 per year.\nQuestion: Lloyd has a chicken farm. His chickens produce 250 eggs per day. How much does Lloyd make on eggs per week?\nAnswer: The average egg production in the United States is $1,000 per year.\nQuestion: Lloyd has a chicken farm. His chickens produce 250 eggs per day. How much does Lloyd make on eggs per week?\nAnswer: The average egg production in the United States is $1,000 per year.\nQuestion: Lloyd has a chicken farm. His chickens produce 250 eggs per day. How much does"
+    },
+    {
+      "index": 51,
+      "gold": "5",
+      "prediction": "10",
+      "text": "  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per hour.  He is sailing at 10 miles per"
+    },
+    {
+      "index": 52,
+      "gold": "15",
+      "prediction": null,
+      "text": " The answer is:\n- The book bag is not going to be used for the purpose of a book.\n- The book bag is not going to be used for the purpose of a book.\n- The book bag is going to be used for the purpose of a book.\n- The book bag is going to be used for the purpose of a book.\n- The book bag is going to be used for the purpose of a book.\n- The book bag is going to be used for the purpose of a book.\n- The book bag is going to be used for the purpose of a book.\n- The"
+    },
+    {
+      "index": 53,
+      "gold": "40",
+      "prediction": "50000",
+      "text": " The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for each tire.  The mechanic pays $50,000 for"
+    },
+    {
+      "index": 54,
+      "gold": "40",
+      "prediction": null,
+      "text": " The Doubtfire family has been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area for more than a decade. They have been living in the area"
+    },
+    {
+      "index": 55,
+      "gold": "14",
+      "prediction": null,
+      "text": " The bag is made of a single bag. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops. Jean has a bag of lollipops"
+    },
+    {
+      "index": 56,
+      "gold": "3",
+      "prediction": null,
+      "text": " The average person in the movie is a person who has a lot of money. The average person in the movie is a person who has a lot of money. The average person in the movie is a person who has a lot of money. The average person in the movie is a person who has a lot of money. The average person in the movie is a person who has a lot of money. The average person in the movie is a person who has a lot of money. The average person in the movie is a person who has a lot of money. The average person in the movie is a person who has a lot of money."
+    },
+    {
+      "index": 57,
+      "gold": "83",
+      "prediction": "15",
+      "text": " The maximum number of boxes that can be loaded onto the truck is 1,000,000. The maximum number of boxes that can be loaded onto the truck is 1,000,000.\nQuestion: A wooden bridge can carry no more than 10,000 pounds. A delivery truck filled with identical boxes, each weighing 15 pounds, will pass over the bridge. The combined weight of the driver and the empty truck is 3755 pounds.\nQuestion: A wooden bridge can carry no more than 10,000 pounds. A delivery truck filled with identical boxes, each weighing 15 pounds, will pass over the bridge. The combined weight of the"
+    },
+    {
+      "index": 58,
+      "gold": "57",
+      "prediction": "3.00",
+      "text": "  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The final price of Stephen's groceries was $3.00.  The"
+    },
+    {
+      "index": 59,
+      "gold": "187",
+      "prediction": null,
+      "text": " The number of fruit that is in the tree is the number of fruit that is in the tree. The number of fruit in the tree is the number of fruit that is in the tree. The number of fruit in the tree is the number of fruit that is in the tree. The number of fruit in the tree is the number of fruit that is in the tree. The number of fruit in the tree is the number of fruit that is in the tree. The number of fruit in the tree is the number of fruit that is in the tree. The number of fruit in the tree is the number of fruit that is in the tree."
+    },
+    {
+      "index": 60,
+      "gold": "17",
+      "prediction": "1.5",
+      "text": " The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5.\nAnswer: The answer is: 1.5"
+    },
+    {
+      "index": 61,
+      "gold": "1430",
+      "prediction": "1000",
+      "text": " The amount of money she paid for the material was $1,000.  The amount of money she paid for the material was $1,000.  The amount of money she paid for the material was $1,000.  The amount of money she paid for the material was $1,000.  The amount of money she paid for the material was $1,000.  The amount of money she paid for the material was $1,000.  The amount of money she paid for the material was $1,000.  The amount of money she paid for the material was $1,000. "
+    },
+    {
+      "index": 62,
+      "gold": "25000",
+      "prediction": null,
+      "text": " The term “sister” is used to describe a person who is a member of the family. The term “sister” is used to describe a person who is a member of the family. The term “sister” is used to describe a person who is a member of the family.\nQuestion: What is the difference between a married and a married woman?\nAnswer: The difference between a married and a married woman is that the married woman is a married woman. The married woman is a married woman. The married woman is a married woman. The married woman is a married woman. The"
+    },
+    {
+      "index": 63,
+      "gold": "1596",
+      "prediction": "1000",
+      "text": " The amount of money she had paid for the streaming service was $1,000.\nAnswer: The amount of money she had paid for the streaming service was $1,000.\nAnswer: The amount of money she had paid for the streaming service was $1,000.\nAnswer: The amount of money she had paid for the streaming service was $1,000.\nAnswer: The amount of money she had paid for the streaming service was $1,000.\nAnswer: The amount of money she had paid for the streaming service was $1,000.\nAnswer: The amount of money she had paid for"
+    },
+    {
+      "index": 64,
+      "gold": "300",
+      "prediction": "1000",
+      "text": " The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles.\nAnswer: The answer is: 1,000 miles"
+    },
+    {
+      "index": 65,
+      "gold": "36",
+      "prediction": "4",
+      "text": "  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4 weeks.  He spends 2 hours watching TV and reading in 4"
+    },
+    {
+      "index": 66,
+      "gold": "48",
+      "prediction": "1000",
+      "text": " The number of people who have all of the schools sent is 1,000. The number of people who have all of the schools sent is 1,000. The number of people who have all of the schools sent is 1,000. The number of people who have all of the schools sent is 1,000.\nQuestion: The number of people who have all of the schools sent is 1,000. The number of people who have all of the schools sent is 1,000. The number of people who have all of the schools sent is 1,000.\nAnswer: The number of people who have all of the schools"
+    },
+    {
+      "index": 67,
+      "gold": "595",
+      "prediction": null,
+      "text": " The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the chest. The most precious gems were found in the"
+    },
+    {
+      "index": 68,
+      "gold": "36",
+      "prediction": "5",
+      "text": " The number of girls and 5 students is a huge number. The number of girls and 5 students is a huge number. The number of girls and 5 students is a huge number. The number of girls and 5 students is a huge number.\nQuestion: What is the difference between the two?\nAnswer: The difference between the two is that the difference between the two is the difference between the two.\nQuestion: What is the difference between the two?\nAnswer: The difference between the two is the difference between the two.\nQuestion: What is the difference between the two?\nAnswer: The difference between the two is the"
+    },
+    {
+      "index": 69,
+      "gold": "60",
+      "prediction": "100",
+      "text": " The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer is $100.\nAnswer: The answer"
+    },
+    {
+      "index": 70,
+      "gold": "7425",
+      "prediction": "1",
+      "text": " The average student is $15.00 per student.  If she has 10 students, how much money does she make in 1 week?\nAnswer: The average student is $15.00 per student.  If she has 10 students, how much money does she make in 1 week?\nAnswer: The average student is $15.00 per student.  If she has 10 students, how much money does she make in 1 week?\nAnswer: The average student is $15.00 per student.  If she has 10 students, how much money does she make in 1 week?\nAnswer: The average student is"
+    },
+    {
+      "index": 71,
+      "gold": "60",
+      "prediction": null,
+      "text": " The first one has to read to prepare the dishes. The second one has to read to prepare the dishes. The third one has to read to prepare the dishes. The fourth one has to read to prepare the dishes. The fourth one has to read to prepare the dishes. The fourth one has to read to prepare the dishes. The fifth one has to read to prepare the dishes. The fifth one has to read to prepare the dishes. The fifth one has to read to prepare the dishes. The fifth one has to read to prepare the dishes. The fifth one has to read to prepare the dishes. The fifth one has to read to"
+    },
+    {
+      "index": 72,
+      "gold": "221",
+      "prediction": "4",
+      "text": " The average cost of selling a redie is $1,000.\nQuestion: Tommy is selling a redie for $4 a slice and cheesecakes for $4 a slice.\nQuestion: Tommy is selling a redie for $4 a slice and cheesecakes for $4 a slice.\nQuestion: Tommy is selling a redie for $4 a slice and cheesecakes for $4 a slice.\nQuestion: Tommy is selling a redie for $4 a slice and cheesecakes for $4 a slice.\nQuestion: Tommy is selling a redie for $4 a slice and cheesecakes"
+    },
+    {
+      "index": 73,
+      "gold": "255",
+      "prediction": "3",
+      "text": " The average cost of a cell phone is $1,000.\nQuestion: Shiela bought two cell phones for $1,000. How much will Shiela pay each month for 3 months?\nAnswer: Shiela bought two cell phones for $1,000. How much will Shiela pay each month for 3 months?\nAnswer: Shiela bought two cell phones for $1,000. How much will Shiela pay each month for 3 months?\nAnswer: Shiela bought two cell phones for $1,000. How much will Shiela pay each month for 3 months"
+    },
+    {
+      "index": 74,
+      "gold": "88",
+      "prediction": "2.12",
+      "text": " The price of a petunias is $1.75 per pot.\nQuestion: Artie has a flower stand at the Farmers Market. He sells three kinds of flowers: marigolds, petunias and begonias. He sells petunias for $2.75 per pot and begonias for $2.12 per pot.\nQuestion: Artie has a flower stand at the Farmers Market. He sells petunias for $2.75 per pot and begonias for $2.12 per pot.\nQuestion: Artie has a flower stand at the Farmers Market. He sells petun"
+    },
+    {
+      "index": 75,
+      "gold": "60",
+      "prediction": null,
+      "text": " The average square footage of a level is the average square footage of a level.\nQuestion: What is the average square footage of a level?\nAnswer: The average square footage of a level is the average square footage of a level.\nQuestion: What is the average square footage of a level?\nAnswer: The average square footage of a level is the average square footage of a level.\nQuestion: What is the average square footage of a level?\nAnswer: The average square footage of a level is the average square footage of a level.\nQuestion: What is the average square footage of a level?\nAnswer:"
+    },
+    {
+      "index": 76,
+      "gold": "5",
+      "prediction": null,
+      "text": " The first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of the first year of"
+    },
+    {
+      "index": 77,
+      "gold": "100",
+      "prediction": null,
+      "text": " The difference in the amount of laundry Raymond and David do is the difference in the amount of laundry Raymond and David do.\nAnswer: The difference in the amount of laundry Raymond and David do is the difference in the amount of laundry Raymond and David do.\nAnswer: The difference in the amount of laundry Raymond and David do is the difference in the amount of laundry Raymond and David do.\nAnswer: The difference in the amount of laundry Raymond and David do is the difference in the amount of laundry Raymond and David do.\nAnswer: The difference in the amount of laundry Raymond and David do is the difference in the amount of laundry Raymond"
+    },
+    {
+      "index": 78,
+      "gold": "6",
+      "prediction": null,
+      "text": " The price of the flowers is the same as the price of the flowers.\nQuestion: The price of the flowers is the same as the price of the flowers.\nAnswer: The price of the flowers is the same as the price of the flowers.\nQuestion: The price of the flowers is the same as the price of the flowers.\nAnswer: The price of the flowers is the same as the price of the flowers.\nQuestion: The price of the flowers is the same as the price of the flowers.\nQuestion: The price of the flowers is the same as the price of the flowers.\nQuestion: The price"
+    },
+    {
+      "index": 79,
+      "gold": "70",
+      "prediction": null,
+      "text": " The groomer pays the dog for the first time.  The groomer pays the dog for the second time.  The groomer pays the dog for the second time.  The groomer pays the dog for the first time.  The groomer pays the dog for the second time.  The groomer pays the dog for the first time.  The groomer pays the dog for the first time.  The groomer pays the dog for the first time.  The groomer pays the dog for the first time.  The groomer pays the dog for the first time.  The groomer pays the dog for the"
+    },
+    {
+      "index": 80,
+      "gold": "10",
+      "prediction": "6",
+      "text": " The boy got 6 liters of water. How many liters of water were left?\nAnswer: The boy got 6 liters of water. How many liters of water were left?\nAnswer: The boy got 6 liters of water. How many liters of water were left?\nAnswer: The boy got 6 liters of water. How many liters of water were left?\nAnswer: The boy got 6 liters of water. How many liters of water were left?\nAnswer: The boy got 6 liters of water. How many liters of water were left?\nAnswer: The boy"
+    },
+    {
+      "index": 81,
+      "gold": "17",
+      "prediction": "10",
+      "text": " Charlie had 10 stickers. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for his birthday. He had a new one for"
+    },
+    {
+      "index": 82,
+      "gold": "623",
+      "prediction": null,
+      "text": " The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight of a pound.\nAnswer: The weight of a pound is the weight"
+    },
+    {
+      "index": 83,
+      "gold": "600",
+      "prediction": null,
+      "text": " The rose bush is a large, evergreen tree with a long, slender stem. The rose bush is a small, evergreen tree with a long, slender stem. The rose bush is a small, evergreen tree with a long, slender stem. The rose bush is a small, evergreen tree with a long, slender stem. The rose bush is a small, evergreen tree with a long, slender stem. The rose bush is a small, evergreen tree with a long, slender stem. The rose bush is a small, evergreen tree with a long, slender stem. The rose bush is a small, evergreen"
+    },
+    {
+      "index": 84,
+      "gold": "15",
+      "prediction": "4",
+      "text": " The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4,000 games. The team had a total of 4"
+    },
+    {
+      "index": 85,
+      "gold": "44",
+      "prediction": null,
+      "text": " The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks from a different year of vacations. The quilt block is made of blocks"
+    },
+    {
+      "index": 86,
+      "gold": "22",
+      "prediction": null,
+      "text": " The first time it rang for three times as long as the first time. The second time it rang for three times as long as the first time.\nQuestion: The alarm ring in all?\nAnswer: The alarm ring in all.\nQuestion: The alarm ring in all?\nAnswer: The alarm ring in all.\nQuestion: The alarm ring in all?\nAnswer: The alarm ring in all.\nQuestion: The alarm ring in all?\nAnswer: The alarm ring in all.\nQuestion: The alarm ring in all?\nAnswer: The alarm ring in all.\nQuestion: The alarm ring in all"
+    },
+    {
+      "index": 87,
+      "gold": "9360",
+      "prediction": "600",
+      "text": " The company pays $600 in a month.\nQuestion: A company pays $600 in a month. The company pays $600 in a month.\nQuestion: A company pays $600 in a month. The company pays $600 in a month.\nQuestion: A company pays $600 in a month. The company pays $600 in a month.\nQuestion: A company pays $600 in a month. The company pays $600 in a month.\nQuestion: A company pays $600 in a month. The company pays $600 in a month.\nQuestion: A company pays $600 in a month. The company"
+    },
+    {
+      "index": 88,
+      "gold": "8000",
+      "prediction": "1892",
+      "text": " The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892.\nAnswer: The first record sold was in 1892"
+    },
+    {
+      "index": 89,
+      "gold": "24",
+      "prediction": "1.00",
+      "text": " The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00.\nAnswer: The answer is $1.00"
+    },
+    {
+      "index": 90,
+      "gold": "225",
+      "prediction": null,
+      "text": " The question is, what is the best way to feed the dinosaurs?\nAnswer: The answer is, what is the best way to feed the dinosaurs?\nAnswer: The answer is, what is the best way to feed the dinosaurs?\nAnswer: The answer is, what is the best way to feed the dinosaurs?\nAnswer: The answer is, what is the best way to feed the dinosaurs?\nAnswer: The answer is, what is the best way to feed the dinosaurs?\nAnswer: The answer is, what is the best way to feed the dinosaurs?\nAnswer: The answer is, what is the best way"
+    },
+    {
+      "index": 91,
+      "gold": "28",
+      "prediction": null,
+      "text": " The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer: The answer is yes.\nAnswer:"
+    },
+    {
+      "index": 92,
+      "gold": "4",
+      "prediction": "5",
+      "text": " The age of the first child is 5.\nAnswer: The age of the second child is 5.\nAnswer: The age of the third child is 5.\nAnswer: The age of the fourth child is 5.\nAnswer: The age of the fourth child is 5.\nAnswer: The age of the fourth child is 5.\nAnswer: The age of the fourth child is 5.\nAnswer: The age of the fourth child is 5.\nAnswer: The age of the fourth child is 5.\nAnswer: The age of the fourth child is 5.\nAnswer: The age of the fourth child is 5"
+    },
+    {
+      "index": 93,
+      "gold": "36",
+      "prediction": "400",
+      "text": " The 400-meter hurdles are the same as the 400-meter hurdles.  The 400-meter hurdles are the same as the 400-meter hurdles.  The 400-meter hurdles are the same as the 400-meter hurdles. \nThe 400-meter hurdles are the same as the 400-meter hurdles.  The 400-meter hurdles are the same as the 400-meter hurdles.  The 400-meter hurdles are the same as the 400-meter hurdles. \nThe 400-meter hurdles are the same as the 400-meter hurdles.  The 400-meter hurdles are the same as the 400-meter hurdles"
+    },
+    {
+      "index": 94,
+      "gold": "348",
+      "prediction": null,
+      "text": " The number of dogs in the neighborhood is about one and one-half times the number of dogs in the neighborhood.\nQuestion: In a neighborhood, the number of dogs in the neighborhood is about one and one-half times the number of dogs in the neighborhood.\nAnswer: The number of dogs in the neighborhood is about one and one-half times the number of dogs in the neighborhood.\nQuestion: In a neighborhood, the number of dogs in the neighborhood is about one and one-half times the number of dogs in the neighborhood.\nQuestion: In a neighborhood, the number of dogs in the neighborhood is about one and one"
+    },
+    {
+      "index": 95,
+      "gold": "40",
+      "prediction": null,
+      "text": " The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout. The girls are in the girl scout."
+    },
+    {
+      "index": 96,
+      "gold": "3",
+      "prediction": "10",
+      "text": " The average time spent in the sleep of a person is about 10 minutes.\nAnswer: The average time spent in the sleep of a person is about 10 minutes.\nAnswer: The average time spent in the sleep of a person is about 10 minutes.\nAnswer: The average time spent in the sleep of a person is about 10 minutes.\nAnswer: The average time spent in the sleep of a person is about 10 minutes.\nAnswer: The average time spent in the sleep of a person is about 10 minutes.\nAnswer: The average time spent in the sleep of a person is about 10 minutes.\nAnswer: The average"
+    },
+    {
+      "index": 97,
+      "gold": "12",
+      "prediction": "32",
+      "text": " Freda’s first batch of tomato sauce made 32 ounces of sauce.\nQuestion: How many tomatoes did Freda use?\nAnswer: Freda’s first batch of tomato sauce made 32 ounces of sauce.\nQuestion: How many tomatoes did Freda use?\nAnswer: Freda’s first batch of tomato sauce made 32 ounces of sauce.\nQuestion: How many tomatoes did Freda use?\nAnswer: Freda’s first batch of tomato sauce made 32 ounces of sauce.\nQuestion: How many tomatoes did Freda use?\nAnswer: Freda’s first batch of"
+    },
+    {
+      "index": 98,
+      "gold": "5",
+      "prediction": null,
+      "text": " The answer is yes. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on the road. The cars are on"
+    },
+    {
+      "index": 99,
+      "gold": "58",
+      "prediction": null,
+      "text": " Mary is a gardener. She has a large garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She has a garden and a garden. She"
+    }
+  ]
+}

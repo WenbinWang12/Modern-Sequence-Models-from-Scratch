@@ -218,7 +218,7 @@ No hyper-parameter was tuned for any single model: the four share the table abov
 <figure markdown="span" class="report-figure">
   ![Training loss and held-out loss against training tokens](assets/report/fig_training.light.svg#only-light)
   ![Training loss and held-out loss against training tokens](assets/report/fig_training.dark.svg#only-dark)
-  <figcaption>Figure 2. Training. Left: training loss (exponential moving average). Centre and right: loss of the checkpoints saved every 1,000 steps on PG-19 validation (first 5 windows of each book, 250 in total) and on FineWeb-Edu held-out (256 windows). All four models read exactly the same batch at every step.</figcaption>
+  <figcaption>Figure 2. Training. Left: the causal language-model loss, which is the exponential moving average of next-token cross-entropy over valid positions. Centre and right: loss of the checkpoints saved every 1,000 steps on PG-19 validation (first 5 windows of each book, 250 in total) and on FineWeb-Edu held-out (256 windows). All four models read exactly the same batch at every step.</figcaption>
 </figure>
 
 All four models eventually ran to 12,000 steps and 786,432,000 tokens with no divergence or loss spikes. During training, user-level NFS quota exhaustion interrupted checkpoint writes. The supervisor resumed each run from its latest checkpoint and recorded the event in `interruptions.jsonl`. The run recorded 3 automatic recovery event(s). Gradient clipping rarely bound: after warm-up, the outer-loop gradient norm exceeded the threshold of 1.0 on 0.4% of logged steps for sliding-window attention and 0.6% for TTT-E2E.

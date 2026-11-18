@@ -355,7 +355,13 @@ def figure_training(theme, mode, runs, evals, output, results):
         axes[0].plot(steps * tokens_per_step / 1e6, smooth[arm][1], color=color(theme, arm), linewidth=1.6)
     floor = min(values[-1] for _, values in smooth.values())
     axes[0].set_ylim(floor - 0.06, floor + 0.9)
-    titled(axes[0], theme, "Training loss (running mean)", "Training tokens (millions)", "Next-token loss (nats)")
+    titled(
+        axes[0],
+        theme,
+        "Causal LM loss (running mean)",
+        "Training tokens (millions)",
+        "Next-token cross-entropy (nats)",
+    )
     panels = (("pg19val", "PG-19 validation loss"), ("fineweb", "FineWeb-Edu held-out loss"))
     for axis, (suffix, title) in zip(axes[1:], panels):
         ends, values_seen = [], []

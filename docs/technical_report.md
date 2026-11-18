@@ -218,7 +218,7 @@ $$
 <figure markdown="span" class="report-figure">
   ![训练损失与 held-out 损失随训练 token 数的变化](assets/report/fig_training.light.svg#only-light)
   ![训练损失与 held-out 损失随训练 token 数的变化](assets/report/fig_training.dark.svg#only-dark)
-  <figcaption>图 2　训练过程。左：训练损失（指数滑动平均）。中、右：每 1,000 步保存的检查点在 PG-19 validation（每本书前 5 个窗口，共 250 个）和 FineWeb-Edu held-out（256 个窗口）上的损失。四个模型在每一步读到的 batch 完全相同。</figcaption>
+  <figcaption>图 2　训练过程。左：因果语言模型损失，也就是所有有效位置上的 next-token 交叉熵的指数滑动平均。中、右：每 1,000 步保存的检查点在 PG-19 validation（每本书前 5 个窗口，共 250 个）和 FineWeb-Edu held-out（256 个窗口）上的损失。四个模型在每一步读到的 batch 完全相同。</figcaption>
 </figure>
 
 四个模型最终都训练到 12,000 步、786,432,000 个 token，没有出现发散或 loss 尖峰。训练期间发生过用户级 NFS 磁盘配额导致的检查点写入中断；监督脚本从最近检查点自动恢复，并把事件写入 `interruptions.jsonl`。本次运行共记录 3 次自动恢复。梯度裁剪很少触发：预热之后，外循环梯度范数超过阈值 1.0 的记录步占 0.4%（滑窗注意力）和 0.6%（TTT-E2E）。

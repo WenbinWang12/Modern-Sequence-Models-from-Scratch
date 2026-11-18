@@ -103,10 +103,12 @@ TTT no-adapt 的 100 题诊断为 ARC 24/100、PIQA 55/100、GPQA 17/65、GSM8K 
 
 ## 5. Release gate
 
-当前结果仍属于 pilot。进入技术报告主表前，需要补齐：
+Release gate 的当前状态如下：
 
-1. 与 plain baseline 的同 seed、同 token budget 配对结果；
-2. 至少三个随机种子和置信区间；
-3. MMLU 之外的一项数学或代码 benchmark；
-4. 至少一项公开长上下文 benchmark；
-5. 数据污染审计、完整版本信息和可复现实验命令。
+1. plain baseline 与 TTT 已在相同 token budget、数据配方和检查点步数下配对；
+2. 主实验保留 seed 0，消融队列还运行了 seed 1 和 seed 2，并在 NLL、NIAH 和 benchmark 原始 JSON 中保留样本数与置信区间字段；
+3. 已完成 MMLU 之外的 GSM8K 和 HumanEval，另有 ARC、PIQA、GPQA 与 BBH 诊断；
+4. NIAH 和 synthetic preflight 已完成，但正式 RULER、LongBench、DROP 仍待固定 revision、任务集合和污染审计后运行；
+5. 数据污染审计、配置与脚本摘要、数据哈希、检查点元数据和复现实验命令已随报告保存。
+
+因此当前报告可以复现 1.0 主实验和扩展诊断，但在正式长上下文套件完成前，不应声称覆盖 RULER 或 LongBench 的官方分数。

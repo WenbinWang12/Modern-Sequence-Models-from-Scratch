@@ -91,10 +91,12 @@ Before formal evaluation, compare the training corpus, tokenizer training text, 
 
 ## 5. Release gate
 
-The current results remain pilot evidence. Before entering the main technical-report table, add:
+The release-gate status is:
 
-1. Same-seed, same-token-budget paired plain and TTT results;
-2. At least three seeds and uncertainty intervals;
-3. A mathematics or code benchmark beyond MMLU;
-4. A public long-context benchmark;
-5. Contamination audit, complete version information, and reproducible commands.
+1. Plain and TTT are paired at the same token budget, data recipe, and checkpoint step;
+2. The main experiment retains seed 0, while the ablation queue also ran seeds 1 and 2. Raw NLL, NIAH, and benchmark JSON files retain sample counts and confidence-interval fields;
+3. GSM8K and HumanEval are complete beyond MMLU, with ARC, PIQA, GPQA, and BBH diagnostics;
+4. NIAH and the synthetic preflight are complete, while official RULER, LongBench, and DROP remain pending a frozen revision, task set, and contamination audit;
+5. Contamination audits, configuration and script summaries, data hashes, checkpoint metadata, and reproduction commands are stored with the report.
+
+The current report is reproducible for the 1.0 main experiment and its extended diagnostics. It must not claim official RULER or LongBench scores until the formal long-context suites are run.

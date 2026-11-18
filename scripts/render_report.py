@@ -400,7 +400,12 @@ def table_extended_benchmarks(r, lang):
         if isinstance(skipped, Box):
             skipped = skipped.raw()
         skipped = skipped or 0
-        valid = "—" if samples is None else f"{int(samples) - int(skipped)}/{int(samples)}"
+        if samples is None:
+            valid = "—"
+        else:
+            valid = str(int(samples))
+            if skipped:
+                valid += f" (skip {int(skipped)})"
         score = entry["score"]
         if isinstance(score, Box):
             score = score.raw()

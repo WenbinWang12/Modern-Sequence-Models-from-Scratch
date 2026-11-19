@@ -53,6 +53,7 @@ def runtime_kernels(config, inner, jit, gradient_checkpointing):
             position,
             inner,
             return_logits=False,
+            compute_outer_loss=False,
         )
         return result[3]
 

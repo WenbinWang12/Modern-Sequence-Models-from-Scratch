@@ -77,6 +77,7 @@ def inner_step(
     *,
     return_logits=True,
     outer_mask=None,
+    compute_outer_loss=True,
 ):
     config = model.config
     heads = config.multi_token_heads
@@ -144,13 +145,16 @@ def inner_step(
         # 由 sequence_loss 在整条序列上统一归一化，避免尾块被过度加权。
         outer_sum = jnp.zeros((heads - 1,), dtype=jnp.float32)
         outer_weight = jnp.zeros((heads - 1,), dtype=jnp.float32)
-        for head in range(1, heads):
-            outer_sum = outer_sum.at[head - 1].set(jnp.sum(head_losses(head, outer_mask)[0]))
-            outer_weight = outer_weight.at[head - 1].set(jnp.sum(outer_mask[:, head]))
+        if compute_outer_loss:
+            for head in range(1, heads):
+                outer_sum = outer_sum.at[head - 1].set(jnp.sum(head_losses(head, outer_mask)[0]))
+                outer_weight = outer_weight.at[head - 1].set(jnp.sum(outer_mask[:, head]))
         return value, (output, losses, outer_sum, outer_weight)
 
     if inner.enabled and fast_weights:
-        (_, (output, losses, outer_sum, outer_weight)), grads = jax.value_and_grad(objective, has_aux=True)(fast_weights)
+        (_, (output, losses, outer_sum, outer_weight)), grads = jax.value_and_grad(
+            objective, has_aux=True
+        )(fast_weights)
         if inner.first_order:
             # 把内循环梯度当作常数：前向数值不变，外循环少了穿过更新量的二阶项。
             grads = jax.lax.stop_gradient(grads)

@@ -32,3 +32,6 @@ jobs:
           tests/test_grouped_gradients.py
           tests/test_kernels.py
           tests/test_meta_gradients.py
+          tests/test_multi_token.py
+          tests/test_runtime_consistency.py
+          tests/test_session_store.py

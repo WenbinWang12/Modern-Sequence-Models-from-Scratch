@@ -123,3 +123,14 @@ def test_streaming_multi_token_updates_match_training():
         jax.tree.leaves(session.state.fast_weights), jax.tree.leaves(expected.fast_weights), strict=True
     ):
         np.testing.assert_allclose(observed, reference, rtol=1e-4, atol=1e-5)
+
+
+def test_outer_multi_token_loss_keeps_cross_chunk_targets():
+    """外循环应保留跨块目标，而当前块的因果预测不能看到未来输入。"""
+    model, params = build(heads=2)
+    inner = InnerLoopConfig(learning_rate=0.3, clip_norm=100.0)
+    original = sequence_loss(model, params, TOKENS, inner, return_logits=True)
+    changed_tokens = TOKENS.at[4].set(22)
+    changed = sequence_loss(model, params, changed_tokens, inner, return_logits=True)
+    np.testing.assert_allclose(original.logits[:4], changed.logits[:4], atol=1e-6)
+    assert abs(float(original.multi_token_loss - changed.multi_token_loss)) > 1e-6

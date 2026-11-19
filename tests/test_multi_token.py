@@ -95,7 +95,9 @@ def test_inner_objective_flag_changes_the_fast_weights():
     # 第一个块的预测发生在任何更新之前，两种设置必须完全相同。
     logits_a = sequence_loss(model, params, TOKENS, base, return_logits=True).logits
     logits_b = sequence_loss(model, params, TOKENS, with_aux, return_logits=True).logits
-    np.testing.assert_allclose(logits_a[: model.config.ttt_chunk_size], logits_b[: model.config.ttt_chunk_size], atol=1e-6)
+    np.testing.assert_allclose(
+        logits_a[: model.config.ttt_chunk_size], logits_b[: model.config.ttt_chunk_size], atol=1e-6
+    )
 
 
 def test_outer_gradient_is_finite_with_extra_heads():

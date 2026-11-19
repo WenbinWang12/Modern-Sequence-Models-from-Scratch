@@ -165,7 +165,8 @@ def inner_step(
         updated, norm = fast_weights, jnp.array(0.0)
     post_loss = objective(updated)[0] if inner.track_post_loss else jnp.array(0.0)
     # 返回的 loss 始终是下一 token 损失，使所有指标和评测与单头设置可比。
-    loss = jnp.sum(losses) / jnp.where(jnp.sum(mask[:, 0]) > 0, jnp.sum(mask[:, 0]), 1.0)
+    main_weight = jnp.sum(mask[:, 0])
+    loss = jnp.sum(losses) / jnp.where(main_weight > 0, main_weight, 1.0)
     return loss, output, losses, updated, norm, post_loss, outer_sum, outer_weight
 
 
@@ -201,7 +202,9 @@ def sequence_loss(model, params, tokens, inner, loss_mask=None, *, return_logits
     inner_mask = jnp.stack(inner_masks, axis=-1).astype(jnp.float32).reshape(chunks, chunk_size, heads)
     outer_mask = jnp.stack(outer_masks, axis=-1).astype(jnp.float32).reshape(chunks, chunk_size, heads)
     # 前段参数不随块更新，可一次计算整个因果序列。
-    hidden, _, prefix_aux = model.prefix(params, inputs, token_mask=jnp.arange(padded_length) < length, return_aux=True)
+    hidden, _, prefix_aux = model.prefix(
+        params, inputs, token_mask=jnp.arange(padded_length) < length, return_aux=True
+    )
     hidden = hidden.reshape(chunks, chunk_size, model.config.hidden_size)
     fast = model.initial_fast_weights(params)
     cache = model.init_cache(range(model.config.prefix_length, model.config.num_hidden_layers), padded_length)

@@ -136,7 +136,7 @@ def inner_step(
         output = ModelOutput(logits, next_cache, auxiliary)
         loss = normalise(losses, mask[:, 0])
         extra = jnp.array(0.0)
-        if heads > 1:
+        if heads > 1 and inner.multi_token:
             # 内循环只使用已经观测到的目标。各附加头先独立归一化，再取平均。
             extra = sum(normalise(head_losses(head, mask)[0], mask[:, head]) for head in range(1, heads))
             extra = config.multi_token_weight * extra / (heads - 1)

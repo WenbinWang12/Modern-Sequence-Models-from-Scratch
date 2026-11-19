@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: uv sync --frozen --python 3.12 --extra dev --extra checkpoint --extra serve
+        run: uv sync --python 3.12 --extra dev --extra checkpoint --extra serve
       - name: Lint
         run: uv run ruff check ttt tests scripts
       - name: Format check

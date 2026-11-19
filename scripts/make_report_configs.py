@@ -29,7 +29,9 @@ SIZES = {
 }
 
 
-def model_config(*, hidden, intermediate, layers, heads, window, kind, chunk, suffix, backend="blocked"):
+def model_config(
+    *, hidden, intermediate, layers, heads, window, kind, chunk, suffix, backend="blocked", multi_token=1
+):
     layer_types = ["full_attention" if kind == "full" else "sliding_attention"] * layers
     fast = kind in ("ck", "ttt")
     return {
@@ -47,6 +49,7 @@ def model_config(*, hidden, intermediate, layers, heads, window, kind, chunk, su
         "ttt_chunk_size": chunk if fast else 1024,
         "loss_token_block_size": min(chunk, 256) if fast else 256,
         "loss_vocab_block_size": 65536,
+        "multi_token_heads": multi_token,
         "compute_dtype": "bfloat16",
         "post_norm": False,
         "bos_token_id": EOT,
@@ -74,10 +77,14 @@ def training_config(*, steps, batch, length, seed=0, learning_rate=6e-4, checkpo
     }
 
 
-def experiment(model, training, *, inner_enabled, inner_lr=1.0, inner_clip=1.0, first_order=False):
+def experiment(
+    model, training, *, inner_enabled, inner_lr=1.0, inner_clip=1.0, first_order=False, inner_multi_token=False
+):
     inner = {"enabled": inner_enabled, "learning_rate": inner_lr, "clip_norm": inner_clip}
     if first_order:
         inner["first_order"] = True
+    if inner_multi_token:
+        inner["multi_token"] = True
     return {"model": model, "inner": inner, "training": training, "tokenizer": "tiktoken:gpt2"}
 
 
@@ -91,7 +98,17 @@ def main_arms(seed=0):
     return arms
 
 
-def small_arm(kind="ttt", *, size="s", steps=5000, inner_lr=1.0, seed=0, first_order=False, **changes):
+def small_arm(
+    kind="ttt",
+    *,
+    size="s",
+    steps=5000,
+    inner_lr=1.0,
+    seed=0,
+    first_order=False,
+    inner_multi_token=False,
+    **changes,
+):
     """消融和规模对照共用的设置：上下文 2048、窗口 256、更新块 128。"""
     shape = {**SIZES[size], "window": 256, "chunk": 128, **changes}
     training = training_config(
@@ -103,6 +120,7 @@ def small_arm(kind="ttt", *, size="s", steps=5000, inner_lr=1.0, seed=0, first_o
         inner_enabled=kind == "ttt",
         inner_lr=inner_lr,
         first_order=first_order,
+        inner_multi_token=inner_multi_token,
     )
 
 
@@ -115,6 +133,10 @@ def ablation_arms():
         "ttt_fo": small_arm(first_order=True),
         # 把所有 MLP 收窄到 1120，使总参数量与不带 MLP′ 的基线相同。
         "ttt_matched": small_arm(intermediate=1120),
+        "ttt_mtp2": small_arm(multi_token=2),
+        "ttt_mtp4": small_arm(multi_token=4),
+        "ttt_mtp4_inner": small_arm(multi_token=4, inner_multi_token=True),
+        "swa_mtp4": small_arm("swa", multi_token=4),
         "ttt_ilr0p1": small_arm(inner_lr=0.1),
         "ttt_ilr0p3": small_arm(inner_lr=0.3),
         "ttt_ilr3": small_arm(inner_lr=3.0),

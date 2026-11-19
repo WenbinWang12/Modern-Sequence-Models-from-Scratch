@@ -72,6 +72,12 @@ class TTTE2EForCausalLM(TTTE2EPreTrainedModel):
         params["layers"] = tuple(layers)
         if not config.tie_word_embeddings:
             params["lm_head"] = init_linear(keys[-1], config.hidden_size, config.vocab_size, config)
+        if config.multi_token_heads > 1:
+            # 第 1 个头直接复用输出投影；第 2..k 个头各自先做一次 d×d 线性变换再共享同一个词表矩阵。
+            head_keys = jax.random.split(keys[-2], config.multi_token_heads - 1)
+            params["multi_token"] = tuple(
+                init_linear(key, config.hidden_size, config.hidden_size, config) for key in head_keys
+            )
         return params
 
     def initial_fast_weights(self, params):
@@ -281,6 +287,12 @@ class TTTE2EForCausalLM(TTTE2EPreTrainedModel):
             return params["embed_tokens"], None
         head = params["lm_head"]
         return head["weight"], head.get("bias")
+
+    def head_hidden(self, params, hidden, head):
+        """第 head 个预测头使用的隐藏状态；head=0 预测下一个 token，直接返回原状态。"""
+        if head == 0:
+            return hidden
+        return linear(params["multi_token"][head - 1], hidden, self.config.compute_dtype)
 
     def project_logits(self, params, hidden):
         if self.config.tie_word_embeddings:

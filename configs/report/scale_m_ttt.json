@@ -27,6 +27,7 @@
     "ttt_chunk_size": 128,
     "loss_token_block_size": 128,
     "loss_vocab_block_size": 65536,
+    "multi_token_heads": 1,
     "compute_dtype": "bfloat16",
     "post_norm": false,
     "bos_token_id": 50256,

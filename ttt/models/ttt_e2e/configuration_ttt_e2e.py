@@ -61,6 +61,8 @@ class TTTE2EConfig(PretrainedConfig):
     initializer_range: float = 0.02
     loss_token_block_size: int = 64
     loss_vocab_block_size: int = 4096
+    multi_token_heads: int = 1  # 预测未来第 1..k 个 token；1 表示只预测下一个 token。
+    multi_token_weight: float = 0.3  # 附加头在训练目标中的权重，主头恒为 1。
     num_experts: int = 0
     num_experts_per_token: int = 2
     num_shared_experts: int = 1
@@ -104,6 +106,7 @@ class TTTE2EConfig(PretrainedConfig):
             "attention_key_block_size",
             "loss_token_block_size",
             "loss_vocab_block_size",
+            "multi_token_heads",
             "gdn_conv_kernel_size",
             "num_experts_per_token",
             "router_adapter_rank",
@@ -125,6 +128,13 @@ class TTTE2EConfig(PretrainedConfig):
                 raise ValueError(f"{name} 必须是布尔值。")
         for name in ("rope_theta", "rms_norm_eps", "initializer_range"):
             _positive_float(name, getattr(self, name))
+        if self.multi_token_heads > self.ttt_chunk_size:
+            raise ValueError("multi_token_heads 不能超过 ttt_chunk_size：屏蔽块尾后将没有有效位置。")
+        weight = self.multi_token_weight
+        if isinstance(weight, bool) or not isinstance(weight, (int, float)):
+            raise ValueError("multi_token_weight 必须是数值。")
+        if not math.isfinite(weight) or weight < 0:
+            raise ValueError("multi_token_weight 必须是有限的非负数。")
         if self.attention_backend not in ("reference", "chunked", "blocked", "cudnn"):
             raise ValueError("attention_backend 必须为 reference、chunked、blocked 或 cudnn。")
 

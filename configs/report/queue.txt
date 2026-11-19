@@ -4,6 +4,10 @@ abl_full abl-full
 abl_ck abl-ck
 abl_ttt_fo abl-ttt_fo
 abl_ttt_matched abl-ttt_matched
+abl_ttt_mtp4 abl-ttt_mtp4
+abl_swa_mtp4 abl-swa_mtp4
+abl_ttt_mtp2 abl-ttt_mtp2
+abl_ttt_mtp4_inner abl-ttt_mtp4_inner
 abl_swa_iso abl-swa_iso
 abl_ttt_seed1 abl-ttt_seed1
 abl_swa_seed1 abl-swa_seed1

@@ -105,11 +105,13 @@ def make_train_step(model, inner, training, optimizer, *, jit=True, distributed=
                     "inner_update_norm": jnp.mean(output.update_norms),
                     "router_loads": output.router_loads,
                     "regularization_loss": output.regularization_loss,
+                    "multi_token_loss": output.multi_token_loss,
                     "nll": output.loss,
                 }
                 if inner.track_post_loss:
                     statistics["inner_post_loss"] = jnp.mean(output.post_losses)
-                return output.loss + output.regularization_loss, statistics
+                # nll 始终只报告下一 token 损失；附加头只进入被优化的目标。
+                return output.loss + output.regularization_loss + output.multi_token_loss, statistics
 
             losses, statistics = jax.vmap(per_sequence, in_axes=(None, 0, 0))(params, tokens, loss_masks)
             counts = jnp.sum(loss_masks, axis=1)

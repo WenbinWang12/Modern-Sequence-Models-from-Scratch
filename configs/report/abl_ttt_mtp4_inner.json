@@ -1,0 +1,56 @@
+{
+  "model": {
+    "vocab_size": 50257,
+    "hidden_size": 512,
+    "intermediate_size": 1408,
+    "num_hidden_layers": 8,
+    "num_attention_heads": 8,
+    "layer_types": [
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention"
+    ],
+    "sliding_window": 256,
+    "max_position_embeddings": 65536,
+    "attention_backend": "blocked",
+    "use_fast_mlp": true,
+    "ttt_suffix_length": 2,
+    "ttt_chunk_size": 128,
+    "loss_token_block_size": 128,
+    "loss_vocab_block_size": 65536,
+    "multi_token_heads": 4,
+    "compute_dtype": "bfloat16",
+    "post_norm": false,
+    "bos_token_id": 50256,
+    "eos_token_id": 50256,
+    "pad_token_id": 50256
+  },
+  "inner": {
+    "enabled": true,
+    "learning_rate": 1.0,
+    "clip_norm": 1.0,
+    "multi_token": true
+  },
+  "training": {
+    "steps": 5000,
+    "batch_size": 16,
+    "sequence_length": 2048,
+    "learning_rate": 0.0006,
+    "weight_decay": 0.1,
+    "clip_norm": 1.0,
+    "warmup_steps": 200,
+    "inner_warmup_steps": 500,
+    "inner_lr_start": 0.1,
+    "checkpoint_every": 5000,
+    "checkpoint_format": "orbax",
+    "gradient_checkpointing": false,
+    "log_every": 20,
+    "seed": 0
+  },
+  "tokenizer": "tiktoken:gpt2"
+}

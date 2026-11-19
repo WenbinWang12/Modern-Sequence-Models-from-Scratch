@@ -12,7 +12,6 @@ __all__ = ["render_metrics", "main"]
 
 
 _WIDTH = 1000
-_HEIGHT = 760
 _LEFT = 88
 _RIGHT = 28
 _TOP = 62
@@ -21,6 +20,8 @@ _PANEL_GAP = 42
 _PANEL_HEIGHT = 190
 _COLORS = {
     "loss": "#2563eb",
+    "nll": "#0f766e",
+    "multi_token_loss": "#c2410c",
     "tokens_per_second": "#d97706",
     "grad_norm": "#059669",
     "fast_weight_norm": "#9333ea",
@@ -106,17 +107,20 @@ def render_metrics(input_path: Path, output_path: Path) -> dict[str, object]:
     records = _read_metrics(input_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     panels = [
-        ("loss", "Loss / NLL"),
+        ("loss", "Optimized objective"),
+        ("nll", "Next-token NLL"),
+        ("multi_token_loss", "Multi-token auxiliary loss"),
         ("tokens_per_second", "Training throughput (tokens/s)"),
         ("grad_norm", "Gradient norm"),
         ("fast_weight_norm", "Fast-weight norm"),
     ]
+    height = _TOP + len(panels) * (_PANEL_HEIGHT + _PANEL_GAP) + 30
     content = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{_WIDTH}" height="{_HEIGHT}" viewBox="0 0 {_WIDTH} {_HEIGHT}" role="img" aria-labelledby="title desc">',
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{_WIDTH}" height="{height}" viewBox="0 0 {_WIDTH} {height}" role="img" aria-labelledby="title desc">',
         '<title id="title">Training metrics</title>',
         f'<desc id="desc">Training metrics from step {records[0]["step"]:g} through {records[-1]["step"]:g}.</desc>',
         "<style>text{font-family:Inter,Arial,sans-serif;fill:#334155}.panel-title{font-size:18px;font-weight:600}.tick{font-size:12px;fill:#64748b}.value{font-size:13px;fill:#334155}.missing{font-size:16px;fill:#b91c1c}.axis{stroke:#cbd5e1;stroke-width:1}</style>",
-        f'<rect width="{_WIDTH}" height="{_HEIGHT}" fill="#f8fafc"/>',
+        f'<rect width="{_WIDTH}" height="{height}" fill="#f8fafc"/>',
         '<text x="88" y="34" class="panel-title">TTT-E2E training metrics</text>',
     ]
     for index, (key, label) in enumerate(panels):

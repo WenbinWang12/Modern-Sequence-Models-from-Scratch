@@ -69,6 +69,8 @@ print(result.output_dir)
 
 多领域预训练语料的来源配置、Dolma3 当前统计、构建命令和验证边界见 [多领域预训练语料](docs/data_corpus.md)。大规模原始文件与 token 分片保存在临时目录，仓库只保存固定 revision、配置、报告和构建脚本。
 
+TTT-E2E 的阶段划分、四臂机制对照、数据配方筛选、长上下文评测和规模实验见 [总体实验规划](docs/experiment_plan.md)。
+
 正式训练可设置 `TTT_DATA_INSPECTION_REPORT=outputs/indexed-report.json`，把外部数据检查报告的摘要写入 `run_metadata.json`。
 
 下载一个带固定 SHA256 的公开 WikiText-2 小样本：

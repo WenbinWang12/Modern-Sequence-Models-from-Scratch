@@ -150,6 +150,8 @@ S1-A 到 S1-D 先分别估计主效应。只有在某个因子通过稳定性和
 
 ## 首轮 8 张 H100 的最小实验
 
+在 Wave A 之前先运行一个 8 卡分布式准入作业：125M、MHA、W=128、no-update、global batch 64、4K 序列，执行 50–100 steps。检查首步编译、稳定 step time、global tokens/s、8 个 rank 的 loss 一致、Orbax checkpoint 和恢复后的下一步一致。这个作业只验证分布式入口，不进入质量统计。
+
 ### Wave A：窗口 × TTT
 
 第一波严格运行一个 (4\times2) 笛卡尔积：
@@ -165,7 +167,9 @@ TTT cell 第一轮使用 (C=W)，因此这是“窗口与更新块同步”的�
 
 `no-update` 保留与 TTT-E2E 相同的 fast MLP 参数，只关闭测试时更新。另加一个 plain SWA anchor，用来区分额外参数和更新本身的作用。
 
-8 张 H100 同时运行这 8 个 cell。每个 cell 保存训练 loss、各来源 held-out NLL、按位置的上下文曲线、tokens/s、step time、峰值显存和实际 FLOPs。
+每个 cell 都独占并使用整组 8 张 H100，8 个 cell 按波次顺序运行，不能把一张卡分给一个独立 cell。单机 8 卡优先使用 data-parallel pmap，`batch_size` 表示全局 batch，必须能被 8 整除。推荐先用 global batch 64、4K 序列，也就是每卡 8 条序列。3B tokens 对应约 11,445 个 optimizer steps。多机 8 卡使用 mesh、Orbax 和共享检查点目录，并先通过 8 卡 mesh smoke test。
+
+每个 cell 保存训练 loss、各来源 held-out NLL、按位置的上下文曲线、global tokens/s、step time、峰值显存、通信占比和实际 FLOPs。
 
 ### Wave B：注意力头 / mixer × TTT
 

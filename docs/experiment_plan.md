@@ -154,7 +154,7 @@ S1-A 到 S1-D 先分别估计主效应。只有在某个因子通过稳定性和
 
 ### Wave A：窗口 × TTT
 
-第一波严格运行一个 (4\times2) 笛卡尔积：
+Wave A runs the 4x2 Cartesian product W in {64, 128, 256, 512} by U in {no-update, TTT-E2E}, plus one W=128 plain SWA anchor.
 
 - attention mixer 固定为 MHA
 - 训练模型固定为 125M 参数级别

@@ -1,5 +1,7 @@
 # Modern-Sequence-Models-from-Scratch
 
+The first eight-H100 screening launcher, explicit factor names, and empty W&B configuration are documented in [docs/first8_h100.md](docs/first8_h100.md).
+
 From-scratch implementations and experiments for modern sequence models.
 
 按可复现实验书的方式组织的 JAX 模型、训练和推理工具。代码注释使用中文，书籍页面提供中英文两版。

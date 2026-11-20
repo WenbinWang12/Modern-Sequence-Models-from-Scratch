@@ -30,7 +30,7 @@ export UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR:-$TOOLS_DIR/python}"
 export UV_CACHE_DIR="${UV_CACHE_DIR:-$TOOLS_DIR/cache}"
 "$UV" python install "$PYTHON_VERSION"
 
-extras=(dev checkpoint serve)
+extras=(dev checkpoint serve tokenizer)
 if [[ "$INSTALL_CUDA" == "1" ]]; then
   extras+=(cuda)
 fi

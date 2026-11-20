@@ -2,6 +2,8 @@
 
 当前数据管线已经具备可复现的多领域语料池。下一阶段把实验拆成方法、数据和规模三个轴，依次推进。每一轮只改变一个主要轴，保留固定 tokenizer、数据清单、训练预算和评测协议。
 
+本文把 TPP 定义为训练 token 数除以总可训练参数量。小规模 smoke run 可以低于 TPP 20，正式语言模型比较以 TPP 20–40 作为起点，并另外记录更高 TPP 的过训练实验。
+
 ## 总体研究问题
 
 1. 在相同 token 预算下，TTT-E2E 能否稳定超过滑窗注意力？
@@ -26,7 +28,7 @@
 
 ### E1　Dolma3 上的机制主实验
 
-第一轮使用约 125–140M 参数、4,096 上下文、窗口 512、更新块 256 的模型，训练约 0.8–1B tokens。四个模型共享初始化种子、数据顺序、优化器、学习率计划和检查点位置。
+第一轮使用约 125–140M 参数、4,096 上下文、窗口 512、更新块 256 的模型，训练约 3B tokens。这对应总参数量约 22–24 的 TPP，适合正式比较。五个模型共享初始化种子、数据顺序、优化器、学习率计划和检查点位置。
 
 | 实验臂 | 作用 |
 |---|---|
@@ -34,8 +36,20 @@
 | Sliding-window attention | 常数窗口的基础对照 |
 | TTT no-update | 区分额外 MLP′ 参数的作用 |
 | TTT-E2E | 主要方法，训练和评测都执行测试时更新 |
+| Loop+TTT | 共享循环深度与 TTT 快权重的融合模型 |
 
-这一轮同时报告 fixed-token 结果和 fixed-wall-clock 结果。TTT 的训练成本更高，两种约束回答的是不同问题，不能合并成单一排名。
+这一轮同时报告 fixed-token 结果和 fixed-wall-clock 结果。TTT 的训练成本更高，两种约束回答的是不同问题，分别报告。
+
+### E1-L　Loop 和 Loop+TTT 的定义
+
+Ouro 的核心是共享 Transformer stack 的多次 latent-space recurrence，公开基础模型使用 4 个 recurrent steps。Nanbeige4.2-3B 使用 22 层 decoder stack 的两次 full-stack recurrence。两者都把循环当作预训练架构，而不是推理时临时重复普通层。[Ouro paper](https://arxiv.org/abs/2510.25741) · [Nanbeige4.2 model card](https://huggingface.co/Nanbeige/Nanbeige4.2-3B-Base)
+
+本项目分两步实现：
+
+1. **Prefix Loop+TTT** 作为第一版。使用当前代码已有的 `middle_block` 循环，固定 `loop_repeats=2`，在前段共享 block 参数，最后 3 层保留 TTT fast MLP。每个 chunk 的 TTT 更新只在最后一个 loop pass 结束后执行一次，下一 chunk 使用更新后的快权重。
+2. **Full-stack Loop+TTT** 作为第二版。整个 decoder stack 共享并重复两次，TTT fast MLP 挂在共享 stack 的最后若干层。一个 chunk 内所有 loop pass 使用同一组快权重，chunk loss 计算完成后只更新一次。这样保持“先预测、后更新”的因果关系，也避免循环次数把 TTT 更新次数重复放大。
+
+第一版不加入动态 early-exit、entropy regularization、LoopSplit 或 mHC。固定深度结果稳定后，再单独研究 per-loop loss、退出门控和循环次数外推。
 
 ### E2　机制拆解和超参数
 
@@ -47,7 +61,7 @@
 4. 内循环学习率和梯度裁剪。
 5. 后段 MLP′ 层数、注意力窗口和多 token 预测头。
 
-消融使用 0.2–0.5B tokens 的小预算。只有影响稳定、代价可接受并且在独立 held-out 上重复的因素进入后续规模实验。
+机制消融可以使用 0.2–0.5B tokens，但只能作为实现和超参数诊断，不能作为正式质量结论。正式消融至少使用与 E1 同级别的 TPP，或明确标注为低 TPP 诊断。
 
 ### E3　数据配方选择
 
@@ -73,13 +87,23 @@
 
 ### E5　随机种子和模型规模
 
-在 E1 的主结论出现后，再使用 3 个随机种子重复 Full、Sliding-window 和 TTT-E2E。随后在约 125M、350M 和 760M 三个规模上做固定 token 预算比较。
+在 E1 的主结论出现后，再使用 3 个随机种子重复 Full、Sliding-window、TTT-E2E 和 Loop+TTT。随后按下表扩展模型规模。训练 token 是每个模型、每个实验臂的预算。
+
+| 模型规模 | TPP 20 预算 | 推荐第一轮预算 | 174.48B 池的理论上限 |
+|---:|---:|---:|---:|
+| 125M | 2.5B | 3–5B | 约 1,395 TPP |
+| 350M | 7B | 14B | 约 498 TPP |
+| 760M | 15.2B | 30B | 约 229 TPP |
+| 1.3B | 26B | 50–60B | 约 134 TPP |
+| 3B | 60B | 100–120B | 约 58 TPP |
 
 规模实验分别报告固定 token 和固定 FLOPs 结果。小规模、短预算的结果不能外推到 3B 或更大规模。
 
+Loop 共享参数会让按参数计算的 TPP 显得偏高，因此每个 Loop 结果还要记录有效层访问次数、实测训练 FLOPs/token、wall-clock 和 unique trainable parameters。Loop 与非 Loop 模型分别做参数匹配和 FLOPs 匹配。
+
 ### E6　最终规模训练
 
-只有在方法、配方和成本都通过前面阶段后，才进入 10B、30B 或更大 token 预算。174.48B 数据池可以支持最终规模实验，但第一轮不直接消耗整个池子。最终训练需要冻结：
+只有在方法、配方和成本都通过前面阶段后，才进入 30B、60B 或更大 token 预算。174.48B 数据池可以支持 1.3B 级别的高 TPP 训练或 3B 级别的 TPP 50–60 训练。最终训练需要冻结：
 
 - 数据 revision、来源比例和重复策略
 - 模型配置、上下文长度和 TTT 更新规则
@@ -135,4 +159,4 @@ E0 数据与系统准入
   → E6 最终规模训练
 ```
 
-第一步应生成 E1 的四个 Dolma3 配置并运行约 1B token 的配对实验。若 TTT-E2E 在 held-out 和长上下文曲线上的优势不能重复，先停在 E2 诊断，不进入 100B 级训练。
+第一步应生成 E1 的五个 Dolma3 配置并运行约 3B token 的配对实验。Loop+TTT 先使用 Prefix Loop+TTT 版本，Full-stack Loop+TTT 在循环状态和 KV cache 通过独立正确性测试后再加入。若 TTT-E2E 或 Loop+TTT 在 held-out 和长上下文曲线上的优势不能重复，先停在 E2 诊断，不进入几十 B token 级训练。

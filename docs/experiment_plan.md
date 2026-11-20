@@ -50,6 +50,9 @@ Loop 模型还要额外记录 unique trainable parameters、有效层访问次�
 | Loop depth | 1、2、4、8 | 2 已作为起点，4/8 需要稳定性测试 |
 | TTT suffix | 1 层、末四分之一、末三分之一、全层 | 末段 MLP′ 已有 |
 | Norm/residual | pre-norm、post-norm、RMSNorm、QK-Norm、attention gate、hyper-connection | pre/post、RMSNorm、QK-Norm、attention gate 已有，其余需实现 |
+| Position encoding | RoPE base、RoPE scaling、ALiBi、learned position、YaRN/long-context interpolation | RoPE 已有，其余需实现 |
+| Capacity allocation | depth、hidden width、FFN ratio、vocab/embedding size、tied/untied head | depth/width/FFN 和 tied embedding 已有 |
+| FFN activation | SwiGLU、GeGLU、GELU、普通 FFN | SwiGLU 已有，其余需实现 |
 | Objective | next-token、multi-token prediction、per-loop loss、deep supervision、entropy-regularized exit | next-token 和 multi-token 已有，后几项需实现 |
 
 ### 优化器和训练规则因子
@@ -65,6 +68,7 @@ Loop 模型还要额外记录 unique trainable parameters、有效层访问次�
 | 梯度处理 | global clip、per-layer clip、无 clip |
 | batch 轴 | global token batch、sequence batch、gradient accumulation |
 | 精度和算子顺序 | float32/bfloat16、确定性归约、XLA kernel 顺序 |
+| 并行和系统 | single GPU、data parallel、mesh、expert parallel、sequence/context parallel |
 
 Muon 与 AdamW 必须在相同 token、相同模型、相同数据顺序和相同 wall-clock 记录下比较。Muon 通常只应用于二维隐藏层矩阵，其余参数使用 AdamW，因此实验配置要明确参数分组。已有研究同时报告了 Muon 的数据效率优势和语言训练中的成本、调参敏感性，不能只比较最终 loss。[Muon 可扩展性研究](https://arxiv.org/abs/2502.16982) · [Muon、SOAP 与 AdamW 对照](https://arxiv.org/abs/2607.20548)
 

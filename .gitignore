@@ -11,6 +11,6 @@ __pycache__/
 build/
 dist/
 outputs/
-data/
+/data/
 results/
 docs/assets/figures/exports/

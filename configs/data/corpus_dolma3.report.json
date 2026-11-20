@@ -1,0 +1,384 @@
+{
+ "spec": "configs/data/corpus_dolma3.json",
+ "spec_sha256": "be2851617778101facb14bd656c218ad5588d24341288333e36462cf55b18d64",
+ "sources": {
+  "d3_web": {
+   "domain": "web",
+   "repo": "allenai/dolma3_mix-150B-1025",
+   "revision": "afa92bfb22366821c5e6cd427cdd036b34b713ef",
+   "license": "odc-by",
+   "description": "Common Crawl 网页：24 个主题 × 20 个质量档，高质量档按原配比上采样",
+   "train": {
+    "documents": 82743674,
+    "tokens": 127871881456,
+    "utf8_bytes": 554534726781,
+    "bytes_per_token": 4.336643212462721,
+    "document_tokens_mean": 1545.3976754283356,
+    "document_tokens_median": 810.0,
+    "document_tokens_p90": 3023.0,
+    "document_tokens_max": 361198,
+    "token_share_in_documents_ge_2048": 0.5889945599878873,
+    "token_share_in_documents_ge_4096": 0.39637746649908023
+   },
+   "filters": {
+    "heldout_repeat": 2673,
+    "in_other_heldout": 3,
+    "read": 84504775,
+    "repeat_kept": 54590645,
+    "too_short": 1688250,
+    "contaminated": {
+     "ngram13": {
+      "bbh/sports_understanding": 6,
+      "benchmarks/arc_challenge": 148,
+      "benchmarks/arc_easy": 678,
+      "benchmarks/hellaswag": 1841,
+      "benchmarks/lambada_openai": 394,
+      "benchmarks/mmlu": 14506,
+      "benchmarks/piqa": 218,
+      "benchmarks/sciq": 4832,
+      "benchmarks/wikitext": 1573,
+      "gpqa/gpqa_test": 2,
+      "gsm8k/test": 52,
+      "humaneval/HumanEval": 280,
+      "wikitext2/test": 1,
+      "wikitext2/valid": 2803
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 6915,
+      "benchmarks/arc_easy": 3311,
+      "benchmarks/hellaswag": 46,
+      "benchmarks/mmlu": 22087,
+      "benchmarks/openbookqa": 152,
+      "benchmarks/piqa": 1864,
+      "benchmarks/sciq": 3825
+     },
+     "span50": {
+      "pg19/test": 1775,
+      "pg19/validation": 1441
+     }
+    },
+    "contaminated_total": 68750
+   },
+   "eval_index_sha256": "e9b0612fa8d336b94b082d63250bfe591712a52f32748eda18b933cb1ef09d66",
+   "train_manifest_sha256": "57deaa60a46ad3b38e692b1d1cfa853deef882ea23abfd1d6e0b0cf5ee3a22f0",
+   "heldout": {
+    "documents": 1425,
+    "tokens": 2123514,
+    "utf8_bytes": 9265242,
+    "bytes_per_token": 4.363165017984341,
+    "document_tokens_mean": 1490.1852631578947,
+    "document_tokens_median": 823.0,
+    "document_tokens_p90": 3006.800000000002,
+    "document_tokens_max": 60104,
+    "token_share_in_documents_ge_2048": 0.5659138578789685,
+    "token_share_in_documents_ge_4096": 0.36252645379309956
+   },
+   "heldout_manifest_sha256": "e1ce2bd0f90322a0c4a4b7ed05870587578be82525d7b6954e1a2bdba4f9601e"
+  },
+  "d3_pdfs": {
+   "domain": "science",
+   "repo": "allenai/dolma3_mix-150B-1025",
+   "revision": "afa92bfb22366821c5e6cd427cdd036b34b713ef",
+   "license": "odc-by",
+   "description": "olmOCR 转写的学术 PDF（长文档）",
+   "train": {
+    "documents": 2055169,
+    "tokens": 21383772780,
+    "utf8_bytes": 82466126901,
+    "bytes_per_token": 3.856481629758507,
+    "document_tokens_mean": 10404.87316614838,
+    "document_tokens_median": 4318.0,
+    "document_tokens_p90": 19245.199999999953,
+    "document_tokens_max": 23976892,
+    "token_share_in_documents_ge_2048": 0.9715639920861523,
+    "token_share_in_documents_ge_4096": 0.9240945343602739
+   },
+   "filters": {
+    "duplicate": 1,
+    "heldout_repeat": 32,
+    "read": 2253518,
+    "repeat_kept": 248972,
+    "too_short": 194724,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/arc_challenge": 4,
+      "benchmarks/arc_easy": 51,
+      "benchmarks/hellaswag": 29,
+      "benchmarks/lambada_openai": 3,
+      "benchmarks/mmlu": 1687,
+      "benchmarks/piqa": 4,
+      "benchmarks/sciq": 122,
+      "benchmarks/wikitext": 43,
+      "gpqa/gpqa_test": 3,
+      "gsm8k/test": 2,
+      "humaneval/HumanEval": 6,
+      "wikitext2/valid": 15
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 145,
+      "benchmarks/arc_easy": 116,
+      "benchmarks/hellaswag": 2,
+      "benchmarks/mmlu": 930,
+      "benchmarks/openbookqa": 2,
+      "benchmarks/piqa": 15,
+      "benchmarks/sciq": 171
+     },
+     "span50": {
+      "pg19/test": 32,
+      "pg19/validation": 30
+     }
+    },
+    "contaminated_total": 3412
+   },
+   "eval_index_sha256": "e9b0612fa8d336b94b082d63250bfe591712a52f32748eda18b933cb1ef09d66",
+   "train_manifest_sha256": "3d29ec72156af8f615135b2e68b6e3edc24b3578504f659990ed1ffd3ea35aa3",
+   "heldout": {
+    "documents": 180,
+    "tokens": 1397579,
+    "utf8_bytes": 5607216,
+    "bytes_per_token": 4.0120923396816925,
+    "document_tokens_mean": 7764.327777777778,
+    "document_tokens_median": 4118.0,
+    "document_tokens_p90": 16140.6,
+    "document_tokens_max": 96294,
+    "token_share_in_documents_ge_2048": 0.9590806673540458,
+    "token_share_in_documents_ge_4096": 0.8904519887605638
+   },
+   "heldout_manifest_sha256": "09d99c3d6bffb88d54a1b669b9aa003d0e13413a6749cdacc3eb472ebf7ede10"
+  },
+  "d3_code": {
+   "domain": "code",
+   "repo": "allenai/dolma3_mix-150B-1025",
+   "revision": "afa92bfb22366821c5e6cd427cdd036b34b713ef",
+   "license": "odc-by",
+   "description": "Stack-Edu：按教育质量筛选并重新配平语言比例的 GitHub 代码文件",
+   "train": {
+    "documents": 13881678,
+    "tokens": 19340627738,
+    "utf8_bytes": 42882940699,
+    "bytes_per_token": 2.217246579579453,
+    "document_tokens_mean": 1393.248549490919,
+    "document_tokens_median": 654.0,
+    "document_tokens_p90": 2855.0,
+    "document_tokens_max": 5123098,
+    "token_share_in_documents_ge_2048": 0.5938159735340437,
+    "token_share_in_documents_ge_4096": 0.3953649279426506
+   },
+   "filters": {
+    "duplicate": 9,
+    "heldout_repeat": 1624,
+    "read": 14328425,
+    "repeat_kept": 9531447,
+    "too_short": 442641,
+    "contaminated": {
+     "ngram13": {
+      "bbh/sports_understanding": 12,
+      "benchmarks/arc_challenge": 2,
+      "benchmarks/hellaswag": 4,
+      "benchmarks/mmlu": 178,
+      "benchmarks/sciq": 16,
+      "benchmarks/wikitext": 3,
+      "humaneval/HumanEval": 1278
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 33,
+      "benchmarks/arc_easy": 13,
+      "benchmarks/mmlu": 145,
+      "benchmarks/piqa": 3,
+      "benchmarks/sciq": 14
+     },
+     "span50": {
+      "pg19/test": 24,
+      "pg19/validation": 8
+     }
+    },
+    "contaminated_total": 1733
+   },
+   "eval_index_sha256": "e9b0612fa8d336b94b082d63250bfe591712a52f32748eda18b933cb1ef09d66",
+   "train_manifest_sha256": "aa8a70843b648ca5e8306859bbc88885d064375feba7be976dc07ce00391fb73",
+   "heldout": {
+    "documents": 740,
+    "tokens": 954361,
+    "utf8_bytes": 2226015,
+    "bytes_per_token": 2.3324664356569476,
+    "document_tokens_mean": 1289.677027027027,
+    "document_tokens_median": 628.5,
+    "document_tokens_p90": 2885.500000000001,
+    "document_tokens_max": 22491,
+    "token_share_in_documents_ge_2048": 0.5734685302521793,
+    "token_share_in_documents_ge_4096": 0.3790200982647028
+   },
+   "heldout_manifest_sha256": "210cbc53789e44b975cd3e71efacbf8aa87badf028da9f5cd4e02635d5ecfe00"
+  },
+  "d3_math": {
+   "domain": "math",
+   "repo": "allenai/dolma3_mix-150B-1025",
+   "revision": "afa92bfb22366821c5e6cd427cdd036b34b713ef",
+   "license": "odc-by",
+   "description": "FineMath 3+：数学质量评分不低于 3 的网页",
+   "train": {
+    "documents": 2540715,
+    "tokens": 4345838195,
+    "utf8_bytes": 14476727195,
+    "bytes_per_token": 3.331170316385882,
+    "document_tokens_mean": 1710.4784263484885,
+    "document_tokens_median": 847.0,
+    "document_tokens_p90": 3114.0,
+    "document_tokens_max": 805179,
+    "token_share_in_documents_ge_2048": 0.6151992775699741,
+    "token_share_in_documents_ge_4096": 0.4302541201720926
+   },
+   "filters": {
+    "duplicate": 175,
+    "heldout_repeat": 4677,
+    "in_other_heldout": 135,
+    "read": 2568380,
+    "repeat_kept": 1971613,
+    "too_short": 12357,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/arc_challenge": 51,
+      "benchmarks/arc_easy": 78,
+      "benchmarks/hellaswag": 49,
+      "benchmarks/mmlu": 520,
+      "benchmarks/piqa": 18,
+      "benchmarks/sciq": 654,
+      "benchmarks/wikitext": 18,
+      "gsm8k/test": 13,
+      "humaneval/HumanEval": 251,
+      "wikitext2/valid": 15
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 1254,
+      "benchmarks/arc_easy": 519,
+      "benchmarks/hellaswag": 5,
+      "benchmarks/mmlu": 4764,
+      "benchmarks/openbookqa": 13,
+      "benchmarks/piqa": 541,
+      "benchmarks/sciq": 200
+     },
+     "span50": {
+      "pg19/validation": 5
+     }
+    },
+    "contaminated_total": 8968
+   },
+   "eval_index_sha256": "e9b0612fa8d336b94b082d63250bfe591712a52f32748eda18b933cb1ef09d66",
+   "train_manifest_sha256": "7afd7228e151ab34a3a89978f5a36ef030b339f30c8e4e6802ad56f2994471d2",
+   "heldout": {
+    "documents": 1353,
+    "tokens": 2427411,
+    "utf8_bytes": 8247993,
+    "bytes_per_token": 3.3978559873049927,
+    "document_tokens_mean": 1794.0953436807094,
+    "document_tokens_median": 854.0,
+    "document_tokens_p90": 3256.0,
+    "document_tokens_max": 134188,
+    "token_share_in_documents_ge_2048": 0.64653987314056,
+    "token_share_in_documents_ge_4096": 0.43873246022202256
+   },
+   "heldout_manifest_sha256": "f308b2f39ee775f83f7d60c16bd39326c5334fff77485b9a13120579c9c5dfb4"
+  },
+  "d3_arxiv": {
+   "domain": "science",
+   "repo": "allenai/dolma3_mix-150B-1025",
+   "revision": "afa92bfb22366821c5e6cd427cdd036b34b713ef",
+   "license": "odc-by",
+   "description": "arXiv 论文（LaTeX）与 proof-pile 数学文本",
+   "train": {
+    "documents": 240652,
+    "tokens": 1479047815,
+    "utf8_bytes": 4301459204,
+    "bytes_per_token": 2.9082624377495194,
+    "document_tokens_mean": 6146.002588800426,
+    "document_tokens_median": 1493.0,
+    "document_tokens_p90": 17046.899999999994,
+    "document_tokens_max": 892671,
+    "token_share_in_documents_ge_2048": 0.9304227138863661,
+    "token_share_in_documents_ge_4096": 0.8732774606073165
+   },
+   "filters": {
+    "duplicate": 1096,
+    "heldout_repeat": 753,
+    "read": 246684,
+    "repeat_kept": 137261,
+    "too_short": 3214,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/hellaswag": 2,
+      "benchmarks/mmlu": 19,
+      "benchmarks/sciq": 62,
+      "gpqa/gpqa_test": 5,
+      "gsm8k/test": 2,
+      "humaneval/HumanEval": 12,
+      "wikitext2/test": 2
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 29,
+      "benchmarks/arc_easy": 10,
+      "benchmarks/mmlu": 205,
+      "benchmarks/piqa": 24,
+      "benchmarks/sciq": 18
+     },
+     "span50": {
+      "pg19/test": 3,
+      "pg19/validation": 4
+     }
+    },
+    "contaminated_total": 397
+   },
+   "eval_index_sha256": "e9b0612fa8d336b94b082d63250bfe591712a52f32748eda18b933cb1ef09d66",
+   "train_manifest_sha256": "3e81acfc9e37c6ee5a72ec7682bb5dc4900fd802ab8382808b96a4eee676137f",
+   "heldout": {
+    "documents": 572,
+    "tokens": 3539685,
+    "utf8_bytes": 10342516,
+    "bytes_per_token": 2.9218746865893435,
+    "document_tokens_mean": 6188.26048951049,
+    "document_tokens_median": 1531.0,
+    "document_tokens_p90": 16582.0,
+    "document_tokens_max": 201141,
+    "token_share_in_documents_ge_2048": 0.9221656729341735,
+    "token_share_in_documents_ge_4096": 0.8633361443179266
+   },
+   "heldout_manifest_sha256": "9afd67e88120dd265bf389130f7b8c72b1b782e2eb49af9c23d5d73e40c91c5a"
+  },
+  "d3_wiki": {
+   "domain": "reference",
+   "repo": "allenai/dolma3_mix-150B-1025",
+   "revision": "afa92bfb22366821c5e6cd427cdd036b34b713ef",
+   "license": "odc-by",
+   "description": "英文维基百科与 Wikibooks",
+   "train": {
+    "documents": 97394,
+    "tokens": 62643737,
+    "utf8_bytes": 278917060,
+    "bytes_per_token": 4.452433289540182,
+    "document_tokens_mean": 643.1991395773867,
+    "document_tokens_median": 303.0,
+    "document_tokens_p90": 1402.0,
+    "document_tokens_max": 30099,
+    "token_share_in_documents_ge_2048": 0.37240450709382167,
+    "token_share_in_documents_ge_4096": 0.2016532794012592
+   },
+   "filters": {
+    "read": 119140,
+    "too_short": 21015,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/mmlu": 4,
+      "benchmarks/wikitext": 25,
+      "wikitext2/valid": 699
+     },
+     "ngram8": {
+      "benchmarks/mmlu": 1,
+      "benchmarks/sciq": 2
+     }
+    },
+    "contaminated_total": 731
+   },
+   "eval_index_sha256": "e9b0612fa8d336b94b082d63250bfe591712a52f32748eda18b933cb1ef09d66",
+   "train_manifest_sha256": "42e9368a2cb6965a233309fdc3a9b02a22a23d125091628fc9ca5c3857a5a615"
+  }
+ }
+}

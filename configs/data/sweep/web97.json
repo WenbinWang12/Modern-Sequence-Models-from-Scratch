@@ -1,0 +1,27 @@
+{
+  "format": "ttt_mixture_v1",
+  "selection_unit": "window",
+  "exhaustion_policy": "with_replacement",
+  "sources": [
+    {
+      "name": "web_edu",
+      "data": "../../../data/tokens/v2/web_edu-train/manifest.json",
+      "probability": 0.6
+    },
+    {
+      "name": "web",
+      "data": "../../../data/tokens/v2/web-train/manifest.json",
+      "probability": 0.372
+    },
+    {
+      "name": "math_web",
+      "data": "../../../data/tokens/v2/math_web-train/manifest.json",
+      "probability": 0.005
+    },
+    {
+      "name": "code",
+      "data": "../../../data/tokens/v2/code-train/manifest.json",
+      "probability": 0.023
+    }
+  ]
+}

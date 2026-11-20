@@ -1,0 +1,115 @@
+{
+  "format": "ttt_corpus_v1",
+  "tokenizer": "gpt2",
+  "sources": [
+    {
+      "name": "web_edu",
+      "domain": "web",
+      "description": "FineWeb-Edu：经教育质量分类器筛选的网页",
+      "reader": "parquet",
+      "repo": "HuggingFaceFW/fineweb-edu",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "license": "odc-by",
+      "select": {"prefix": "sample/10BT/", "suffix": ".parquet", "limit": 1},
+      "train_tokens": 800000000,
+      "heldout_tokens": 2000000
+    },
+    {
+      "name": "web",
+      "domain": "web",
+      "description": "FineWeb：未按教育质量筛选的通用网页",
+      "reader": "parquet",
+      "repo": "HuggingFaceFW/fineweb",
+      "revision": "9bb295ddab0e05d785b879661af7260fed5140fc",
+      "license": "odc-by",
+      "select": {"prefix": "sample/10BT/", "suffix": ".parquet", "limit": 1},
+      "train_tokens": 500000000,
+      "heldout_tokens": 2000000
+    },
+    {
+      "name": "wiki",
+      "domain": "reference",
+      "description": "英文维基百科（Marin 发布的 Markdown 版）",
+      "reader": "jsonl_gz",
+      "repo": "marin-community/wikipedia-markdown",
+      "revision": "4c6c554cca365a075834805cc0d15d11cbdc7aaa",
+      "license": "cc-by-sa-4.0",
+      "select": {"suffix": ".jsonl.gz", "stride": 16},
+      "train_tokens": 500000000,
+      "heldout_tokens": 2000000
+    },
+    {
+      "name": "books",
+      "domain": "books",
+      "description": "PG-19 训练划分：Project Gutenberg 长篇书籍",
+      "reader": "pg19",
+      "revision": "4d28bd77e66947ad3835cf78ed7aaeb4dd87ad8b",
+      "license": "apache-2.0 (dataset card); public-domain texts",
+      "select": {"one_in": 5},
+      "train_tokens": 600000000,
+      "heldout_tokens": 0
+    },
+    {
+      "name": "papers",
+      "domain": "science",
+      "description": "arXiv 论文全文（Marin 发布的 ar5iv Markdown 版，保留 LaTeX 公式）",
+      "reader": "jsonl_gz",
+      "repo": "marin-community/ar5iv-no-problem-markdown",
+      "revision": "aa24ae3b07113ca787c1346aa30275437ee11c01",
+      "license": "c-uda",
+      "select": {"suffix": ".jsonl.gz", "stride": 7},
+      "train_tokens": 400000000,
+      "heldout_tokens": 2000000
+    },
+    {
+      "name": "math_web",
+      "domain": "math",
+      "description": "FineMath-4plus：数学质量评分不低于 4 的网页",
+      "reader": "parquet",
+      "repo": "HuggingFaceTB/finemath",
+      "revision": "e92b25a616738fe95dc186b64dfb19f9c8525594",
+      "license": "odc-by",
+      "select": {"prefix": "finemath-4plus/", "suffix": ".parquet", "stride": 32},
+      "train_tokens": 300000000,
+      "heldout_tokens": 2000000
+    },
+    {
+      "name": "math_problems",
+      "domain": "math",
+      "description": "NuminaMath-1.5：带完整解答的数学题，只保留题目和解答都标注为有效的行",
+      "reader": "numinamath",
+      "repo": "AI-MO/NuminaMath-1.5",
+      "revision": "1b05109f9e5c1ad06c0663519502416c30b300f8",
+      "license": "apache-2.0",
+      "select": {"prefix": "data/", "suffix": ".parquet"},
+      "min_chars": 80,
+      "train_tokens": 400000000,
+      "heldout_tokens": 2000000
+    },
+    {
+      "name": "code",
+      "domain": "code",
+      "description": "Stack v3：GitHub 仓库级代码，只保留宽松许可证文件",
+      "reader": "stack_v3",
+      "repo": "HuggingFaceCode/stack-v3-train",
+      "revision": "159792e76c98d74843d3be3fb003aad925e3a8f0",
+      "license": "odc-by (dataset); permissive-licence files only",
+      "select": {"prefix": "data/part-", "suffix": ".parquet", "stride": 82},
+      "train_tokens": 600000000,
+      "heldout_tokens": 2000000
+    },
+    {
+      "name": "qa",
+      "domain": "qa",
+      "description": "Stack Exchange 全站问答（Marin 发布的 Markdown 版），各站点按体积平方根取样",
+      "reader": "jsonl_gz",
+      "repo": "marin-community/stackexchange-markdown",
+      "revision": "5a39d5689f9b867e76e0a07afa2742a68a78cef9",
+      "license": "cc-by-sa",
+      "select": {"suffix": ".jsonl.gz"},
+      "sample_sqrt_scale": 450,
+      "train_tokens": 600000000,
+      "heldout_tokens": 2000000
+    }
+  ]
+}

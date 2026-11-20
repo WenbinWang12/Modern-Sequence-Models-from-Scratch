@@ -1,0 +1,17 @@
+{
+  "format": "ttt_mixture_v1",
+  "selection_unit": "window",
+  "exhaustion_policy": "with_replacement",
+  "sources": [
+    {
+      "name": "fineweb_edu",
+      "data": "../../data/tokens/fineweb-edu-train/manifest.json",
+      "probability": 0.5
+    },
+    {
+      "name": "pg19",
+      "data": "../../data/tokens/pg19-train/manifest.json",
+      "probability": 0.5
+    }
+  ]
+}

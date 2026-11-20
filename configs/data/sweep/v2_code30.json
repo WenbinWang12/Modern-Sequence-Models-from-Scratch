@@ -1,0 +1,52 @@
+{
+  "format": "ttt_mixture_v1",
+  "selection_unit": "window",
+  "exhaustion_policy": "with_replacement",
+  "sources": [
+    {
+      "name": "web_edu",
+      "data": "../../../data/tokens/v2/web_edu-train/manifest.json",
+      "probability": 0.2
+    },
+    {
+      "name": "web",
+      "data": "../../../data/tokens/v2/web-train/manifest.json",
+      "probability": 0.13
+    },
+    {
+      "name": "wiki",
+      "data": "../../../data/tokens/v2/wiki-train/manifest.json",
+      "probability": 0.09
+    },
+    {
+      "name": "books",
+      "data": "../../../data/tokens/v2/books-train/manifest.json",
+      "probability": 0.12
+    },
+    {
+      "name": "papers",
+      "data": "../../../data/tokens/v2/papers-train/manifest.json",
+      "probability": 0.08
+    },
+    {
+      "name": "math_web",
+      "data": "../../../data/tokens/v2/math_web-train/manifest.json",
+      "probability": 0.04
+    },
+    {
+      "name": "math_problems",
+      "data": "../../../data/tokens/v2/math_problems-train/manifest.json",
+      "probability": 0.04
+    },
+    {
+      "name": "code",
+      "data": "../../../data/tokens/v2/code-train/manifest.json",
+      "probability": 0.24
+    },
+    {
+      "name": "qa",
+      "data": "../../../data/tokens/v2/qa-train/manifest.json",
+      "probability": 0.06
+    }
+  ]
+}

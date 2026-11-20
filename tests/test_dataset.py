@@ -1,6 +1,8 @@
 """分片边界、监督掩码和数据篡改检查。"""
 
 import json
+import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -41,6 +43,83 @@ def test_global_rows_independent_of_partition(tmp_path):
     halves = [stream.sample_rows(7, [0, 1]), stream.sample_rows(7, [2, 3])]
     for index in range(2):
         np.testing.assert_array_equal(full[index], np.concatenate([item[index] for item in halves]))
+
+
+def write_shards(directory, arrays, masks=None):
+    """把若干 uint16 数组写成分片和清单，返回清单路径。"""
+    records = []
+    for index, array in enumerate(arrays):
+        np.save(directory / f"part-{index}.npy", array, allow_pickle=False)
+        record = {"tokens": f"part-{index}.npy", "count": int(array.size)}
+        record["sha256"] = file_sha256(directory / f"part-{index}.npy")
+        if masks is not None:
+            np.save(directory / f"part-{index}.mask.npy", masks[index], allow_pickle=False)
+            record["mask"] = f"part-{index}.mask.npy"
+            record["mask_sha256"] = file_sha256(directory / f"part-{index}.mask.npy")
+        records.append(record)
+    manifest = {"format_version": 1, "vocab_size": 300, "shards": records}
+    (directory / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    return directory / "manifest.json"
+
+
+def test_rows_match_concatenated_tokens_across_shard_boundaries(tmp_path):
+    rng = np.random.default_rng(0)
+    arrays = [rng.integers(0, 300, size=size, dtype=np.uint16) for size in (7, 1, 12, 3, 40)]
+    masks = [rng.integers(0, 2, size=array.size, dtype=np.uint8) for array in arrays]
+    dataset = TokenDataset(write_shards(tmp_path, arrays, masks), 300)
+    tokens, labels = np.concatenate(arrays), np.concatenate(masks)
+    assert dataset.size == tokens.size == 63
+    starts = [0, 5, 6, 7, 8, 19, 22, 23, 50]
+    rows, row_masks = dataset.rows(starts, 13)
+    assert rows.dtype == np.int32 and row_masks.dtype == np.float32
+    for row, start in enumerate(starts):
+        np.testing.assert_array_equal(rows[row], tokens[start : start + 13])
+        np.testing.assert_array_equal(row_masks[row], labels[start + 1 : start + 13])
+    whole, _ = dataset.rows(np.asarray([0]), 63)
+    np.testing.assert_array_equal(whole[0], tokens)
+    for bad in ([51], [-1], [63]):
+        with pytest.raises(ValueError, match="越界"):
+            dataset.rows(bad, 13)
+
+
+def test_verification_receipt_skips_rehash_but_detects_changes(tmp_path, monkeypatch):
+    arrays = [np.arange(10, dtype=np.uint16), np.arange(10, 30, dtype=np.uint16)]
+    manifest = write_shards(tmp_path, arrays)
+    calls = []
+    original = dataset_module.file_sha256
+    monkeypatch.setattr(dataset_module, "file_sha256", lambda path: calls.append(Path(path).name) or original(path))
+
+    TokenDataset(manifest, 300)
+    assert sorted(calls) == ["manifest.json", "part-0.npy", "part-1.npy"]
+    assert (tmp_path / "verified.json").exists()
+    calls.clear()
+    reopened = TokenDataset(manifest, 300)
+    # 回执有效时只对清单本身取摘要，不再读分片内容。
+    assert calls == ["manifest.json"]
+    np.testing.assert_array_equal(reopened.rows([8], 4)[0][0], [8, 9, 10, 11])
+    # Windows 不允许在仍有 mmap 句柄时覆盖同一个分片。
+    del reopened
+
+    # 分片被改写（大小不变）后回执失效，重新校验并报错。
+    changed = arrays[1].copy()
+    changed[3] = 299
+    np.save(tmp_path / "part-1.npy", changed, allow_pickle=False)
+    os.utime(tmp_path / "part-1.npy", ns=(1, 1))
+    calls.clear()
+    with pytest.raises(ValueError, match="分片校验失败：part-1.npy"):
+        TokenDataset(manifest, 300)
+    assert "part-1.npy" in calls
+
+    # 词表大小不同的回执不能复用。
+    np.save(tmp_path / "part-1.npy", arrays[1], allow_pickle=False)
+    TokenDataset(manifest, 300)
+    wide = json.loads(manifest.read_text(encoding="utf-8"))
+    receipt = json.loads((tmp_path / "verified.json").read_text(encoding="utf-8"))
+    assert receipt["vocab_size"] == 300 and set(receipt["files"]) == {"part-0.npy", "part-1.npy"}
+    wide["vocab_size"] = 20
+    manifest.write_text(json.dumps(wide), encoding="utf-8")
+    with pytest.raises(ValueError, match="超出词表"):
+        TokenDataset(manifest, 20)
 
 
 def test_source_digest_covers_actual_bytes_including_crlf_and_blank_lines(tmp_path):

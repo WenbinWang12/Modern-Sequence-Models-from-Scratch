@@ -1,0 +1,12 @@
+{
+  "format": "ttt_mixture_v1",
+  "selection_unit": "window",
+  "exhaustion_policy": "with_replacement",
+  "sources": [
+    {
+      "name": "web_edu",
+      "data": "../../../data/tokens/v2/web_edu-train/manifest.json",
+      "probability": 1.0
+    }
+  ]
+}

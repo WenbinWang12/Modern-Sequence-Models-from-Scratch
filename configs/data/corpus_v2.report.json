@@ -1,0 +1,511 @@
+{
+ "spec": "configs/data/corpus_v2.json",
+ "spec_sha256": "ecb537e0ee8ed87cac30e70c76a5363fb6a94d14af4dc96367618a9e768df362",
+ "sources": {
+  "web_edu": {
+   "domain": "web",
+   "repo": "HuggingFaceFW/fineweb-edu",
+   "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+   "license": "odc-by",
+   "description": "FineWeb-Edu：经教育质量分类器筛选的网页",
+   "train": {
+    "documents": 721732,
+    "tokens": 745767578,
+    "utf8_bytes": 3440748191,
+    "bytes_per_token": 4.613700424235927,
+    "document_tokens_mean": 1033.302635881463,
+    "document_tokens_median": 626.0,
+    "document_tokens_p90": 1945.0,
+    "document_tokens_max": 156269,
+    "token_share_in_documents_ge_2048": 0.4061318605620584,
+    "token_share_in_documents_ge_4096": 0.24009739130815366
+   },
+   "filters": {
+    "duplicate": 1494,
+    "read": 726000,
+    "too_short": 1,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/arc_challenge": 1,
+      "benchmarks/arc_easy": 5,
+      "benchmarks/hellaswag": 16,
+      "benchmarks/mmlu": 451,
+      "benchmarks/piqa": 2,
+      "benchmarks/sciq": 41,
+      "benchmarks/wikitext": 18,
+      "wikitext2/valid": 168
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 51,
+      "benchmarks/arc_easy": 24,
+      "benchmarks/mmlu": 156,
+      "benchmarks/piqa": 16,
+      "benchmarks/sciq": 37
+     },
+     "span50": {
+      "pg19/test": 36,
+      "pg19/validation": 14
+     }
+    },
+    "contaminated_total": 1036
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "6355a8c22f6e5d139a4271fb008ab800b7583c36e3d5ea0b544a26e8f64dd098",
+   "heldout": {
+    "documents": 1737,
+    "tokens": 1676592,
+    "utf8_bytes": 7717349,
+    "bytes_per_token": 4.602997628522622,
+    "document_tokens_mean": 965.2227979274611,
+    "document_tokens_median": 625.0,
+    "document_tokens_p90": 1895.2000000000007,
+    "document_tokens_max": 20543,
+    "token_share_in_documents_ge_2048": 0.361495820092187,
+    "token_share_in_documents_ge_4096": 0.18701508774943457
+   },
+   "heldout_manifest_sha256": "aba41d13dbe0939e716e046d2bb2cd0ea49d5d330e893af15a4d11ef56b61300"
+  },
+  "web": {
+   "domain": "web",
+   "repo": "HuggingFaceFW/fineweb",
+   "revision": "9bb295ddab0e05d785b879661af7260fed5140fc",
+   "license": "odc-by",
+   "description": "FineWeb：未按教育质量筛选的通用网页",
+   "train": {
+    "documents": 724039,
+    "tokens": 500000173,
+    "utf8_bytes": 2225562090,
+    "bytes_per_token": 4.451122639911566,
+    "document_tokens_mean": 690.5707745024785,
+    "document_tokens_median": 404.0,
+    "document_tokens_p90": 1354.0,
+    "document_tokens_max": 130041,
+    "token_share_in_documents_ge_2048": 0.2965019954103096,
+    "token_share_in_documents_ge_4096": 0.16111048225577315
+   },
+   "filters": {
+    "duplicate": 366,
+    "over_cap": 22908,
+    "read": 750683,
+    "tasks_not_needed": 298,
+    "too_short": 146,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/arc_challenge": 1,
+      "benchmarks/hellaswag": 19,
+      "benchmarks/lambada_openai": 1,
+      "benchmarks/mmlu": 89,
+      "benchmarks/piqa": 2,
+      "benchmarks/sciq": 2,
+      "benchmarks/wikitext": 7,
+      "wikitext2/valid": 41
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 1,
+      "benchmarks/arc_easy": 2,
+      "benchmarks/mmlu": 20,
+      "benchmarks/piqa": 8,
+      "benchmarks/sciq": 4
+     },
+     "span50": {
+      "pg19/test": 14,
+      "pg19/validation": 8
+     }
+    },
+    "contaminated_total": 219
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "91f442db92ced5858155a604a7b07be01456cc95268ee97922701f415d863847",
+   "heldout": {
+    "documents": 3005,
+    "tokens": 2000077,
+    "utf8_bytes": 8892287,
+    "bytes_per_token": 4.445972330065293,
+    "document_tokens_mean": 665.5830282861897,
+    "document_tokens_median": 397.0,
+    "document_tokens_p90": 1313.7999999999997,
+    "document_tokens_max": 35587,
+    "token_share_in_documents_ge_2048": 0.27359396663228464,
+    "token_share_in_documents_ge_4096": 0.12527517690568912
+   },
+   "heldout_manifest_sha256": "f2ee656b15f29fee7cebe384d7336ec26f3eb77ff4e42fdfc81c0dc774106069"
+  },
+  "wiki": {
+   "domain": "reference",
+   "repo": "marin-community/wikipedia-markdown",
+   "revision": "4c6c554cca365a075834805cc0d15d11cbdc7aaa",
+   "license": "cc-by-sa-4.0",
+   "description": "英文维基百科（Marin 发布的 Markdown 版）",
+   "train": {
+    "documents": 341145,
+    "tokens": 500000507,
+    "utf8_bytes": 1787465844,
+    "bytes_per_token": 3.574928063022944,
+    "document_tokens_mean": 1465.6539213530903,
+    "document_tokens_median": 662.0,
+    "document_tokens_p90": 3114.0,
+    "document_tokens_max": 127366,
+    "token_share_in_documents_ge_2048": 0.6139517034529727,
+    "token_share_in_documents_ge_4096": 0.42871923327869743
+   },
+   "filters": {
+    "duplicate": 1071,
+    "over_cap": 290,
+    "read": 345933,
+    "tasks_not_needed": 2,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/mmlu": 26,
+      "benchmarks/wikitext": 211,
+      "humaneval/HumanEval": 1,
+      "wikitext2/valid": 1877
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 2,
+      "benchmarks/mmlu": 7,
+      "benchmarks/sciq": 3
+     },
+     "span50": {
+      "pg19/test": 2
+     }
+    },
+    "contaminated_total": 2129
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "073d28d65018de1f8942293753a7432f7d73f1112b7762bf241c9cad21a4c8c0",
+   "heldout": {
+    "documents": 1298,
+    "tokens": 2000278,
+    "utf8_bytes": 7117111,
+    "bytes_per_token": 3.5580609295307952,
+    "document_tokens_mean": 1541.0462249614793,
+    "document_tokens_median": 702.0,
+    "document_tokens_p90": 3369.499999999998,
+    "document_tokens_max": 44011,
+    "token_share_in_documents_ge_2048": 0.6265544089371577,
+    "token_share_in_documents_ge_4096": 0.453842915834699
+   },
+   "heldout_manifest_sha256": "08f1c5ad663fec3a9deea27b0b3eca86305108716d161ba3930e8ad3b5416d40"
+  },
+  "books": {
+   "domain": "books",
+   "repo": null,
+   "revision": "4d28bd77e66947ad3835cf78ed7aaeb4dd87ad8b",
+   "license": "apache-2.0 (dataset card); public-domain texts",
+   "description": "PG-19 训练划分：Project Gutenberg 长篇书籍",
+   "train": {
+    "documents": 5359,
+    "tokens": 562857037,
+    "utf8_bytes": 2101481389,
+    "bytes_per_token": 3.7335970785775214,
+    "document_tokens_mean": 105030.2364247061,
+    "document_tokens_median": 84129.0,
+    "document_tokens_p90": 208686.4,
+    "document_tokens_max": 1694196,
+    "token_share_in_documents_ge_2048": 0.9999228312037609,
+    "token_share_in_documents_ge_4096": 0.999693192074278
+   },
+   "filters": {
+    "read": 5712,
+    "too_short": 1,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/lambada_openai": 2,
+      "benchmarks/mmlu": 80,
+      "benchmarks/wikitext": 1
+     },
+     "ngram8": {
+      "benchmarks/piqa": 1
+     },
+     "span50": {
+      "pg19/test": 126,
+      "pg19/validation": 142
+     }
+    },
+    "contaminated_total": 352
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "908fa7632f121487f3d44c90d2ab449519c12a0d3fcee9cfa389158f42fee570"
+  },
+  "papers": {
+   "domain": "science",
+   "repo": "marin-community/ar5iv-no-problem-markdown",
+   "revision": "aa24ae3b07113ca787c1346aa30275437ee11c01",
+   "license": "c-uda",
+   "description": "arXiv 论文全文（Marin 发布的 ar5iv Markdown 版，保留 LaTeX 公式）",
+   "train": {
+    "documents": 52021,
+    "tokens": 393494096,
+    "utf8_bytes": 1398218412,
+    "bytes_per_token": 3.55334025646982,
+    "document_tokens_mean": 7564.139405240191,
+    "document_tokens_median": 6139.0,
+    "document_tokens_p90": 13961.0,
+    "document_tokens_max": 345455,
+    "token_share_in_documents_ge_2048": 0.9903124340650844,
+    "token_share_in_documents_ge_4096": 0.9138590277603555
+   },
+   "filters": {
+    "duplicate": 4,
+    "read": 52778,
+    "too_short": 499,
+    "contaminated": {
+     "ngram13": {
+      "bbh/sports_understanding": 1,
+      "benchmarks/mmlu": 2
+     },
+     "ngram8": {
+      "benchmarks/mmlu": 2
+     }
+    },
+    "contaminated_total": 5
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "35b8c1da9979bdee238d59c5adfd253ca1733704db4ee49e36a9b03d48a719cd",
+   "heldout": {
+    "documents": 249,
+    "tokens": 2000964,
+    "utf8_bytes": 7007456,
+    "bytes_per_token": 3.5020400167119448,
+    "document_tokens_mean": 8036.0,
+    "document_tokens_median": 6494.0,
+    "document_tokens_p90": 15035.200000000003,
+    "document_tokens_max": 50807,
+    "token_share_in_documents_ge_2048": 0.9902367059077525,
+    "token_share_in_documents_ge_4096": 0.9314735297586564
+   },
+   "heldout_manifest_sha256": "ebeecf9a212f4e6e2266e8ab12ee04a452124d3457a6ce3e0dd1440712315c7e"
+  },
+  "math_web": {
+   "domain": "math",
+   "repo": "HuggingFaceTB/finemath",
+   "revision": "e92b25a616738fe95dc186b64dfb19f9c8525594",
+   "license": "odc-by",
+   "description": "FineMath-4plus：数学质量评分不低于 4 的网页",
+   "train": {
+    "documents": 197652,
+    "tokens": 300002820,
+    "utf8_bytes": 1001793457,
+    "bytes_per_token": 3.339280134100073,
+    "document_tokens_mean": 1517.8334648776638,
+    "document_tokens_median": 863.0,
+    "document_tokens_p90": 2886.0,
+    "document_tokens_max": 355795,
+    "token_share_in_documents_ge_2048": 0.5474491673111606,
+    "token_share_in_documents_ge_4096": 0.3467383973257318
+   },
+   "filters": {
+    "over_cap": 277,
+    "read": 200680,
+    "tasks_not_needed": 9,
+    "too_short": 657,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/arc_challenge": 6,
+      "benchmarks/arc_easy": 2,
+      "benchmarks/hellaswag": 9,
+      "benchmarks/mmlu": 54,
+      "benchmarks/piqa": 3,
+      "benchmarks/sciq": 61,
+      "benchmarks/wikitext": 1,
+      "gsm8k/test": 6,
+      "humaneval/HumanEval": 29
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 88,
+      "benchmarks/arc_easy": 34,
+      "benchmarks/hellaswag": 1,
+      "benchmarks/mmlu": 397,
+      "benchmarks/piqa": 106,
+      "benchmarks/sciq": 14
+     },
+     "span50": {
+      "pg19/validation": 1
+     }
+    },
+    "contaminated_total": 812
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "a6c8e0efadcd17f36c8d0fed8b49414400bf8bfca8da88c5a3b14712f514bd27",
+   "heldout": {
+    "documents": 1282,
+    "tokens": 2000231,
+    "utf8_bytes": 6640018,
+    "bytes_per_token": 3.319625583245135,
+    "document_tokens_mean": 1560.2425897035882,
+    "document_tokens_median": 849.0,
+    "document_tokens_p90": 2965.0000000000036,
+    "document_tokens_max": 60758,
+    "token_share_in_documents_ge_2048": 0.5619930897981283,
+    "token_share_in_documents_ge_4096": 0.3931155951487603
+   },
+   "heldout_manifest_sha256": "ec9f01c6ecba498c3182bfb863ec2420ca39007b2c04b95040e41e784ff4469d"
+  },
+  "math_problems": {
+   "domain": "math",
+   "repo": "AI-MO/NuminaMath-1.5",
+   "revision": "1b05109f9e5c1ad06c0663519502416c30b300f8",
+   "license": "apache-2.0",
+   "description": "NuminaMath-1.5：带完整解答的数学题，只保留题目和解答都标注为有效的行",
+   "train": {
+    "documents": 780196,
+    "tokens": 364963138,
+    "utf8_bytes": 975614652,
+    "bytes_per_token": 2.673186824692416,
+    "document_tokens_mean": 467.783913273075,
+    "document_tokens_median": 386.0,
+    "document_tokens_p90": 846.0,
+    "document_tokens_max": 7265,
+    "token_share_in_documents_ge_2048": 0.01830705160146886,
+    "token_share_in_documents_ge_4096": 0.0037742524013479957
+   },
+   "filters": {
+    "duplicate": 249,
+    "read": 786438,
+    "rejected_by_reader": 109777,
+    "too_short": 19,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/mmlu": 778,
+      "benchmarks/sciq": 2,
+      "gsm8k/test": 10,
+      "humaneval/HumanEval": 2
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 1,
+      "benchmarks/arc_easy": 10,
+      "benchmarks/mmlu": 1131,
+      "benchmarks/piqa": 50
+     }
+    },
+    "contaminated_total": 1984
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "60daa0d2d49f56c1cc1527d34de4f28d6644746f2197d3878177c56171fc4871",
+   "heldout": {
+    "documents": 3990,
+    "tokens": 1853635,
+    "utf8_bytes": 4931301,
+    "bytes_per_token": 2.660340897749557,
+    "document_tokens_mean": 464.5701754385965,
+    "document_tokens_median": 384.5,
+    "document_tokens_p90": 846.0999999999999,
+    "document_tokens_max": 2783,
+    "token_share_in_documents_ge_2048": 0.016067348749888733,
+    "token_share_in_documents_ge_4096": 0.0
+   },
+   "heldout_manifest_sha256": "fc762840c38662568be4aa18d3a7312145cdd181da8b14025f345c31afdcd774"
+  },
+  "code": {
+   "domain": "code",
+   "repo": "HuggingFaceCode/stack-v3-train",
+   "revision": "159792e76c98d74843d3be3fb003aad925e3a8f0",
+   "license": "odc-by (dataset); permissive-licence files only",
+   "description": "Stack v3：GitHub 仓库级代码，只保留宽松许可证文件",
+   "train": {
+    "documents": 27626,
+    "tokens": 509265185,
+    "utf8_bytes": 1176254875,
+    "bytes_per_token": 2.3097099696693384,
+    "document_tokens_mean": 18434.271519583002,
+    "document_tokens_median": 4100.5,
+    "document_tokens_p90": 50409.0,
+    "document_tokens_max": 443494,
+    "token_share_in_documents_ge_2048": 0.9847777027993775,
+    "token_share_in_documents_ge_4096": 0.9629036117990276
+   },
+   "filters": {
+    "read": 29372,
+    "rejected_by_reader": 2081233,
+    "too_short": 1642,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/mmlu": 1,
+      "gsm8k/test": 1,
+      "humaneval/HumanEval": 6,
+      "wikitext2/valid": 1
+     },
+     "ngram8": {
+      "benchmarks/mmlu": 1
+     }
+    },
+    "contaminated_total": 10
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "050d335c50519cf968ef26f68c9d1d27ec1926d33a913c733433b6706ac93ed5",
+   "heldout": {
+    "documents": 94,
+    "tokens": 1952190,
+    "utf8_bytes": 4585673,
+    "bytes_per_token": 2.3489890840543186,
+    "document_tokens_mean": 20767.978723404256,
+    "document_tokens_median": 5014.5,
+    "document_tokens_p90": 62496.700000000055,
+    "document_tokens_max": 207616,
+    "token_share_in_documents_ge_2048": 0.9885974213575522,
+    "token_share_in_documents_ge_4096": 0.9684974310902115
+   },
+   "heldout_manifest_sha256": "a4324a75d74d85f62c661201470cecf481d057e3dc8b8accef181ff8461cde83"
+  },
+  "qa": {
+   "domain": "qa",
+   "repo": "marin-community/stackexchange-markdown",
+   "revision": "5a39d5689f9b867e76e0a07afa2742a68a78cef9",
+   "license": "cc-by-sa",
+   "description": "Stack Exchange 全站问答（Marin 发布的 Markdown 版），各站点按体积平方根取样",
+   "train": {
+    "documents": 422406,
+    "tokens": 351197597,
+    "utf8_bytes": 1166032295,
+    "bytes_per_token": 3.3201602316202634,
+    "document_tokens_mean": 831.4218950488392,
+    "document_tokens_median": 547.0,
+    "document_tokens_p90": 1634.0,
+    "document_tokens_max": 186062,
+    "token_share_in_documents_ge_2048": 0.2869768582158038,
+    "token_share_in_documents_ge_4096": 0.12159351420619202
+   },
+   "filters": {
+    "not_sampled": 21918413,
+    "read": 423871,
+    "too_short": 19,
+    "contaminated": {
+     "ngram13": {
+      "benchmarks/arc_easy": 1,
+      "benchmarks/mmlu": 23,
+      "benchmarks/wikitext": 3,
+      "gpqa/gpqa_test": 1,
+      "humaneval/HumanEval": 1
+     },
+     "ngram8": {
+      "benchmarks/arc_challenge": 1,
+      "benchmarks/arc_easy": 1,
+      "benchmarks/mmlu": 5,
+      "benchmarks/piqa": 5,
+      "benchmarks/sciq": 2
+     },
+     "span50": {
+      "pg19/test": 1,
+      "pg19/validation": 2
+     }
+    },
+    "contaminated_total": 46
+   },
+   "eval_index_sha256": "c4023aa7114d4b017177f95f57de895ee64c6ed3be2d062e7c90ad7eecf011aa",
+   "train_manifest_sha256": "a2dd6f1f70c67681f78798f4232a325a3f45e780ed78aa97594e7cf428176971",
+   "heldout": {
+    "documents": 1400,
+    "tokens": 1153323,
+    "utf8_bytes": 3747963,
+    "bytes_per_token": 3.2497080176151867,
+    "document_tokens_mean": 823.8021428571428,
+    "document_tokens_median": 523.5,
+    "document_tokens_p90": 1450.2000000000016,
+    "document_tokens_max": 30167,
+    "token_share_in_documents_ge_2048": 0.29969748283871905,
+    "token_share_in_documents_ge_4096": 0.18316117861171588
+   },
+   "heldout_manifest_sha256": "785b8fbc3dbf89fa8feb23dfd9bd1376b581edad4c612edddcb5f57f2261e0b2"
+  }
+ }
+}

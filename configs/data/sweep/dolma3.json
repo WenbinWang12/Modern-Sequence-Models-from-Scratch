@@ -1,0 +1,37 @@
+{
+  "format": "ttt_mixture_v1",
+  "selection_unit": "window",
+  "exhaustion_policy": "with_replacement",
+  "sources": [
+    {
+      "name": "d3_web",
+      "data": "../../../data/tokens/dolma3/d3_web-train/manifest.json",
+      "probability": 0.733309
+    },
+    {
+      "name": "d3_pdfs",
+      "data": "../../../data/tokens/dolma3/d3_pdfs-train/manifest.json",
+      "probability": 0.121712
+    },
+    {
+      "name": "d3_code",
+      "data": "../../../data/tokens/dolma3/d3_code-train/manifest.json",
+      "probability": 0.11108
+    },
+    {
+      "name": "d3_math",
+      "data": "../../../data/tokens/dolma3/d3_math-train/manifest.json",
+      "probability": 0.024939
+    },
+    {
+      "name": "d3_arxiv",
+      "data": "../../../data/tokens/dolma3/d3_arxiv-train/manifest.json",
+      "probability": 0.008606
+    },
+    {
+      "name": "d3_wiki",
+      "data": "../../../data/tokens/dolma3/d3_wiki-train/manifest.json",
+      "probability": 0.000354
+    }
+  ]
+}

@@ -67,6 +67,8 @@ print(result.output_dir)
 
 支持一维整数 `.npy` 和带 SHA256 校验的分片清单。分片可以跨文件采样，不需要把整个语料载入内存。Megatron 风格的同名 `.idx/.bin` 数据也可以先用 `scripts/inspect_indexed_dataset.py` 做只读格式检查；完整命令、字段解释和服务器复现顺序见 [可复现实验流程](docs/reproducibility.md)。
 
+多领域预训练语料的来源配置、Dolma3 当前统计、构建命令和验证边界见 [多领域预训练语料](docs/data_corpus.md)。大规模原始文件与 token 分片保存在临时目录，仓库只保存固定 revision、配置、报告和构建脚本。
+
 正式训练可设置 `TTT_DATA_INSPECTION_REPORT=outputs/indexed-report.json`，把外部数据检查报告的摘要写入 `run_metadata.json`。
 
 下载一个带固定 SHA256 的公开 WikiText-2 小样本：

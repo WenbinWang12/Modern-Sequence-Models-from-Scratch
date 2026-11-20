@@ -19,7 +19,17 @@ def file_sha256(path):
     return digest.hexdigest()
 
 
+def _signature(path):
+    """文件的大小和修改时间；内容被改写或替换后会变。"""
+    status = path.stat()
+    return [status.st_size, status.st_mtime_ns]
+
+
 class TokenDataset:
+    """分片 token 数据。分片内容的校验（SHA256、词表范围）每个清单只做一次，结果写在旁边的回执里。"""
+
+    receipt_name = "verified.json"
+
     def __init__(self, path, vocab_size):
         path = Path(path).resolve()
         self.shards, self.masks = [], []
@@ -34,47 +44,75 @@ class TokenDataset:
             self.fingerprint = records[0]["sha256"]
         if not records:
             raise ValueError("数据清单不能为空。")
+        # 回执只在清单摘要、词表大小和每个分片的大小、修改时间都没变时有效；单个 .npy 文件每次都重新校验。
+        receipt_path = path.with_name(self.receipt_name) if path.suffix == ".json" else None
+        signatures = {}
         for record in records:
-            tokens_path = (path.parent / record["tokens"]).resolve()
-            if tokens_path.parent != path.parent:
-                raise ValueError("分片文件必须位于清单所在目录。")
-            if file_sha256(tokens_path) != record["sha256"]:
+            for key in ("tokens", "mask"):
+                if key in record:
+                    file_path = (path.parent / record[key]).resolve()
+                    if file_path.parent != path.parent:
+                        raise ValueError("分片文件必须位于清单所在目录。")
+                    signatures[record[key]] = _signature(file_path)
+        receipt = {"manifest_sha256": self.fingerprint, "vocab_size": vocab_size, "files": signatures}
+        verified = False
+        if receipt_path is not None and receipt_path.exists():
+            try:
+                verified = json.loads(receipt_path.read_text(encoding="utf-8")) == receipt
+            except (OSError, ValueError):
+                verified = False
+        for record in records:
+            tokens_path = path.parent / record["tokens"]
+            if not verified and file_sha256(tokens_path) != record["sha256"]:
                 raise ValueError(f"分片校验失败：{tokens_path.name}")
             tokens = np.load(tokens_path, mmap_mode="r", allow_pickle=False)
             if tokens.ndim != 1 or not np.issubdtype(tokens.dtype, np.integer) or not tokens.size:
                 raise ValueError("token 分片必须为非空一维整数数组。")
-            if tokens.min() < 0 or tokens.max() >= vocab_size:
+            if not verified and (tokens.min() < 0 or tokens.max() >= vocab_size):
                 raise ValueError("训练数据中存在超出词表的 token。")
             if "count" in record and record["count"] != tokens.size:
                 raise ValueError("分片 token 数量不匹配。")
             mask = None
             if "mask" in record:
-                mask_path = (path.parent / record["mask"]).resolve()
-                if mask_path.parent != path.parent or file_sha256(mask_path) != record["mask_sha256"]:
+                mask_path = path.parent / record["mask"]
+                if not verified and file_sha256(mask_path) != record["mask_sha256"]:
                     raise ValueError("标签掩码分片校验失败。")
                 mask = np.load(mask_path, mmap_mode="r", allow_pickle=False)
-                if mask.shape != tokens.shape or not np.isfinite(mask).all() or ((mask < 0) | (mask > 1)).any():
+                if mask.shape != tokens.shape:
+                    raise ValueError("标签掩码必须与 tokens 等长，且位于 [0, 1]。")
+                if not verified and (not np.isfinite(mask).all() or ((mask < 0) | (mask > 1)).any()):
                     raise ValueError("标签掩码必须与 tokens 等长，且位于 [0, 1]。")
             self.shards.append(tokens)
             self.masks.append(mask)
+        if receipt_path is not None and not verified:
+            try:
+                atomic_json(receipt_path, receipt)
+            except OSError:
+                # 只读目录写不了回执，下次打开时重新校验。
+                pass
         self.ends = np.cumsum([shard.size for shard in self.shards], dtype=np.int64)
         self.size = int(self.ends[-1])
 
     def rows(self, starts, length):
-        indices = np.asarray(starts)[:, None] + np.arange(length)
-        if (indices < 0).any() or (indices >= self.size).any():
+        starts = np.asarray(starts, dtype=np.int64)
+        if (starts < 0).any() or (starts + length > self.size).any():
             raise ValueError("数据切片越界。")
-        shard_ids = np.searchsorted(self.ends, indices, side="right")
-        result = np.empty(indices.shape, dtype=np.int32)
-        masks = np.ones(indices.shape, dtype=np.float32)
-        begin = 0
-        for index, (shard, mask) in enumerate(zip(self.shards, self.masks)):
-            selected = shard_ids == index
-            offsets = indices[selected] - begin
-            result[selected] = shard[offsets]
-            if mask is not None:
-                masks[selected] = mask[offsets]
-            begin = self.ends[index]
+        result = np.empty((starts.size, length), dtype=np.int32)
+        masks = np.ones((starts.size, length), dtype=np.float32)
+        for row, start in enumerate(starts.tolist()):
+            # 每个窗口只落在一两个分片里：逐段按连续切片读取，开销与分片总数无关。
+            position, stop = start, start + length
+            shard = int(np.searchsorted(self.ends, position, side="right"))
+            while position < stop:
+                base = int(self.ends[shard - 1]) if shard else 0
+                piece = min(stop, int(self.ends[shard])) - position
+                target = slice(position - start, position - start + piece)
+                source = slice(position - base, position - base + piece)
+                result[row, target] = self.shards[shard][source]
+                if self.masks[shard] is not None:
+                    masks[row, target] = self.masks[shard][source]
+                position += piece
+                shard += 1
         # 第 i 个输入的监督标签是第 i+1 个 token。
         return result, masks[:, 1:]
 

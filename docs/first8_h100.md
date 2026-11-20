@@ -32,7 +32,7 @@ TTT_DATA=$PWD/configs/data/sweep/dolma3.json \
   bash scripts/run_first8_h100.sh smoke
 ```
 
-Run the nine Wave A cells sequentially, using all eight cards for every cell. Wave A contains the 4×2 window/update grid plus one plain sliding-window anchor with the fast branch removed.
+Run the thirteen Wave A cells sequentially, using all eight cards for every cell. Wave A contains the 4×3 window/update grid with no-update, TTT-E2E, and Loop+TTT, plus one plain sliding-window anchor with the fast branch removed.
 
 ```bash
 TTT_DATA=$PWD/configs/data/sweep/dolma3.json \
@@ -42,3 +42,4 @@ TTT_DATA=$PWD/configs/data/sweep/dolma3.json \
 Wave B is selected with `wave_b`. `all` runs smoke, Wave A, and Wave B in that order. Existing checkpoints are resumed with `--auto-resume`. Override `TTT_TOKENS`, `TTT_BATCH_SIZE`, `TTT_SEQUENCE_LENGTH`, `TTT_OUTPUT_ROOT`, or `TTT_PYTHON` through the environment.
 
 The first full cells use 3B tokens, a 4K sequence, global batch 64, and AdamW. This is about 11,445 optimizer steps and a TPP around 20–24 for the 125M-class models. `WANDB_API_KEY` is blank by default. Local `metrics.jsonl`, `run_metadata.json`, `environment.json`, and checkpoints are written before any W&B callback is enabled.
+The Loop+TTT cells use `loop_mode=middle_block` with `loop_repeats=2`. Their token budget is unchanged, while their measured FLOPs and wall-clock cost should be reported separately from the dense TTT-E2E cells.

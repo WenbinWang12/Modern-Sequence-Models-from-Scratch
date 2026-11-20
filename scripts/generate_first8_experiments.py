@@ -74,7 +74,7 @@ def run_name(
 
 
 def model_config(*, mixer: str, window: int | None, chunk: int, adaptation: str) -> dict[str, Any]:
-    """Build the common 125M-class model, changing only the mixer factor."""
+    """Build the common 125M-class model, changing mixer and loop factors."""
 
     if mixer == "gdn":
         layer_types = ["gated_delta"] * 12
@@ -87,6 +87,7 @@ def model_config(*, mixer: str, window: int | None, chunk: int, adaptation: str)
     # retained in the config because the shared model schema requires one.
     effective_window = 128 if window is None else window
     use_fast_mlp = adaptation != "swa"
+    loop_mode = "middle_block" if adaptation == "loop-ttt" else "none"
     return {
         "model_type": "ttt_e2e",
         "vocab_size": VOCAB_SIZE,
@@ -129,7 +130,7 @@ def model_config(*, mixer: str, window: int | None, chunk: int, adaptation: str)
         "adaptation_target": "mlp",
         "router_adapter_rank": 8,
         "delta_memory_rank": 8,
-        "loop_mode": "none",
+        "loop_mode": loop_mode,
         "loop_start": None,
         "loop_end": None,
         "loop_repeats": 2,
@@ -168,7 +169,7 @@ def experiment_config(
         "inner": {
             # Keep the fast branch in both arms.  The no-update arm isolates
             # the effect of per-sequence TTT updates at matched capacity.
-            "enabled": adaptation == "ttt-e2e",
+            "enabled": adaptation in ("ttt-e2e", "loop-ttt"),
             "learning_rate": 1.0,
             "clip_norm": 1.0,
             "track_post_loss": False,
@@ -213,6 +214,8 @@ def experiment_config(
                 "batch_size": batch_size,
                 "optimizer": OPTIMIZER,
                 "seed": seed,
+                "loop_mode": "middle_block" if adaptation == "loop-ttt" else "none",
+                "loop_repeats": 2,
             },
             "wandb": {
                 "project": wandb_project,
@@ -236,7 +239,7 @@ def _specs(
 
     # Wave A isolates the attention-window and update factors with MHA fixed.
     for window in (64, 128, 256, 512):
-        for adaptation in ("no-update", "ttt-e2e"):
+        for adaptation in ("no-update", "ttt-e2e", "loop-ttt"):
             name = run_name(
                 wave="f8a",
                 mixer="mha",

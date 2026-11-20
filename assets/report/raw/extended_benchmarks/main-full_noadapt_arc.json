@@ -1,0 +1,16 @@
+{
+  "protocol_version": "arc_piqa_loglikelihood_v1",
+  "protocol": "arc test split; zero-shot answer-text continuation log-likelihood; byte tokenizer; no adaptation",
+  "task": "arc",
+  "checkpoint": "outputs/main-full/step_00012000.orbax",
+  "checkpoint_metadata_sha256": "be159d191b7cdab865a0caf2c5f6692b04a0b0e8dc6893aeff41d95b1fd61646",
+  "script_sha256": "7f8897dc0035b5864fae90c86cadc7ce102ff776ec11b0d7ca97e5392478585f",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/arc/arc_challenge_test.jsonl",
+  "data_sha256": "03227c30fd557ad1416c2cb955eeb6dc79eeb21e0679456a1ccd42eaccc0ff87",
+  "limit": null,
+  "max_length": 512,
+  "correct": 234,
+  "samples": 1165,
+  "skipped": 7,
+  "accuracy": 0.20085836909871244
+}

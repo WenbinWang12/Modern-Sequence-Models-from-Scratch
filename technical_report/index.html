@@ -1,0 +1,6301 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="从随机初始化开始构建、训练和验证现代序列模型的双语实验书">
+      
+      
+      
+        <link rel="canonical" href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/technical_report/">
+      
+      
+        <link rel="prev" href="../frontier/loop_transformer/">
+      
+      
+        <link rel="next" href="../reproducibility/">
+      
+      
+        
+          <link rel="alternate" href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/" hreflang="zh">
+        
+          <link rel="alternate" href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/book/en/" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>TTT-E2E 技术报告 - Modern Sequence Models — From Scratch</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ttt-e2e" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href=".." title="Modern Sequence Models — From Scratch" class="md-header__button md-logo" aria-label="Modern Sequence Models — From Scratch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Modern Sequence Models — From Scratch
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              TTT-E2E 技术报告
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/" hreflang="zh" class="md-select__link">
+              中文版
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="https://wenbinwang12.github.io/Modern-Sequence-Models-from-Scratch/book/en/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    WenbinWang12/Modern-Sequence-Models-from-Scratch
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/notation/" class="md-tabs__link">
+          
+  
+  
+  阅读说明
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/00_why_pretrain/" class="md-tabs__link">
+          
+  
+  
+  序章 — 为什么训练基模
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/01_experiment_contract/" class="md-tabs__link">
+          
+  
+  
+  Part I — 实验契约与工具链
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/10_data_contract/" class="md-tabs__link">
+          
+  
+  
+  Part II — 数据
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/03_configuration/" class="md-tabs__link">
+          
+  
+  
+  Part III — 标准基线
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/04_forward_and_ttt/" class="md-tabs__link">
+          
+  
+  
+  Part IV — 读懂 TTT-E2E
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/06_attention_cache/" class="md-tabs__link">
+          
+  
+  
+  Part V — 扩展模型
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/21_evaluation_protocol/" class="md-tabs__link">
+          
+  
+  
+  Part VI — 做实验
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../frontier/" class="md-tabs__link">
+          
+  
+  
+  Frontier Lab — 可选前沿专题
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  附录
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../book/en/" class="md-tabs__link">
+          
+  
+  
+  English Edition
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Modern Sequence Models — From Scratch" class="md-nav__button md-logo" aria-label="Modern Sequence Models — From Scratch" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Modern Sequence Models — From Scratch
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/WenbinWang12/Modern-Sequence-Models-from-Scratch" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    WenbinWang12/Modern-Sequence-Models-from-Scratch
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    阅读说明
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    阅读说明
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/notation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    全书统一记号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/00_prerequisites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数学与深度学习工具箱
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    序章 — 为什么训练基模
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    序章 — 为什么训练基模
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/00_why_pretrain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    训练系统全景
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part I — 实验契约与工具链
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part I — 实验契约与工具链
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/01_experiment_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. 实验契约
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/01_environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. 环境与第一次训练
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/02_reproducible_runs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. 仓库与实验记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part II — 数据
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part II — 数据
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/10_data_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. 预训练数据：分布、质量与可复现性
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/11_data_acquisition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. 数据获取、许可与溯源
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/12_data_cleaning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. 数据清洗与质量过滤
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/13_deduplication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. 精确与近似去重
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/14_split_and_contamination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. 数据切分与污染
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/15_tokenizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Tokenizer 与词表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/16_packing_and_masks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Token Packing 与 Mask
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/17_dataset_and_manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Dataset、分片与 manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/18_data_mixture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. 数据混合与确定性采样
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/19_data_preflight/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. 训练前数据验证
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part III — 标准基线
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part III — 标准基线
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/03_configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. 配置、词表与维度
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/20_baseline_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Causal LM 基线
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part IV — 读懂 TTT-E2E
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part IV — 读懂 TTT-E2E
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/04_forward_and_ttt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    16. 前向顺序与快权重
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/05_inner_outer_loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    17. 内循环与外循环
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part V — 扩展模型
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part V — 扩展模型
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/06_attention_cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    18. 注意力、缓存与流式推理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/07_moe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    19. MoE、路由与专家并行
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part VI — 做实验
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Part VI — 做实验
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/21_evaluation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    20. 评估与统计协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/08_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    21. 消融与 scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/09_gpu_validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    22. GPU、多卡与检查点验证
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontier Lab — 可选前沿专题
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Frontier Lab — 可选前沿专题
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    专题总览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/ttt_linear_attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT 与线性注意力
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/ttt_e2e_long_context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT-E2E 与长上下文
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/loop_transformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Looped Transformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    附录
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT-E2E 技术报告
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT-E2E 技术报告
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        摘要
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1 引言
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2 方法
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2 方法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 记号
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 模型结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 内循环：先预测，后更新
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 外循环：学习怎样被更新
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 推理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 实现要点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.7 复杂度
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3 实验设置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3 实验设置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 四个模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 数据
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 训练
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 评测协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4 结果
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4 结果">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 训练过程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-4k-held-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 主结果：4K 上下文下的 held-out 损失
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 损失随上下文长度的变化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 收益来自哪里
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-32k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 超出训练长度：32K 上下文
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 压缩丢掉了什么：逐字回忆
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 公开 benchmark 与公开模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 消融
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 随机种子与模型规模
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#410" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10 成本
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5 数据审计
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6 讨论与局限
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7 适用范围与发布说明
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8 复现
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9 版本记录
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参考文献
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    复现命令
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reports/cpu_pilot_1m/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU Pilot 训练曲线
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reports/h200_scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H200 15M Scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reports/benchmark_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark 测评协议
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    验证记录
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../industry_alignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工程对齐
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../production_requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    生产要求
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English Edition
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    English Edition
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/notation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notation and conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/00_prerequisites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematics and deep-learning toolkit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/00_why_pretrain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why train a base model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/01_experiment_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Experiment contract
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/01_environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. Environment and first training run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/02_reproducible_runs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Reproducible runs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/10_data_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Pretraining data: distribution, quality, and reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/11_data_acquisition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. Acquisition and provenance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/12_data_cleaning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Cleaning and quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/13_deduplication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Deduplication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/14_split_and_contamination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Splits and contamination
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/15_tokenizer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Tokenizer and vocabulary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/16_packing_and_masks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Packing and masks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/17_dataset_and_manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Dataset and manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/18_data_mixture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Mixtures and sampling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/19_data_preflight/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. Data preflight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/03_configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Configuration, vocabulary, and dimensions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/20_baseline_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Dense baseline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/04_forward_and_ttt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    16. Forward order and fast weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/05_inner_outer_loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    17. Inner and outer loops
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/06_attention_cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    18. Attention, caches, and streaming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/07_moe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    19. MoE and expert parallelism
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/21_evaluation_protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    20. Evaluation and statistical protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/08_experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    21. Ablations, cost, and scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../book/en/09_gpu_validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    22. GPU and checkpoint validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_27" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_27" id="__nav_12_27_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontier Lab (optional)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_27_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_27">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Frontier Lab (optional)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/en/ttt_linear_attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT and linear attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/en/ttt_e2e_long_context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT-E2E and long context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontier/en/loop_transformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Looped Transformer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technical_report_en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TTT-E2E technical report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reports/benchmark_protocol_en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English benchmark protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        摘要
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1 引言
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2 方法
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2 方法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 记号
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 模型结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 内循环：先预测，后更新
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 外循环：学习怎样被更新
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 推理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 实现要点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.7 复杂度
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3 实验设置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3 实验设置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 四个模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 数据
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 训练
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 评测协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4 结果
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4 结果">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 训练过程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-4k-held-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 主结果：4K 上下文下的 held-out 损失
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 损失随上下文长度的变化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 收益来自哪里
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-32k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 超出训练长度：32K 上下文
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 压缩丢掉了什么：逐字回忆
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 公开 benchmark 与公开模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 消融
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 随机种子与模型规模
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#410" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.10 成本
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5 数据审计
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6 讨论与局限
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7 适用范围与发布说明
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8 复现
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9 版本记录
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参考文献
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+
+
+
+  
+  
+
+
+<h1 id="ttt-e2e">TTT-E2E 技术报告：从零训练、匹配对照与长上下文评测<a class="headerlink" href="#ttt-e2e" title="Permanent link">&para;</a></h1>
+<p><strong>版本 1.0　·　2026 年 11 月 18 日</strong></p>
+<h2 id="_1">摘要<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>我们从零实现了端到端测试时训练（TTT-E2E）：模型一边读上下文，一边用读过的内容对自己最后几层中的一组 MLP 做梯度下降，训练阶段则通过内循环求导，让模型学会“被这样更新”。在两张 H200 上，我们用完全相同的数据、batch 顺序、优化器和 token 预算训练了四个约 1.3 亿参数、上下文 4,096 的模型：全注意力、滑窗注意力（窗口 512）、与 TTT 结构和参数量相同但不做更新的对照，以及 TTT-E2E。训练语料是 FineWeb-Edu 与 PG-19 各半、共 786,432,000 个 GPT-2 BPE token。</p>
+<p>在 PG-19 test 上，TTT-E2E 的每 token 损失比滑窗注意力低 0.072 nat（95% 置信区间 [−0.076, −0.068]），比全注意力低 0.051 nat。差距随可用上下文的长度变化，详见第 4.3 节；把评测窗口延长到训练长度 8 倍（32,768 个 token）的结果见第 4.5 节。
+报告把“额外参数”、“测试时更新”和“训练时的元学习”三个因素分开度量：无更新对照回答第一项，同一检查点关闭更新回答第二项，对未经元训练的对照直接做测试时梯度更新（动态评估）回答第三项。成本方面，TTT-E2E 的训练吞吐是滑窗注意力的 0.36 倍，而推理时的会话状态大小和每 token 成本与上下文长度无关。</p>
+<p>我们同样度量方法的边界：逐字回忆探针和按 RULER 构造的单针检索，衡量被压进权重的历史在细节上保留了多少；十项公开零样本 benchmark 使用与 lm-evaluation-harness 逐项核对一致的协议（GPT-2 上的核对结果见第 4.7 节），并与一组训练量大一到三个数量级的公开模型放在同一张表里。数据审计覆盖采样配比、训练与评测集之间的重复，以及 benchmark 题目在训练语料中的逐字出现。本页的每个数字都由脚本从原始评测输出生成，原始输出随仓库发布。</p>
+<h2 id="1">1 引言<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>长上下文语言模型在成本上有一个基本矛盾。全注意力让每个 token 都能直接读到此前的全部内容，但每生成一个 token 的计算量和需要保存的状态都随已读长度线性增长。把注意力限制在最近的一个窗口里，这两项都变成常数，代价是窗口之外的内容基本丢失。循环网络一类的方法把历史压进固定大小的状态，问题变成压缩什么、怎样压缩。</p>
+<p>TTT-E2E<sup id="fnref:ttte2e"><a class="footnote-ref" href="#fn:ttte2e">1</a></sup> 的回答是把历史压进模型自己的一部分权重，并且用梯度下降来压缩。模型一边读，一边在刚读过的文本上做下一个 token 的预测训练，只更新最后几层里的一组 MLP；训练阶段再用元学习让模型为“被这样更新”做好准备。原论文在 30 亿参数、1,640 亿训练 token 的规模上报告：在 128K 上下文内，TTT-E2E 的损失随上下文长度的变化方式与全注意力相同，而推理延迟不随上下文增长。</p>
+<p>本报告从零实现了这一方法，并在两张 GPU 可以完整复现的规模上检验它。我们用同一份数据、同样的 batch 顺序、同样的优化器和同样的训练 token 数训练四个约 1.3 亿参数的模型，回答五个问题：</p>
+<ol>
+<li>TTT-E2E 相对滑窗注意力能挽回多少因为看不到远处上下文而损失的预测质量，离全注意力还有多远？（第 4.2、4.3 节）</li>
+<li>收益里有多少来自测试时更新本身，有多少只是因为多了参数？不做元学习、直接对普通模型做测试时梯度更新够不够？（第 4.4 节）</li>
+<li>上下文超过训练长度之后会发生什么？（第 4.5 节）</li>
+<li>把历史压进权重会丢掉什么？（第 4.6 节）</li>
+<li>训练和推理各要付出多少成本？（第 4.10 节）</li>
+</ol>
+<p>此外，第 4.7 节用同一套零样本协议把这些模型和一组公开的同规模模型放在一起，给出绝对水平的参照；第 4.8、4.9 节是消融、随机种子和模型规模实验；第 5 节是数据审计。</p>
+<p><strong>与已有工作的关系。</strong> 在测试序列上继续做梯度更新的做法至少可以追溯到动态评估<sup id="fnref:dyneval"><a class="footnote-ref" href="#fn:dyneval">6</a></sup><sup id="fnref:dynevaltr"><a class="footnote-ref" href="#fn:dynevaltr">7</a></sup>；快权重<sup id="fnref:fastweights"><a class="footnote-ref" href="#fn:fastweights">8</a></sup>提供了“随序列变化的权重”这一视角；通过内循环求导来学习初始化是 MAML<sup id="fnref:maml"><a class="footnote-ref" href="#fn:maml">4</a></sup> 的做法，一阶近似见 Reptile<sup id="fnref:reptile"><a class="footnote-ref" href="#fn:reptile">5</a></sup>。把测试时训练用于分布外泛化见 Sun 等<sup id="fnref:ttt"><a class="footnote-ref" href="#fn:ttt">3</a></sup>，把它做成序列模型的层见 TTT 层<sup id="fnref:tttlayers"><a class="footnote-ref" href="#fn:tttlayers">2</a></sup>和 Titans<sup id="fnref:titans"><a class="footnote-ref" href="#fn:titans">9</a></sup>。同样追求常数推理成本的还有状态空间模型和线性循环模型，例如 Mamba<sup id="fnref:mamba"><a class="footnote-ref" href="#fn:mamba">10</a></sup> 和 Gated DeltaNet<sup id="fnref:gdn"><a class="footnote-ref" href="#fn:gdn">11</a></sup>；限制注意力范围或跨段复用状态的 Transformer 见 Transformer-XL<sup id="fnref:transformerxl"><a class="footnote-ref" href="#fn:transformerxl">12</a></sup>、Longformer<sup id="fnref:longformer"><a class="footnote-ref" href="#fn:longformer">13</a></sup>、Compressive Transformer<sup id="fnref:pg19"><a class="footnote-ref" href="#fn:pg19">14</a></sup> 和 Block-Recurrent Transformer<sup id="fnref:blockrecurrent"><a class="footnote-ref" href="#fn:blockrecurrent">15</a></sup>。本报告只实现并评测 TTT-E2E 及其对照，没有重新实现上述其他方法。</p>
+<p><strong>本报告的贡献。</strong></p>
+<ul>
+<li>一个完整的 JAX 实现：带二阶导的训练、带状态的流式推理、检查点与恢复，以及一套对正确性做出保证的测试（因果性、外循环梯度、流式一致性）。</li>
+<li>一组严格匹配的对照实验，以及能把“参数量”“测试时更新”“元学习”三个因素分开的对照。</li>
+<li>超出训练长度 8 倍的评测、逐字回忆探针、公开 benchmark 和与公开模型的同协议比较。</li>
+<li>全部数字可追溯：本页的每个数字都由脚本从原始评测输出生成，原始输出和生成脚本都在仓库里。</li>
+</ul>
+<h2 id="2">2 方法<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 记号<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<p>记 token 序列为 <span class="arithmatex">\(x_1,\ldots,x_{L+1}\)</span>，模型在位置 <span class="arithmatex">\(t\)</span> 读入 <span class="arithmatex">\(x_{1:t}\)</span> 并预测 <span class="arithmatex">\(x_{t+1}\)</span>，<span class="arithmatex">\(L\)</span> 是一个训练窗口里的预测位置数。模型有 <span class="arithmatex">\(n_\ell\)</span> 个残差块，隐藏宽度为 <span class="arithmatex">\(d\)</span>，MLP 中间宽度为 <span class="arithmatex">\(d_{\mathrm{ff}}\)</span>，词表大小为 <span class="arithmatex">\(V\)</span>。滑窗注意力的每一层只能看到最近 <span class="arithmatex">\(w\)</span> 个位置。</p>
+<p>参数分成两部分。<strong>慢参数</strong> <span class="arithmatex">\(\theta\)</span> 在训练结束后固定，所有序列共用；<strong>快权重</strong> <span class="arithmatex">\(\phi\)</span> 属于当前这一条序列，随着序列被读入而改变。序列按长度 <span class="arithmatex">\(C\)</span> 切成更新块（chunk），第 <span class="arithmatex">\(c\)</span> 块包含位置 <span class="arithmatex">\(\mathcal T_c=\{(c-1)C+1,\ldots,cC\}\)</span>。<span class="arithmatex">\(\phi_{c-1}\)</span> 表示预测第 <span class="arithmatex">\(c\)</span> 块时使用的快权重，<span class="arithmatex">\(\phi_0\)</span> 是它的初值。</p>
+<h3 id="22">2.2 模型结构<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<p>主干是一个 pre-norm 的 decoder-only Transformer。每个块依次做两件事：</p>
+<div class="arithmatex">\[
+u=h+\operatorname{Attn}\bigl(\operatorname{RMSNorm}(h)\bigr),\qquad
+h'=u+\operatorname{MLP}\bigl(\operatorname{RMSNorm}(u)\bigr).
+\]</div>
+<p>注意力使用旋转位置编码（RoPE，基数 <span class="arithmatex">\(5\times10^5\)</span>）和 QK 归一化：query 和 key 在每个头内先做 RMSNorm 再做点积，分数除以 <span class="arithmatex">\(\sqrt{d_h}\)</span>。MLP 是 SwiGLU，<span class="arithmatex">\(\operatorname{MLP}(v)=W_{\mathrm{down}}\bigl(\operatorname{SiLU}(W_{\mathrm{gate}}v)\odot W_{\mathrm{up}}v\bigr)\)</span>，不带偏置。输入嵌入和输出投影共用同一个矩阵。</p>
+<p>TTT-E2E 只改动最后 <span class="arithmatex">\(n_s\)</span> 个块（下文称<strong>后段</strong>，其余 <span class="arithmatex">\(n_\ell-n_s\)</span> 个块称<strong>前段</strong>）。后段的每个块在注意力和原有 MLP 之间多一个结构相同的 MLP′，它的三个矩阵就是快权重：</p>
+<div class="arithmatex">\[
+u=h+\operatorname{Attn}(\operatorname{RMSNorm}(h)),\qquad
+v=u+\operatorname{MLP}'_{\phi}(\operatorname{RMSNorm}(u)),\qquad
+h'=v+\operatorname{MLP}(\operatorname{RMSNorm}(v)).
+\]</div>
+<p>原有的 MLP 仍然是慢参数，为预训练得到的知识保留一个不会被测试时更新改写的位置；这一点和只更新最后四分之一的块，都沿用原论文的设计<sup id="fnref2:ttte2e"><a class="footnote-ref" href="#fn:ttte2e">1</a></sup>。嵌入、归一化和注意力在测试时都不更新。</p>
+<figure class="report-figure">
+  <img alt="TTT-E2E 的前向过程与两个循环" src="../assets/report/fig_method.light.svg#only-light" width="100%" />
+  <img alt="TTT-E2E 的前向过程与两个循环" src="../assets/report/fig_method.dark.svg#only-dark" width="100%" />
+<br />
+<figcaption>图 1　TTT-E2E 的前向过程。前段对整条序列只算一次；后段逐块前向，每块先用当前快权重预测，再用这一块的损失把快权重更新一步。外循环把各块损失相加，并对整条更新链求导。</figcaption>
+</figure>
+<h3 id="23">2.3 内循环：先预测，后更新<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<p>前段不依赖快权重，对整条序列只计算一次，得到特征 <span class="arithmatex">\(g_t=f^{\mathrm{pre}}_\theta(x_{1:t})\)</span>。后段逐块计算。读完第 <span class="arithmatex">\(c\)</span> 块后，这一块的平均损失是</p>
+<div class="arithmatex">\[
+\ell_c(\theta,\phi_{c-1})=\frac1C\sum_{t\in\mathcal T_c}-\log p\bigl(x_{t+1}\mid x_{1:t};\theta,\phi_{c-1}\bigr).
+\]</div>
+<p>注意预测第 <span class="arithmatex">\(c\)</span> 块时用的是 <span class="arithmatex">\(\phi_{c-1}\)</span>：它只见过前 <span class="arithmatex">\(c-1\)</span> 块的目标。等第 <span class="arithmatex">\(c\)</span> 块的目标全部成为已观测信息之后，才对快权重做一步梯度下降：</p>
+<div class="arithmatex">\[
+g_c=\nabla_{\phi}\,\ell_c(\theta,\phi)\Big|_{\phi=\phi_{c-1}},\qquad
+\hat g_c=\min\!\Bigl(1,\frac{\tau}{\lVert g_c\rVert_2}\Bigr)g_c,\qquad
+\phi_c=\phi_{c-1}-\eta\,\hat g_c .
+\]</div>
+<p><span class="arithmatex">\(\eta\)</span> 是内循环学习率，<span class="arithmatex">\(\tau\)</span> 是对全部快权重合在一起计算的梯度范数上限。更新后的 <span class="arithmatex">\(\phi_c\)</span> 只用于第 <span class="arithmatex">\(c+1\)</span> 块及之后的预测，所以任何一个 token 的损失都不会用到见过它自己的权重，评测时不存在标签泄漏。序列末尾不足一块的部分只参与评分，不触发更新。</p>
+<p>后段的注意力带 KV 缓存：第 <span class="arithmatex">\(c\)</span> 块可以看到窗口内前面各块的 key 和 value，它们是当时用旧的快权重算出来的，更新后不重算。</p>
+<h3 id="24">2.4 外循环：学习怎样被更新<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<p>训练目标是“按上述方式边读边更新之后”的平均损失：</p>
+<div class="arithmatex">\[
+\mathcal L(\theta)=\frac{1}{n_c}\sum_{c=1}^{n_c}\ell_c\bigl(\theta,\phi_{c-1}(\theta)\bigr),\qquad \phi_0\subset\theta .
+\]</div>
+<p><span class="arithmatex">\(\phi_0\)</span> 是慢参数的一部分，也就是说快权重的初值是学出来的。因为 <span class="arithmatex">\(\phi_{c-1}\)</span> 是 <span class="arithmatex">\(\theta\)</span> 的函数，<span class="arithmatex">\(\mathcal L\)</span> 对 <span class="arithmatex">\(\theta\)</span> 的梯度除了普通的反向传播，还要沿着更新链回传：</p>
+<div class="arithmatex">\[
+\frac{d\phi_c}{d\theta}=\frac{d\phi_{c-1}}{d\theta}-\eta\,\frac{d\hat g_c}{d\theta},
+\]</div>
+<p>其中 <span class="arithmatex">\(d\hat g_c/d\theta\)</span> 含有 <span class="arithmatex">\(\ell_c\)</span> 对快权重的二阶导。实现上就是对整个带内循环的前向函数再求一次导（梯度的梯度）。慢参数因此学到两件事：怎样预测下一个 token，以及怎样让后段在被梯度更新之后预测得更好。</p>
+<p>消融实验里的<strong>一阶近似</strong>把 <span class="arithmatex">\(\hat g_c\)</span> 当作常数，即令 <span class="arithmatex">\(d\hat g_c/d\theta=0\)</span>。此时前向数值完全不变，训练更便宜，但外循环不再知道慢参数会怎样影响更新量。</p>
+<h3 id="25">2.5 推理<a class="headerlink" href="#25" title="Permanent link">&para;</a></h3>
+<p>推理和训练时的内循环是同一个过程，只是不再有外循环。一个会话的状态由三部分组成：当前快权重 <span class="arithmatex">\(\phi\)</span>（大小固定，与已读长度无关）、各层最近 <span class="arithmatex">\(w\)</span> 个位置的 KV 缓存、以及尚未凑满一块的特征和目标。生成时每凑满 <span class="arithmatex">\(C\)</span> 个 token 并观测到下一个 token，就执行一次更新。发布的慢参数不会被任何会话改动，不同会话之间也不共享快权重。</p>
+<h3 id="26">2.6 实现要点<a class="headerlink" href="#26" title="Permanent link">&para;</a></h3>
+<p>实现基于 JAX，下面几点和结果的可信度直接相关。</p>
+<ul>
+<li><strong>外循环梯度。</strong> 序列损失函数内部用 <code>lax.scan</code> 逐块前向并在每一步调用 <code>jax.value_and_grad</code> 得到 <span class="arithmatex">\(g_c\)</span>，外层再对整个函数求导。块级扫描分成两层并加检查点，反传时只保存约 <span class="arithmatex">\(\sqrt{n_c}\)</span> 份快权重快照，其余在反传时重算。</li>
+<li><strong>滑窗注意力。</strong> 训练时前段对整条序列做滑窗注意力。我们把序列按 <span class="arithmatex">\(w\)</span> 切块，每块只和自己以及前一块的 key 做稠密注意力，各块并行计算。在 float64 下它和逐位置掩码的参考实现最大相差 <span class="arithmatex">\(7\times10^{-7}\)</span>（前向和对 query、key 的梯度都检查过），因此是同一个函数的另一种算法，不是近似。</li>
+<li><strong>交叉熵。</strong> 词表投影和 log-softmax 按 token 分块计算；数值与一次性计算相同。</li>
+<li><strong>精度。</strong> 参数为 float32；矩阵乘法用 bfloat16；归一化、softmax 和损失用 float32。</li>
+<li><strong>正确性测试。</strong> 仓库的测试覆盖因果性（修改未来 token 不影响过去的输出）、外循环梯度与有限差分的一致性、流式推理与整段前向的一致性、检查点恢复，以及一阶近似“前向不变、梯度改变”这一性质；它们在 CPU 上全部通过。</li>
+</ul>
+<h3 id="27">2.7 复杂度<a class="headerlink" href="#27" title="Permanent link">&para;</a></h3>
+<p>设每个 token 经过一个块的线性层成本为 <span class="arithmatex">\(c_{\mathrm{lin}}\)</span>。全注意力每个 token 的注意力成本与已读长度成正比，KV 缓存也随长度线性增长。滑窗注意力和 TTT-E2E 的注意力成本都只与 <span class="arithmatex">\(w\)</span> 有关。TTT-E2E 在此之上每个 token 多出两项：后段多一个 MLP′ 的前向，以及每块一次的后段反向传播（成本约为后段前向的两倍，再加输出层）。这两项都与已读长度无关，所以 TTT-E2E 的推理成本和状态大小对上下文长度是常数；代价是训练时要穿过内循环求二阶导。实测数字见第 4.10 节。</p>
+<h2 id="3">3 实验设置<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 四个模型<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p>主实验训练四个 12 层、宽度 768 的模型。它们使用同一个 tokenizer、同一份数据、完全相同的 batch 顺序、同样的优化器和同样的训练 token 数，只在“怎样使用上下文”上不同。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: left;">注意力</th>
+<th style="text-align: left;">带 MLP′ 的块</th>
+<th style="text-align: left;">测试时更新</th>
+<th style="text-align: right;">总参数</th>
+<th style="text-align: right;">非嵌入参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: left;">可见全部 4,096 个位置</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: right;">123.57M</td>
+<td style="text-align: right;">84.97M</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: left;">最近 <span class="arithmatex">\(w=512\)</span> 个位置</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: left;">–</td>
+<td style="text-align: right;">123.57M</td>
+<td style="text-align: right;">84.97M</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: left;">最近 <span class="arithmatex">\(w=512\)</span> 个位置</td>
+<td style="text-align: left;">最后 3 块</td>
+<td style="text-align: left;">不更新</td>
+<td style="text-align: right;">137.73M</td>
+<td style="text-align: right;">99.13M</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: left;">最近 <span class="arithmatex">\(w=512\)</span> 个位置</td>
+<td style="text-align: left;">最后 3 块</td>
+<td style="text-align: left;">每 <span class="arithmatex">\(C=256\)</span> 个 token 一步</td>
+<td style="text-align: right;">137.73M</td>
+<td style="text-align: right;">99.13M</td>
+</tr>
+</tbody>
+</table>
+<p>每个对照回答一个问题：</p>
+<ul>
+<li><strong>全注意力</strong>是上下文内信息无损可见时的参照。它的成本随上下文线性增长，本报告把它看作质量上的目标，而不是成本上的对手。</li>
+<li><strong>滑窗注意力</strong>是成本与 TTT-E2E 同量级的基线。它的每一层只能直接看到最近 512 个位置；更早的信息只能靠逐层接力间接传递（12 层在理论上最远可达约 6,100 个位置），模型没有专门的长程记忆。</li>
+<li><strong>无更新对照</strong>与 TTT-E2E 结构相同、参数量相同（都比前两者多 14.16M 个 MLP′ 参数），训练和推理时都不做内循环。它用来区分“多出来的参数”和“测试时更新”各自的作用。</li>
+<li>评测时还会把训练好的 TTT-E2E <strong>关闭更新</strong>再测一次，用来观察同一组慢参数在不更新时的表现。</li>
+</ul>
+<p>其余结构四者相同：<span class="arithmatex">\(d=768\)</span>，12 个注意力头，<span class="arithmatex">\(d_{\mathrm{ff}}=2048\)</span>，输入输出嵌入共享，RoPE 基数 <span class="arithmatex">\(5\times10^5\)</span>，QK 归一化。</p>
+<h3 id="32">3.2 数据<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">语料</th>
+<th style="text-align: left;">用途</th>
+<th style="text-align: right;">文档数</th>
+<th style="text-align: right;">token 数</th>
+<th style="text-align: right;">字节/token</th>
+<th style="text-align: left;">来源与许可</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">FineWeb-Edu <code>sample/10BT</code>，分片 000–002</td>
+<td style="text-align: left;">训练</td>
+<td style="text-align: right;">2,182,000</td>
+<td style="text-align: right;">2.25B</td>
+<td style="text-align: right;">4.62</td>
+<td style="text-align: left;">HuggingFaceFW/fineweb-edu，revision <code>87f0914</code>，ODC-By 1.0<sup id="fnref:fineweb"><a class="footnote-ref" href="#fn:fineweb">16</a></sup></td>
+</tr>
+<tr>
+<td style="text-align: left;">PG-19 train</td>
+<td style="text-align: left;">训练</td>
+<td style="text-align: right;">28,602</td>
+<td style="text-align: right;">3.07B</td>
+<td style="text-align: right;">3.73</td>
+<td style="text-align: left;">DeepMind 发布的 Project Gutenberg 长篇书籍，文件列表 revision <code>4d28bd7</code>，Apache-2.0<sup id="fnref2:pg19"><a class="footnote-ref" href="#fn:pg19">14</a></sup></td>
+</tr>
+<tr>
+<td style="text-align: left;">PG-19 validation</td>
+<td style="text-align: left;">训练过程中的验证、消融</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">4.64M</td>
+<td style="text-align: right;">3.75</td>
+<td style="text-align: left;">同上，官方划分</td>
+</tr>
+<tr>
+<td style="text-align: left;">PG-19 test</td>
+<td style="text-align: left;">最终评测</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">10.58M</td>
+<td style="text-align: right;">3.82</td>
+<td style="text-align: left;">同上，官方划分</td>
+</tr>
+<tr>
+<td style="text-align: left;">FineWeb-Edu <code>sample/10BT</code>，分片 013 的前 20,000 篇</td>
+<td style="text-align: left;">最终评测</td>
+<td style="text-align: right;">19,635</td>
+<td style="text-align: right;">20.37M</td>
+<td style="text-align: right;">4.62</td>
+<td style="text-align: left;">同 FineWeb-Edu；已剔除与训练分片全文重复的 365 篇</td>
+</tr>
+</tbody>
+</table>
+<p>两种语料互补：FineWeb-Edu 是经过质量分类器筛选的网页，文档短（平均约 1,000 个 token），决定模型的一般语言能力；PG-19 的每篇文档是一整本书（平均约 10 万个 token），一个 4,096 token 的窗口几乎总是落在同一本书内部，是真正需要长上下文的数据。</p>
+<p><strong>Tokenizer。</strong> 全部使用 GPT-2 的 BPE 词表（<span class="arithmatex">\(V=50{,}257\)</span>）。每篇文档编码为 <code>&lt;|endoftext|&gt;</code> 加正文，文档首尾相接成一条 token 流。选用现成词表而不是自己训练，是为了能和公开模型在同一词表下直接比较损失。</p>
+<p><strong>混合与采样。</strong> 每个训练样本先以 50% 的概率选择来源，再从该来源的 token 流里均匀随机取一个长度为 <span class="arithmatex">\(L+1\)</span> 的窗口（有放回）。窗口可以跨文档边界。按训练时的随机种子重放采样器，实际比例和覆盖情况如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">来源</th>
+<th style="text-align: right;">语料 token 数</th>
+<th style="text-align: right;">目标比例</th>
+<th style="text-align: right;">实际抽到的窗口</th>
+<th style="text-align: right;">实际比例</th>
+<th style="text-align: right;">被覆盖的语料比例</th>
+<th style="text-align: right;">被重复抽到的比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">fineweb_edu</td>
+<td style="text-align: right;">2.25B</td>
+<td style="text-align: right;">50%</td>
+<td style="text-align: right;">96,316</td>
+<td style="text-align: right;">50.16%</td>
+<td style="text-align: right;">19.7%</td>
+<td style="text-align: right;">10.5%</td>
+</tr>
+<tr>
+<td style="text-align: left;">pg19</td>
+<td style="text-align: right;">3.07B</td>
+<td style="text-align: right;">50%</td>
+<td style="text-align: right;">95,684</td>
+<td style="text-align: right;">49.84%</td>
+<td style="text-align: right;">14.8%</td>
+<td style="text-align: right;">7.8%</td>
+</tr>
+</tbody>
+</table>
+<p>整个训练只用到每个语料的一小部分，绝大多数训练窗口只出现一次。</p>
+<p>四个主模型共用这一个采样器：按各自的配置分别实例化后，前 20 个 batch 的 token 和掩码逐字节相同（摘要 <code>bea8b574b5ba…</code>），种子、步数、batch、序列长度、学习率和数据摘要也全部一致。因此第 4 节里模型之间的差别只能来自结构和测试时更新，不可能来自数据或数据顺序。</p>
+<h3 id="33">3.3 训练<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">项目</th>
+<th style="text-align: left;">取值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">序列长度 <span class="arithmatex">\(L\)</span> / batch</td>
+<td style="text-align: left;">4,096 / 16 条序列（每步 65,536 个 token）</td>
+</tr>
+<tr>
+<td style="text-align: left;">训练步数 / token 数</td>
+<td style="text-align: left;">12,000 / 786,432,000</td>
+</tr>
+<tr>
+<td style="text-align: left;">优化器</td>
+<td style="text-align: left;">AdamW，<span class="arithmatex">\(\beta_1=0.9\)</span>，<span class="arithmatex">\(\beta_2=0.95\)</span>，权重衰减 0.1（只作用于矩阵）</td>
+</tr>
+<tr>
+<td style="text-align: left;">学习率</td>
+<td style="text-align: left;">峰值 <span class="arithmatex">\(6\times10^{-4}\)</span>；前 480 步线性预热，之后余弦衰减到 0</td>
+</tr>
+<tr>
+<td style="text-align: left;">外循环梯度裁剪</td>
+<td style="text-align: left;">全局范数 1.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">内循环（仅 TTT-E2E）</td>
+<td style="text-align: left;"><span class="arithmatex">\(\eta=1.0\)</span>，<span class="arithmatex">\(\tau=1.0\)</span>；<span class="arithmatex">\(\eta\)</span> 在前 1,200 步从 0.1 线性升到 1.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">精度</td>
+<td style="text-align: left;">参数 float32，矩阵乘法 bfloat16</td>
+</tr>
+<tr>
+<td style="text-align: left;">随机种子</td>
+<td style="text-align: left;">0（四个模型的初始化种子和数据顺序都相同）</td>
+</tr>
+<tr>
+<td style="text-align: left;">硬件</td>
+<td style="text-align: left;">每个模型独占一张 NVIDIA H200（143,771 MiB），不做多卡并行</td>
+</tr>
+</tbody>
+</table>
+<p>超参数没有针对任何一个模型单独调过：四个模型共用上表，内循环的 <span class="arithmatex">\(\eta\)</span> 和 <span class="arithmatex">\(\tau\)</span> 取实现的默认值。训练 token 数约为原论文 125M 模型基础配方（25 亿 token）的 31%，受限于两张卡一晚上的预算；这是本报告最主要的规模限制。</p>
+<h3 id="34">3.4 评测协议<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<p><strong>Held-out 语言建模。</strong> PG-19 test 的每本书从头切成互不重叠的 4,096 token 窗口（丢弃末尾不足一个窗口的部分），共 2,531 个窗口、10.37M 个预测位置。每个窗口从空状态开始：KV 缓存清空，快权重回到 <span class="arithmatex">\(\phi_0\)</span>。于是窗口内第 <span class="arithmatex">\(t\)</span> 个位置的损失，就是“恰好有 <span class="arithmatex">\(t\)</span> 个 token 上下文时”的预测损失，按位置分桶即可得到损失随上下文长度变化的曲线。FineWeb-Edu held-out 的文档很短，按训练时的方式把文档首尾相接，取前 2,048 个窗口。我们报告每 token 的平均负对数似然（NLL，单位 nat）、困惑度和 bits/byte。</p>
+<p><strong>统计。</strong> 四个模型评测的是同一批窗口，因此模型之间的差值按配对方式估计：PG-19 以书为单位、FineWeb-Edu 以窗口为单位做 2,000 次 bootstrap 重采样，给出 95% 置信区间。这个区间反映评测集的抽样误差，不包含重新训练带来的随机性；后者用第 4.9 节的多随机种子实验单独估计。</p>
+<p><strong>超出训练长度。</strong> 把窗口加长到 32,768（训练长度的 8 倍），其余协议不变，不做任何微调。</p>
+<p><strong>公开 benchmark。</strong> 所有任务都是零样本、按对数似然评分：多选题对每个候选项计算 <span class="arithmatex">\(\log p(\text{候选}\mid\text{题干})\)</span> 并取最大者，提示模板、候选项拼接方式和长度归一化都与 lm-evaluation-harness<sup id="fnref:lmeval"><a class="footnote-ref" href="#fn:lmeval">23</a></sup> 的同名任务一致。为了确认这一点，我们用自己的评测脚本和 lm-evaluation-harness 分别评测 GPT-2，逐项对比（第 4.7 节）。不使用 few-shot 示例，不针对任何 benchmark 做训练、提示词搜索或检查点挑选；所有模型都只评测训练结束时的最后一个检查点。</p>
+<p><strong>公开参考模型。</strong> 为了给出绝对水平的参照，用同一套脚本评测了一组规模相近的公开模型。它们的训练数据量比本报告的模型大一到三个数量级，这组数字用于定位，不是匹配预算的比较。</p>
+<h2 id="4">4 结果<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 训练过程<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<figure class="report-figure">
+  <img alt="训练损失与 held-out 损失随训练 token 数的变化" src="../assets/report/fig_training.light.svg#only-light" />
+  <img alt="训练损失与 held-out 损失随训练 token 数的变化" src="../assets/report/fig_training.dark.svg#only-dark" />
+<br />
+<figcaption>图 2　训练过程。左：因果语言模型损失，也就是所有有效位置上的 next-token 交叉熵的指数滑动平均。中、右：每 1,000 步保存的检查点在 PG-19 validation（每本书前 5 个窗口，共 250 个）和 FineWeb-Edu held-out（256 个窗口）上的损失。四个模型在每一步读到的 batch 完全相同。</figcaption>
+</figure>
+<p>四个模型最终都训练到 12,000 步、786,432,000 个 token，没有出现发散或 loss 尖峰。训练期间发生过用户级 NFS 磁盘配额导致的检查点写入中断；监督脚本从最近检查点自动恢复，并把事件写入 <code>interruptions.jsonl</code>。本次运行共记录 3 次自动恢复。梯度裁剪很少触发：预热之后，外循环梯度范数超过阈值 1.0 的记录步占 0.4%（滑窗注意力）和 0.6%（TTT-E2E）。</p>
+<p>训练损失不能直接横向比较。全注意力在训练时每个位置可以读到窗口内的全部历史，滑窗注意力只能读到最近 512 个位置，所以前者的训练损失天然更低；而 TTT-E2E 的训练损失是“已经按测试时的方式更新过快权重”之后的损失，和另外两者的含义也不同。图 2 左只用于确认四个运行都稳定收敛。可比的是中、右两栏：同一个评测协议、同一批 held-out 窗口。</p>
+<p>从验证曲线可以看出一个和最终数字同样重要的现象：TTT-E2E 从训练早期就领先于滑窗注意力，而且差距在整个训练过程中没有缩小（图 7 右）。这说明收益不是“训练不足时的暂时优势”。
+TTT-E2E 的内循环在训练过程中始终处于活跃状态。快权重范数从初值 75.3 增长到 132.5，每次内循环更新的范数稳定在 0.98 附近，内循环梯度范数在 1.22 左右——它略大于裁剪阈值 <span class="arithmatex">\(\tau=1\)</span>，也就是说多数更新步都被裁剪到了固定步长。换句话说，外循环学到的是“在固定步长下，朝哪个方向更新最有用”，而不是“更新多大”。这一点在第 4.8 节的内循环学习率消融中可以看到对应的现象。</p>
+<h3 id="42-4k-held-out">4.2 主结果：4K 上下文下的 held-out 损失<a class="headerlink" href="#42-4k-held-out" title="Permanent link">&para;</a></h3>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: right;">PG-19 test NLL</th>
+<th style="text-align: right;">PPL</th>
+<th style="text-align: right;">bits/byte</th>
+<th style="text-align: right;">相对全注意力的差值（95% CI）</th>
+<th style="text-align: right;">FineWeb-Edu NLL</th>
+<th style="text-align: right;">PPL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">3.052</td>
+<td style="text-align: right;">21.16</td>
+<td style="text-align: right;">1.151</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">3.469</td>
+<td style="text-align: right;">32.11</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">3.073</td>
+<td style="text-align: right;">21.62</td>
+<td style="text-align: right;">1.159</td>
+<td style="text-align: right;">+0.021 [+0.017, +0.025]</td>
+<td style="text-align: right;">3.477</td>
+<td style="text-align: right;">32.35</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">3.050</td>
+<td style="text-align: right;">21.13</td>
+<td style="text-align: right;">1.151</td>
+<td style="text-align: right;">−0.002 [−0.005, +0.002]</td>
+<td style="text-align: right;">3.451</td>
+<td style="text-align: right;">31.52</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">3.080</td>
+<td style="text-align: right;">21.75</td>
+<td style="text-align: right;">1.162</td>
+<td style="text-align: right;">+0.027 [+0.021, +0.033]</td>
+<td style="text-align: right;">3.472</td>
+<td style="text-align: right;">32.20</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;"><strong>3.001</strong></td>
+<td style="text-align: right;">20.11</td>
+<td style="text-align: right;">1.132</td>
+<td style="text-align: right;">−0.051 [−0.053, −0.049]</td>
+<td style="text-align: right;"><strong>3.415</strong></td>
+<td style="text-align: right;">30.41</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 1　训练结束时的检查点在两个 held-out 集上的损失（越低越好）。差值是与同一批窗口上全注意力的配对差，方括号内为 95% 置信区间。bits/byte 按语料的平均字节/token 换算。</p>
+<p>表 1 是四个模型在两个 held-out 集上的最终结果。三组配对差都以全注意力为基准，在同一批窗口上计算。</p>
+<p>在 PG-19 test 上，TTT-E2E 的每 token 损失比全注意力低 0.051 nat（95% 置信区间 [−0.053, −0.049]），比滑窗注意力低 0.072 nat。FineWeb-Edu held-out 上的方向一致，幅度略小（比全注意力低 0.054 nat）。</p>
+<p>这个 0.072 nat 的量级需要一个参照才有意义。同一张表里，<strong>把注意力窗口从 512 扩大到完整的 4,096 个位置</strong>（滑窗 → 全注意力）只带来 0.021 nat 的改善。也就是说，在这个规模和这份数据上，测试时更新带来的收益是"让模型看见全部上下文"的两倍以上。
+这是本报告的主结论，但它的适用范围很窄：单一模型规模、单一数据配方、4,096 的训练长度。第 4.9 节给出三个随机种子和三种模型规模下的重复结果，第 6 节说明哪些条件下不应期待同样的结论。</p>
+<h3 id="43">4.3 损失随上下文长度的变化<a class="headerlink" href="#43" title="Permanent link">&para;</a></h3>
+<figure class="report-figure">
+  <img alt="PG-19 test 上损失随上下文长度的变化" src="../assets/report/fig_context_4k.light.svg#only-light" />
+  <img alt="PG-19 test 上损失随上下文长度的变化" src="../assets/report/fig_context_4k.dark.svg#only-dark" />
+<br />
+<figcaption>图 3　PG-19 test 上，损失随窗口内已读 token 数的变化（每 64 个位置取平均）。左：各模型的损失。右：各模型与全注意力的配对差，阴影是按书重采样的 95% 置信区间。滑窗注意力的窗口是 512，TTT-E2E 每 256 个 token 更新一次。</figcaption>
+</figure>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">上下文位置（token）</th>
+<th style="text-align: right;">0–512</th>
+<th style="text-align: right;">512–1K</th>
+<th style="text-align: right;">1K–2K</th>
+<th style="text-align: right;">2K–4K</th>
+<th style="text-align: right;">全部</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">3.189</td>
+<td style="text-align: right;">3.056</td>
+<td style="text-align: right;">3.028</td>
+<td style="text-align: right;">3.029</td>
+<td style="text-align: right;">3.052</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">3.158</td>
+<td style="text-align: right;">3.052</td>
+<td style="text-align: right;">3.050</td>
+<td style="text-align: right;">3.070</td>
+<td style="text-align: right;">3.073</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">3.133</td>
+<td style="text-align: right;">3.029</td>
+<td style="text-align: right;">3.027</td>
+<td style="text-align: right;">3.047</td>
+<td style="text-align: right;">3.050</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">3.141</td>
+<td style="text-align: right;">3.056</td>
+<td style="text-align: right;">3.059</td>
+<td style="text-align: right;">3.080</td>
+<td style="text-align: right;">3.080</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">3.126</td>
+<td style="text-align: right;">3.004</td>
+<td style="text-align: right;">2.980</td>
+<td style="text-align: right;">2.980</td>
+<td style="text-align: right;">3.001</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ TTT-E2E − 滑窗注意力</td>
+<td style="text-align: right;">−0.031<br>[−0.033, −0.030]</td>
+<td style="text-align: right;">−0.048<br>[−0.050, −0.046]</td>
+<td style="text-align: right;">−0.070<br>[−0.073, −0.067]</td>
+<td style="text-align: right;">−0.090<br>[−0.095, −0.084]</td>
+<td style="text-align: right;">−0.072<br>[−0.076, −0.068]</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ TTT-E2E − 全注意力</td>
+<td style="text-align: right;">−0.062<br>[−0.066, −0.058]</td>
+<td style="text-align: right;">−0.052<br>[−0.054, −0.050]</td>
+<td style="text-align: right;">−0.048<br>[−0.051, −0.046]</td>
+<td style="text-align: right;">−0.049<br>[−0.052, −0.047]</td>
+<td style="text-align: right;">−0.051<br>[−0.053, −0.049]</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ 滑窗注意力 − 全注意力</td>
+<td style="text-align: right;">−0.031<br>[−0.034, −0.028]</td>
+<td style="text-align: right;">−0.004<br>[−0.006, −0.002]</td>
+<td style="text-align: right;">+0.022<br>[+0.018, +0.026]</td>
+<td style="text-align: right;">+0.040<br>[+0.034, +0.046]</td>
+<td style="text-align: right;">+0.021<br>[+0.017, +0.025]</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 2　PG-19 test 上按上下文位置分段的损失，以及模型之间的配对差（95% 置信区间）。</p>
+<p>图 3 把损失按"窗口内已读 token 数"展开。四条曲线在前 256 个 token 内几乎重合——这正是更新块长度 <span class="arithmatex">\(C=256\)</span>，在第一次内循环更新发生之前，TTT-E2E 和它关闭更新的版本是同一个模型。第一次更新一旦落地，两条曲线立刻分开，此后差距持续扩大。这是机制按设计工作的直接证据：收益的出现时刻与更新时刻对齐，不是拟合出来的。</p>
+<p>相对滑窗注意力，TTT-E2E 的优势随可用上下文单调扩大：从最初 512 个 token 的 0.031 nat 增长到 2,048–4,096 区间的 0.090 nat（表 2）。这与"把历史压进权重"的预期一致：读得越多，被压进快权重的信息越多。</p>
+<p>与全注意力的比较则呈现相反的形状：优势在上下文最短时最大（0.062 nat），随后收窄并稳定在约 0.049 nat。短上下文处的差距不可能来自"记住了更多历史"——那里根本没有多少历史。更可能的解释是两者结构不同：TTT 的后段多了一个 MLP′，而且它是在"权重会被更新"的条件下训练出来的。第 4.4 节的无更新对照把这部分单独分离出来。</p>
+<h3 id="44">4.4 收益来自哪里<a class="headerlink" href="#44" title="Permanent link">&para;</a></h3>
+<p>TTT-E2E 与滑窗注意力的差别有三个来源：后段多了一个 MLP′（额外参数）、推理时执行梯度更新（测试时计算）、以及训练时就在模拟这种更新（元学习）。四个模型加上两项专门的评测，可以把三者分开。</p>
+<p><strong>额外参数本身。</strong> 无更新对照与 TTT-E2E 结构相同、参数量相同，训练和推理都不做内循环。它比滑窗注意力低 0.023 nat（[−0.024, −0.022]）——多出来的 14.2M 个参数确实有用，但只解释了总差距 0.072 nat 中的一小部分。</p>
+<p><strong>测试时更新本身。</strong> TTT-E2E 比无更新对照低 0.049 nat（[−0.052, −0.046]）。两者参数量和结构完全相同，差别只有"推理时是否按内循环更新快权重"以及"训练时是否模拟了这一过程"。这是三项里最大的一项。
+<strong>没有元学习的测试时更新够不够？</strong> 这是关键的一问：如果对任意一个普通模型直接做测试时梯度下降（动态评估）就能得到同样的收益，那么训练阶段的二阶导就是不必要的开销。我们对无更新对照直接执行同一套内循环，并扫描测试时学习率。结果是几乎没有改善：最好的一档是 3.0456，而不更新时是 3.0552。同一组超参数作用在经过元训练的 TTT-E2E 上，则从 3.0793 降到 3.0078。</p>
+<p>换句话说，<strong>有用的不是梯度更新这个动作，而是模型事先被训练成"可被这样更新"</strong>。这正是端到端训练二阶导的代价所换来的东西。
+还有一个方向相反的观察值得记录：把训练好的 TTT-E2E <strong>关闭更新</strong>后评测，它比无更新对照差 0.029 nat（[+0.026, +0.032]）。用更新训练出来的慢参数会<strong>依赖</strong>这些更新：它们把一部分建模工作交给了内循环，拿掉内循环就留下缺口。这意味着 TTT-E2E 不是一个"可以随时关掉以省算力"的功能，而是一个必须成套使用的设计。</p>
+<h3 id="45-32k">4.5 超出训练长度：32K 上下文<a class="headerlink" href="#45-32k" title="Permanent link">&para;</a></h3>
+<figure class="report-figure">
+  <img alt="超出训练长度时的损失" src="../assets/report/fig_context_32k.light.svg#only-light" />
+  <img alt="超出训练长度时的损失" src="../assets/report/fig_context_32k.dark.svg#only-dark" />
+<br />
+<figcaption>图 4　把评测窗口加长到 32,768 个 token（训练长度的 8 倍）时 PG-19 test 上的损失，每 256 个位置取平均，竖线标出训练长度。虚线是不做任何截断、直接外推的全注意力；右图显示相对于匹配的滑窗、无更新和 TTT 无更新条件的配对差。</figcaption>
+</figure>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">上下文位置（token）</th>
+<th style="text-align: right;">0–4K</th>
+<th style="text-align: right;">4K–8K</th>
+<th style="text-align: right;">8K–16K</th>
+<th style="text-align: right;">16K–32K</th>
+<th style="text-align: right;">全部</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">3.000</td>
+<td style="text-align: right;">3.085</td>
+<td style="text-align: right;">3.072</td>
+<td style="text-align: right;">3.073</td>
+<td style="text-align: right;">3.065</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">2.977</td>
+<td style="text-align: right;">3.061</td>
+<td style="text-align: right;">3.049</td>
+<td style="text-align: right;">3.051</td>
+<td style="text-align: right;">3.042</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">3.002</td>
+<td style="text-align: right;">3.095</td>
+<td style="text-align: right;">3.083</td>
+<td style="text-align: right;">3.084</td>
+<td style="text-align: right;">3.075</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">2.928</td>
+<td style="text-align: right;">2.978</td>
+<td style="text-align: right;">2.954</td>
+<td style="text-align: right;">2.936</td>
+<td style="text-align: right;">2.945</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ TTT-E2E − 滑窗注意力</td>
+<td style="text-align: right;">−0.072<br>[−0.077, −0.067]</td>
+<td style="text-align: right;">−0.107<br>[−0.116, −0.096]</td>
+<td style="text-align: right;">−0.118<br>[−0.129, −0.107]</td>
+<td style="text-align: right;">−0.137<br>[−0.153, −0.121]</td>
+<td style="text-align: right;">−0.120<br>[−0.133, −0.108]</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ TTT-E2E − 无更新对照</td>
+<td style="text-align: right;">−0.049<br>[−0.053, −0.044]</td>
+<td style="text-align: right;">−0.083<br>[−0.092, −0.073]</td>
+<td style="text-align: right;">−0.095<br>[−0.105, −0.084]</td>
+<td style="text-align: right;">−0.114<br>[−0.130, −0.099]</td>
+<td style="text-align: right;">−0.097<br>[−0.109, −0.085]</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ TTT-E2E − TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">−0.074<br>[−0.081, −0.066]</td>
+<td style="text-align: right;">−0.117<br>[−0.129, −0.104]</td>
+<td style="text-align: right;">−0.129<br>[−0.142, −0.115]</td>
+<td style="text-align: right;">−0.148<br>[−0.166, −0.129]</td>
+<td style="text-align: right;">−0.130<br>[−0.144, −0.115]</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 3　32K 窗口内按位置分段的损失与配对差（95% 置信区间）。所有模型都只在 4,096 长度上训练过。</p>
+<p>把评测窗口从 4,096 直接拉长到 32,768（训练长度的 8 倍），不做任何微调，也不改变模型。全注意力无法参与这项比较：它的位置编码只在 4,096 以内训练过，直接外推到 32K 会超出训练分布；我们单独测了它在 8,192 和 16,384 的表现，见 <code>results.json</code> 的 <code>full_extrapolation</code> 字段。</p>
+<p>在 32K 窗口内，TTT-E2E 相对滑窗注意力的优势扩大到 0.120 nat（[−0.133, −0.108]），比 4K 窗口下的 0.072 nat 更大。两个模型超过训练长度后损失都有所上升（图 4 左），但 TTT-E2E 上升得更慢。</p>
+<p>这里有一个必须说清楚的区分：滑窗注意力和 TTT-E2E 都<strong>没有长度外推问题</strong>——它们的每一层都只看最近 512 个位置，位置编码在 32K 处遇到的相对距离与训练时完全相同。因此这张图衡量的不是"能否处理更长的输入"，而是"随着读入更多内容，快权重能否继续积累有用的信息"。TTT-E2E 的优势持续扩大，说明在 8 倍于训练长度的范围内，内循环仍在稳定工作而没有发散。
+快权重的诊断支持这一点。在 32K 评测中，每个更新块后的快权重范数平稳变化，内循环梯度范数始终保持在裁剪阈值附近，128 个更新块里没有出现范数发散或塌缩。这是内循环在远超训练长度时仍然稳定的直接证据。</p>
+<h3 id="46">4.6 压缩丢掉了什么：逐字回忆<a class="headerlink" href="#46" title="Permanent link">&para;</a></h3>
+<figure class="report-figure">
+  <img alt="逐字回忆探针" src="../assets/report/fig_recall.light.svg#only-light" width="70%" />
+  <img alt="逐字回忆探针" src="../assets/report/fig_recall.dark.svg#only-dark" width="70%" />
+<br />
+<figcaption>图 5　逐字回忆探针。把窗口内第 128–191 个 token 原样复制到更靠后的位置，纵轴是重复段中间 32 个 token 上的损失比未改动文本降低了多少；值越大说明模型越能利用此前出现过的原文。</figcaption>
+</figure>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">与首次出现的距离（token）</th>
+<th style="text-align: right;">320</th>
+<th style="text-align: right;">640</th>
+<th style="text-align: right;">1,152</th>
+<th style="text-align: right;">2,176</th>
+<th style="text-align: right;">3,712</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">+1.83<br>[+1.71, +1.94]</td>
+<td style="text-align: right;">+1.53<br>[+1.42, +1.64]</td>
+<td style="text-align: right;">+1.37<br>[+1.27, +1.46]</td>
+<td style="text-align: right;">+0.99<br>[+0.89, +1.08]</td>
+<td style="text-align: right;">+0.52<br>[+0.43, +0.62]</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">+1.51<br>[+1.40, +1.62]</td>
+<td style="text-align: right;">−0.11<br>[−0.21, −0.01]</td>
+<td style="text-align: right;">−0.15<br>[−0.26, −0.05]</td>
+<td style="text-align: right;">−0.07<br>[−0.17, +0.03]</td>
+<td style="text-align: right;">−0.12<br>[−0.21, −0.03]</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">+1.58<br>[+1.47, +1.69]</td>
+<td style="text-align: right;">−0.12<br>[−0.21, −0.02]</td>
+<td style="text-align: right;">−0.16<br>[−0.26, −0.06]</td>
+<td style="text-align: right;">−0.08<br>[−0.18, +0.02]</td>
+<td style="text-align: right;">−0.12<br>[−0.21, −0.02]</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">+1.15<br>[+1.04, +1.25]</td>
+<td style="text-align: right;">−0.12<br>[−0.22, −0.03]</td>
+<td style="text-align: right;">−0.14<br>[−0.25, −0.04]</td>
+<td style="text-align: right;">−0.06<br>[−0.15, +0.04]</td>
+<td style="text-align: right;">−0.08<br>[−0.17, +0.02]</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">+1.58<br>[+1.48, +1.68]</td>
+<td style="text-align: right;">+0.61<br>[+0.52, +0.70]</td>
+<td style="text-align: right;">+0.58<br>[+0.48, +0.67]</td>
+<td style="text-align: right;">+0.65<br>[+0.56, +0.74]</td>
+<td style="text-align: right;">+0.58<br>[+0.49, +0.66]</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 4　重复段上的损失降低量（nat，方括号内为 95% 置信区间；PG-19 test 每本书前 4 个窗口，共 400 个）。</p>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: right;">1K</th>
+<th style="text-align: right;">2K</th>
+<th style="text-align: right;">4K</th>
+<th style="text-align: right;">8K</th>
+<th style="text-align: right;">16K</th>
+<th style="text-align: right;">32K</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">–</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">2.05</td>
+<td style="text-align: right;">1.08</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: right;">0.52</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.37</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">2.24</td>
+<td style="text-align: right;">1.12</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.41</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">2.10</td>
+<td style="text-align: right;">1.05</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.43</td>
+<td style="text-align: right;">0.39</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">2.59</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">1.53</td>
+<td style="text-align: right;">1.54</td>
+<td style="text-align: right;">1.56</td>
+<td style="text-align: right;">1.32</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 5　单针检索：在干草堆文本里藏一句“One of the special magic numbers for &lt;键&gt; is: &lt;7 位数字&gt;.”，然后提问这个键对应的数字。表中是答案的每 token 对数似然比“针被换成无关键值对”时降低了多少（nat，越大说明越用到了针）。干草堆为 PG-19 test 的书籍正文，针均匀放在 10 个深度上；提示词和针的句式取自 RULER。</p>
+<p>前面几节说明 TTT-E2E 更会利用上下文，但没有说明它<strong>以什么方式</strong>利用。把历史压进固定大小的权重，必然丢掉一些东西；这一节用两个探针去找出丢掉的是什么。</p>
+<p><strong>逐字回忆。</strong> 把窗口内一段 64 个 token 的原文原样复制到更靠后的位置，看模型在重复段上的损失比未改动文本降低多少。注意力可以直接回看原文，所以全注意力在距离 320 处降低 1.83 nat，并随距离缓慢衰减到 0.52 nat。</p>
+<p>滑窗注意力的表现是一道断崖：距离 320（仍在 512 窗口内）时降低 1.51 nat，一旦超出窗口就归零甚至变为负值（距离 640 时 −0.11）。窗口之外，它对自己读过的原文没有任何记忆。</p>
+<p>TTT-E2E 填上了这道断崖，但填的方式与注意力不同：距离 640 处降低 0.61 nat，而且此后<strong>几乎不随距离衰减</strong>（3,712 处仍有 0.58 nat）。这正是"压进权重"应有的特征——信息不是按距离远近排列的，而是被累积进一组权重里。代价同样明显：它的绝对量只有全注意力的一半左右，压缩确实有损。
+<strong>单针检索。</strong> 按 RULER 的 <code>niah</code> 任务构造：在干草堆文本里藏一句"某个键对应的特殊数字是 ⟨7 位数⟩"，然后提问。这些模型都是 1.3 亿参数的基座模型，没有指令微调，直接按精确匹配评分全部为零——这样的全零结果说明不了任何问题。因此我们改为度量"针在场 vs 针被换成无关键值对"时答案对数似然的差：它衡量模型是否真的用到了那根针，即使它说不出完整答案。</p>
+<p>在 32K 上下文下，TTT-E2E 的这一指标是 1.32 nat/token，滑窗注意力是 0.37，无更新对照是 0.41。滑窗和无更新对照的数值随上下文变长而持续下滑（针被推到窗口之外），TTT-E2E 则从 4K 到 32K 基本持平。
+两个探针指向同一个结论：TTT-E2E 保留的是<strong>随上下文长度稳定、但精度受限</strong>的记忆，而注意力保留的是<strong>精确、但受窗口或成本限制</strong>的记忆。它们不是同一种东西，这也是原论文在针尖检索类任务上落后于全注意力的原因。</p>
+<h3 id="47-benchmark">4.7 公开 benchmark 与公开模型<a class="headerlink" href="#47-benchmark" title="Permanent link">&para;</a></h3>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: right;">参数量</th>
+<th style="text-align: right;">HellaSwag</th>
+<th style="text-align: right;">PIQA</th>
+<th style="text-align: right;">ARC-E</th>
+<th style="text-align: right;">ARC-C</th>
+<th style="text-align: right;">WinoGrande</th>
+<th style="text-align: right;">SciQ</th>
+<th style="text-align: right;">OBQA</th>
+<th style="text-align: right;">BLiMP</th>
+<th style="text-align: right;">MMLU</th>
+<th style="text-align: right;">LAMBADA</th>
+<th style="text-align: right;">平均</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">124M</td>
+<td style="text-align: right;">26.6</td>
+<td style="text-align: right;">57.4</td>
+<td style="text-align: right;">39.1</td>
+<td style="text-align: right;">23.5</td>
+<td style="text-align: right;">50.3</td>
+<td style="text-align: right;">64.4</td>
+<td style="text-align: right;">25.2</td>
+<td style="text-align: right;">74.6</td>
+<td style="text-align: right;">23.0</td>
+<td style="text-align: right;">16.4</td>
+<td style="text-align: right;">40.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">124M</td>
+<td style="text-align: right;">27.1</td>
+<td style="text-align: right;">57.9</td>
+<td style="text-align: right;">38.2</td>
+<td style="text-align: right;">22.6</td>
+<td style="text-align: right;">52.2</td>
+<td style="text-align: right;">70.1</td>
+<td style="text-align: right;">25.4</td>
+<td style="text-align: right;">76.0</td>
+<td style="text-align: right;">23.0</td>
+<td style="text-align: right;">17.7</td>
+<td style="text-align: right;">41.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">138M</td>
+<td style="text-align: right;">27.5</td>
+<td style="text-align: right;">57.9</td>
+<td style="text-align: right;">40.6</td>
+<td style="text-align: right;">23.5</td>
+<td style="text-align: right;">52.0</td>
+<td style="text-align: right;">68.4</td>
+<td style="text-align: right;">26.4</td>
+<td style="text-align: right;">76.9</td>
+<td style="text-align: right;">23.0</td>
+<td style="text-align: right;">17.4</td>
+<td style="text-align: right;">41.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">138M</td>
+<td style="text-align: right;">27.5</td>
+<td style="text-align: right;">58.2</td>
+<td style="text-align: right;">39.6</td>
+<td style="text-align: right;">24.7</td>
+<td style="text-align: right;">52.0</td>
+<td style="text-align: right;">64.0</td>
+<td style="text-align: right;">29.0</td>
+<td style="text-align: right;">76.1</td>
+<td style="text-align: right;">23.1</td>
+<td style="text-align: right;">15.2</td>
+<td style="text-align: right;">41.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">138M</td>
+<td style="text-align: right;">27.5</td>
+<td style="text-align: right;">58.2</td>
+<td style="text-align: right;">39.6</td>
+<td style="text-align: right;">24.7</td>
+<td style="text-align: right;">52.1</td>
+<td style="text-align: right;">64.6</td>
+<td style="text-align: right;">29.0</td>
+<td style="text-align: right;">76.1</td>
+<td style="text-align: right;">23.1</td>
+<td style="text-align: right;">15.2</td>
+<td style="text-align: right;">41.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">95% 置信区间半宽</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">±0.9</td>
+<td style="text-align: right;">±2.3</td>
+<td style="text-align: right;">±2.0</td>
+<td style="text-align: right;">±2.4</td>
+<td style="text-align: right;">±2.7</td>
+<td style="text-align: right;">±3.0</td>
+<td style="text-align: right;">±3.8</td>
+<td style="text-align: right;">±0.3</td>
+<td style="text-align: right;">±0.7</td>
+<td style="text-align: right;">±1.0</td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 6　本报告四个训练配置的零样本准确率（%），并额外列出关闭测试时更新的 TTT 检查点。HellaSwag、PIQA、ARC、OpenBookQA 报告按候选项长度归一化的准确率，其余为普通准确率；“平均”是十项的算术平均。</p>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: left;">Hugging Face 仓库</th>
+<th style="text-align: right;">参数量</th>
+<th style="text-align: right;">最大上下文</th>
+<th style="text-align: left;">训练数据（据模型卡片或论文）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">DistilGPT-2<sup id="fnref:distil"><a class="footnote-ref" href="#fn:distil">18</a></sup></td>
+<td style="text-align: left;"><code>distilbert/distilgpt2</code></td>
+<td style="text-align: right;">81.9M</td>
+<td style="text-align: right;">1,024</td>
+<td style="text-align: left;">OpenWebText（38 GB 文本），由 GPT-2 蒸馏；训练 token 数未公布</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-2<sup id="fnref:gpt2"><a class="footnote-ref" href="#fn:gpt2">17</a></sup></td>
+<td style="text-align: left;"><code>openai-community/gpt2</code></td>
+<td style="text-align: right;">124.4M</td>
+<td style="text-align: right;">1,024</td>
+<td style="text-align: left;">WebText（40 GB 文本）；训练 token 数未公布</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-2 Medium<sup id="fnref2:gpt2"><a class="footnote-ref" href="#fn:gpt2">17</a></sup></td>
+<td style="text-align: left;"><code>openai-community/gpt2-medium</code></td>
+<td style="text-align: right;">354.8M</td>
+<td style="text-align: right;">1,024</td>
+<td style="text-align: left;">WebText（40 GB 文本）；训练 token 数未公布</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pythia-70M<sup id="fnref:pythia"><a class="footnote-ref" href="#fn:pythia">19</a></sup></td>
+<td style="text-align: left;"><code>EleutherAI/pythia-70m</code></td>
+<td style="text-align: right;">70.4M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: left;">The Pile；训练中读入约 3,000 亿 token</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pythia-160M<sup id="fnref2:pythia"><a class="footnote-ref" href="#fn:pythia">19</a></sup></td>
+<td style="text-align: left;"><code>EleutherAI/pythia-160m</code></td>
+<td style="text-align: right;">162.3M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: left;">The Pile；训练中读入约 3,000 亿 token</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-Neo-125M<sup id="fnref:gptneo"><a class="footnote-ref" href="#fn:gptneo">20</a></sup></td>
+<td style="text-align: left;"><code>EleutherAI/gpt-neo-125m</code></td>
+<td style="text-align: right;">125.2M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: left;">The Pile；3,000 亿 token</td>
+</tr>
+<tr>
+<td style="text-align: left;">OPT-125M<sup id="fnref:opt"><a class="footnote-ref" href="#fn:opt">21</a></sup></td>
+<td style="text-align: left;"><code>facebook/opt-125m</code></td>
+<td style="text-align: right;">125.2M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: left;">1,800 亿 token 的混合语料（800 GB）；训练 token 数未明确公布</td>
+</tr>
+<tr>
+<td style="text-align: left;">SmolLM-135M<sup id="fnref:smollm2"><a class="footnote-ref" href="#fn:smollm2">22</a></sup></td>
+<td style="text-align: left;"><code>HuggingFaceTB/SmolLM-135M</code></td>
+<td style="text-align: right;">134.5M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: left;">Cosmopedia v2、Python-Edu、FineWeb-Edu；6,000 亿 token</td>
+</tr>
+<tr>
+<td style="text-align: left;">SmolLM2-135M<sup id="fnref2:smollm2"><a class="footnote-ref" href="#fn:smollm2">22</a></sup></td>
+<td style="text-align: left;"><code>HuggingFaceTB/SmolLM2-135M</code></td>
+<td style="text-align: right;">134.5M</td>
+<td style="text-align: right;">8,192</td>
+<td style="text-align: left;">FineWeb-Edu、DCLM、The Stack 等；2 万亿 token</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 7　用于对照的公开模型。训练数据一列摘自各自的模型卡片或论文（2026 年 11 月核对）；它们的训练量比本报告的模型大一到三个数量级。</p>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: right;">参数量</th>
+<th style="text-align: right;">HellaSwag</th>
+<th style="text-align: right;">PIQA</th>
+<th style="text-align: right;">ARC-E</th>
+<th style="text-align: right;">ARC-C</th>
+<th style="text-align: right;">WinoGrande</th>
+<th style="text-align: right;">SciQ</th>
+<th style="text-align: right;">OBQA</th>
+<th style="text-align: right;">BLiMP</th>
+<th style="text-align: right;">MMLU</th>
+<th style="text-align: right;">LAMBADA</th>
+<th style="text-align: right;">平均</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">DistilGPT-2</td>
+<td style="text-align: right;">82M</td>
+<td style="text-align: right;">27.5</td>
+<td style="text-align: right;">59.8</td>
+<td style="text-align: right;">36.6</td>
+<td style="text-align: right;">23.0</td>
+<td style="text-align: right;">50.4</td>
+<td style="text-align: right;">71.6</td>
+<td style="text-align: right;">26.8</td>
+<td style="text-align: right;">79.5</td>
+<td style="text-align: right;">22.9</td>
+<td style="text-align: right;">25.0</td>
+<td style="text-align: right;">42.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-2</td>
+<td style="text-align: right;">124M</td>
+<td style="text-align: right;">31.1</td>
+<td style="text-align: right;">62.5</td>
+<td style="text-align: right;">39.5</td>
+<td style="text-align: right;">22.7</td>
+<td style="text-align: right;">51.6</td>
+<td style="text-align: right;">75.3</td>
+<td style="text-align: right;">27.2</td>
+<td style="text-align: right;">82.5</td>
+<td style="text-align: right;">22.9</td>
+<td style="text-align: right;">32.6</td>
+<td style="text-align: right;">44.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-2 Medium</td>
+<td style="text-align: right;">355M</td>
+<td style="text-align: right;">39.4</td>
+<td style="text-align: right;">66.4</td>
+<td style="text-align: right;">43.6</td>
+<td style="text-align: right;">25.0</td>
+<td style="text-align: right;">53.1</td>
+<td style="text-align: right;">77.5</td>
+<td style="text-align: right;">30.2</td>
+<td style="text-align: right;">82.6</td>
+<td style="text-align: right;">22.9</td>
+<td style="text-align: right;">43.0</td>
+<td style="text-align: right;">48.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pythia-70M</td>
+<td style="text-align: right;">70M</td>
+<td style="text-align: right;">27.4</td>
+<td style="text-align: right;">58.4</td>
+<td style="text-align: right;">34.4</td>
+<td style="text-align: right;">22.4</td>
+<td style="text-align: right;">51.3</td>
+<td style="text-align: right;">61.2</td>
+<td style="text-align: right;">24.8</td>
+<td style="text-align: right;">73.8</td>
+<td style="text-align: right;">22.9</td>
+<td style="text-align: right;">18.5</td>
+<td style="text-align: right;">39.5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pythia-160M</td>
+<td style="text-align: right;">162M</td>
+<td style="text-align: right;">30.3</td>
+<td style="text-align: right;">61.6</td>
+<td style="text-align: right;">39.6</td>
+<td style="text-align: right;">23.9</td>
+<td style="text-align: right;">50.6</td>
+<td style="text-align: right;">74.0</td>
+<td style="text-align: right;">27.6</td>
+<td style="text-align: right;">78.2</td>
+<td style="text-align: right;">23.1</td>
+<td style="text-align: right;">32.8</td>
+<td style="text-align: right;">44.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-Neo-125M</td>
+<td style="text-align: right;">125M</td>
+<td style="text-align: right;">30.4</td>
+<td style="text-align: right;">62.5</td>
+<td style="text-align: right;">39.4</td>
+<td style="text-align: right;">23.1</td>
+<td style="text-align: right;">50.4</td>
+<td style="text-align: right;">76.6</td>
+<td style="text-align: right;">26.2</td>
+<td style="text-align: right;">79.3</td>
+<td style="text-align: right;">23.1</td>
+<td style="text-align: right;">37.4</td>
+<td style="text-align: right;">44.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">OPT-125M</td>
+<td style="text-align: right;">125M</td>
+<td style="text-align: right;">31.6</td>
+<td style="text-align: right;">62.0</td>
+<td style="text-align: right;">40.1</td>
+<td style="text-align: right;">22.4</td>
+<td style="text-align: right;">51.4</td>
+<td style="text-align: right;">78.4</td>
+<td style="text-align: right;">28.8</td>
+<td style="text-align: right;">81.4</td>
+<td style="text-align: right;">22.9</td>
+<td style="text-align: right;">38.9</td>
+<td style="text-align: right;">45.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">SmolLM-135M</td>
+<td style="text-align: right;">135M</td>
+<td style="text-align: right;">42.5</td>
+<td style="text-align: right;">68.6</td>
+<td style="text-align: right;">56.2</td>
+<td style="text-align: right;">28.9</td>
+<td style="text-align: right;">53.1</td>
+<td style="text-align: right;">83.7</td>
+<td style="text-align: right;">34.0</td>
+<td style="text-align: right;">79.8</td>
+<td style="text-align: right;">25.2</td>
+<td style="text-align: right;">37.5</td>
+<td style="text-align: right;">50.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">SmolLM2-135M</td>
+<td style="text-align: right;">135M</td>
+<td style="text-align: right;">43.1</td>
+<td style="text-align: right;">68.4</td>
+<td style="text-align: right;">58.6</td>
+<td style="text-align: right;">29.4</td>
+<td style="text-align: right;">52.6</td>
+<td style="text-align: right;">84.2</td>
+<td style="text-align: right;">33.2</td>
+<td style="text-align: right;">80.3</td>
+<td style="text-align: right;">24.2</td>
+<td style="text-align: right;">42.8</td>
+<td style="text-align: right;">51.7</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 8　用同一脚本、同一协议评测的公开模型（%）。参数量由加载的权重直接统计。</p>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: right;">最大上下文</th>
+<th style="text-align: right;">WikiText-103 词级 PPL</th>
+<th style="text-align: right;">WikiText-103 bits/byte</th>
+<th style="text-align: right;">PG-19 test 词级 PPL</th>
+<th style="text-align: right;">PG-19 test bits/byte</th>
+<th style="text-align: right;">LAMBADA PPL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">4,096</td>
+<td style="text-align: right;">63.97</td>
+<td style="text-align: right;">1.122</td>
+<td style="text-align: right;">102.66</td>
+<td style="text-align: right;">1.150</td>
+<td style="text-align: right;">469.84</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">4,096</td>
+<td style="text-align: right;">73.05</td>
+<td style="text-align: right;">1.158</td>
+<td style="text-align: right;">106.09</td>
+<td style="text-align: right;">1.158</td>
+<td style="text-align: right;">382.44</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">4,096</td>
+<td style="text-align: right;">70.61</td>
+<td style="text-align: right;">1.149</td>
+<td style="text-align: right;">102.45</td>
+<td style="text-align: right;">1.150</td>
+<td style="text-align: right;">382.97</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（关闭更新）</td>
+<td style="text-align: right;">4,096</td>
+<td style="text-align: right;">78.30</td>
+<td style="text-align: right;">1.176</td>
+<td style="text-align: right;">107.11</td>
+<td style="text-align: right;">1.161</td>
+<td style="text-align: right;">497.22</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">4,096</td>
+<td style="text-align: right;">59.87</td>
+<td style="text-align: right;">1.104</td>
+<td style="text-align: right;">95.01</td>
+<td style="text-align: right;">1.131</td>
+<td style="text-align: right;">497.20</td>
+</tr>
+<tr>
+<td style="text-align: left;">DistilGPT-2</td>
+<td style="text-align: right;">1,024</td>
+<td style="text-align: right;">52.96</td>
+<td style="text-align: right;">1.071</td>
+<td style="text-align: right;">370.39</td>
+<td style="text-align: right;">1.469</td>
+<td style="text-align: right;">96.85</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-2</td>
+<td style="text-align: right;">1,024</td>
+<td style="text-align: right;">37.37</td>
+<td style="text-align: right;">0.977</td>
+<td style="text-align: right;">280.89</td>
+<td style="text-align: right;">1.400</td>
+<td style="text-align: right;">40.06</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-2 Medium</td>
+<td style="text-align: right;">1,024</td>
+<td style="text-align: right;">26.75</td>
+<td style="text-align: right;">0.887</td>
+<td style="text-align: right;">143.89</td>
+<td style="text-align: right;">1.234</td>
+<td style="text-align: right;">18.26</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pythia-70M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">57.05</td>
+<td style="text-align: right;">1.091</td>
+<td style="text-align: right;">200.17</td>
+<td style="text-align: right;">1.316</td>
+<td style="text-align: right;">142.56</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pythia-160M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">33.41</td>
+<td style="text-align: right;">0.947</td>
+<td style="text-align: right;">107.09</td>
+<td style="text-align: right;">1.161</td>
+<td style="text-align: right;">38.18</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPT-Neo-125M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">32.29</td>
+<td style="text-align: right;">0.937</td>
+<td style="text-align: right;">105.24</td>
+<td style="text-align: right;">1.156</td>
+<td style="text-align: right;">30.27</td>
+</tr>
+<tr>
+<td style="text-align: left;">OPT-125M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">31.95</td>
+<td style="text-align: right;">0.935</td>
+<td style="text-align: right;">129.99</td>
+<td style="text-align: right;">1.209</td>
+<td style="text-align: right;">23.14</td>
+</tr>
+<tr>
+<td style="text-align: left;">SmolLM-135M</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">26.57</td>
+<td style="text-align: right;">0.885</td>
+<td style="text-align: right;">102.91</td>
+<td style="text-align: right;">1.151</td>
+<td style="text-align: right;">32.39</td>
+</tr>
+<tr>
+<td style="text-align: left;">SmolLM2-135M</td>
+<td style="text-align: right;">8,192</td>
+<td style="text-align: right;">21.07</td>
+<td style="text-align: right;">0.822</td>
+<td style="text-align: right;">64.17</td>
+<td style="text-align: right;">1.033</td>
+<td style="text-align: right;">19.05</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 9　语言建模指标（越低越好）。WikiText-103 test 和 PG-19 test 按各模型的最大上下文切成互不重叠的窗口计算，与 lm-evaluation-harness 的做法相同；词级困惑度按空白分词的词数归一化，可以跨 tokenizer 比较。</p>
+<p><strong>协议核对。</strong> 在给出任何分数之前，需要确认我们的评测脚本与公认实现一致。我们用同一套脚本和 lm-evaluation-harness 分别评测 GPT-2（124M），逐项比较：17 个指标中 13 个完全相同，其余 4 个差异在 3×10⁻⁴ 以内（SciQ 的 0.1% 来自一道题的边界情况）。因此表 6–8 与公开模型的比较是同协议的。
+<strong>本报告的四个模型。</strong> 表 6 显示它们在十项任务上彼此非常接近，多数任务上的差异落在 95% 置信区间之内。这并不意外：这些是 1.3 亿参数、7.86 亿 token 的基座模型，在 MMLU 这类任务上都接近随机水平（25%）。held-out 损失上 0.07 nat 的稳定差异，不足以在这些 benchmark 的分辨率下显现出来。</p>
+<p><strong>与公开模型的比较（表 7、8）。</strong> 这是定位，不是匹配预算的比较：表 7 列出的公开模型训练量比我们大一到三个数量级（SmolLM2-135M 用了 2 万亿 token，约为我们的 2,500 倍）。在知识型任务上它们明显更强，这符合预期。</p>
+<p><strong>一处必须说明的"优势"。</strong> 表 9 中，我们的模型在 PG-19 test 上的词级困惑度远低于所有公开模型。这<strong>不是</strong>模型更好的证据——我们的训练数据有一半是 PG-19 训练集，与测试集同域；公开模型则多数没有专门训练过这类 1919 年前的书籍文本。同理，我们在 WikiText-103 上明显差于公开模型，因为我们的训练数据里没有维基百科。这两个方向相反的差距都来自数据配方，不是架构。把它们当作能力比较会得出错误结论。</p>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">任务</th>
+<th style="text-align: right;">适配</th>
+<th style="text-align: right;">有效样本</th>
+<th style="text-align: right;">分数</th>
+<th style="text-align: left;">协议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">ARC-Challenge</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">20.0</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">BBH sports_understanding</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">bbh_greedy_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPQA</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">65 (skip 35)</td>
+<td style="text-align: right;">23.1</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GSM8K</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">3.0</td>
+<td style="text-align: left;">gsm8k_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">HumanEval</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">humaneval_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">PIQA</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">51.0</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Synthetic long-context preflight</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0</td>
+<td style="text-align: left;">synthetic_kv_retrieval_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">ARC-Challenge</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">1165 (skip 7)</td>
+<td style="text-align: right;">20.1</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">BBH sports_understanding</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">250</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">bbh_greedy_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPQA</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">256 (skip 192)</td>
+<td style="text-align: right;">22.7</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GSM8K</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">1319</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: left;">gsm8k_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">HumanEval</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">humaneval_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">PIQA</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">1819 (skip 19)</td>
+<td style="text-align: right;">53.7</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Synthetic long-context preflight</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0</td>
+<td style="text-align: left;">synthetic_kv_retrieval_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">ARC-Challenge</td>
+<td style="text-align: right;">on</td>
+<td style="text-align: right;">1165 (skip 7)</td>
+<td style="text-align: right;">20.4</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">BBH sports_understanding</td>
+<td style="text-align: right;">on</td>
+<td style="text-align: right;">250</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">bbh_greedy_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPQA</td>
+<td style="text-align: right;">on</td>
+<td style="text-align: right;">256 (skip 192)</td>
+<td style="text-align: right;">24.6</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GSM8K</td>
+<td style="text-align: right;">on</td>
+<td style="text-align: right;">1319</td>
+<td style="text-align: right;">0.8</td>
+<td style="text-align: left;">gsm8k_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">HumanEval</td>
+<td style="text-align: right;">on</td>
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">humaneval_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">PIQA</td>
+<td style="text-align: right;">on</td>
+<td style="text-align: right;">1819 (skip 19)</td>
+<td style="text-align: right;">53.9</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Synthetic long-context preflight</td>
+<td style="text-align: right;">on</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0</td>
+<td style="text-align: left;">synthetic_kv_retrieval_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">ARC-Challenge</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">24.0</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">BBH sports_understanding</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">bbh_greedy_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GPQA</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">65 (skip 35)</td>
+<td style="text-align: right;">26.2</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">GSM8K</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: left;">gsm8k_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">HumanEval</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: left;">humaneval_generate_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">PIQA</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">55.0</td>
+<td style="text-align: left;">arc_piqa_loglikelihood_v1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Synthetic long-context preflight</td>
+<td style="text-align: right;">off</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">256: 0.0, 512: 0.0, 1024: 0.0, 2048: 0.0, 4096: 0.0, 8192: 0.0</td>
+<td style="text-align: left;">synthetic_kv_retrieval_v1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 9a　本项目要求的扩展诊断。ARC、PIQA 和 GPQA 使用答案文本 continuation 评分；GSM8K 和 HumanEval 使用 greedy generation；BBH 是指定的单个子任务。合成长上下文一行是 RULER/LongBench 的工程前置诊断，不是正式套件分数。</p>
+<h3 id="48">4.8 消融<a class="headerlink" href="#48" title="Permanent link">&para;</a></h3>
+<figure class="report-figure">
+  <img alt="消融实验" src="../assets/report/fig_ablations.light.svg#only-light" />
+  <img alt="消融实验" src="../assets/report/fig_ablations.dark.svg#only-dark" />
+<br />
+<figcaption>图 6　TTT-E2E 的四项设计选择（8 层、宽度 512、上下文 2,048 的模型，每次只改变一项）。横线是同规模的全注意力和滑窗注意力；最右一栏里滑窗注意力随窗口一起变化。</figcaption>
+</figure>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">设置</th>
+<th style="text-align: right;">训练 token</th>
+<th style="text-align: right;">PG-19 val NLL</th>
+<th style="text-align: right;">前 256 个 token</th>
+<th style="text-align: right;">最后 512 个 token</th>
+<th style="text-align: right;">关闭更新时</th>
+<th style="text-align: right;">FineWeb-Edu NLL</th>
+<th style="text-align: right;">每步时间（s）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.666</td>
+<td style="text-align: right;">3.836</td>
+<td style="text-align: right;">3.632</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">4.148</td>
+<td style="text-align: right;">0.131</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力（k=256）</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.650</td>
+<td style="text-align: right;">3.752</td>
+<td style="text-align: right;">3.644</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">4.106</td>
+<td style="text-align: right;">0.082</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力，训练时间与 TTT 相同</td>
+<td style="text-align: right;">600M</td>
+<td style="text-align: right;">3.342</td>
+<td style="text-align: right;">3.455</td>
+<td style="text-align: right;">3.335</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">3.700</td>
+<td style="text-align: right;">0.082</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.635</td>
+<td style="text-align: right;">3.737</td>
+<td style="text-align: right;">3.629</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">4.087</td>
+<td style="text-align: right;">0.104</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E（基准：η=1，C=128，后 2 层，k=256）</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.557</td>
+<td style="text-align: right;">3.722</td>
+<td style="text-align: right;">3.521</td>
+<td style="text-align: right;">3.675</td>
+<td style="text-align: right;">3.979</td>
+<td style="text-align: right;">0.299</td>
+</tr>
+<tr>
+<td style="text-align: left;">一阶近似（外循环不对内循环梯度求导）</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.539</td>
+<td style="text-align: right;">3.692</td>
+<td style="text-align: right;">3.504</td>
+<td style="text-align: right;">3.629</td>
+<td style="text-align: right;">3.962</td>
+<td style="text-align: right;">0.200</td>
+</tr>
+<tr>
+<td style="text-align: left;">内循环学习率 η=0.1</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.543</td>
+<td style="text-align: right;">3.685</td>
+<td style="text-align: right;">3.517</td>
+<td style="text-align: right;">3.613</td>
+<td style="text-align: right;">3.971</td>
+<td style="text-align: right;">0.297</td>
+</tr>
+<tr>
+<td style="text-align: left;">内循环学习率 η=0.3</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.531</td>
+<td style="text-align: right;">3.683</td>
+<td style="text-align: right;">3.498</td>
+<td style="text-align: right;">3.619</td>
+<td style="text-align: right;">3.955</td>
+<td style="text-align: right;">0.296</td>
+</tr>
+<tr>
+<td style="text-align: left;">内循环学习率 η=3</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.669</td>
+<td style="text-align: right;">3.848</td>
+<td style="text-align: right;">3.626</td>
+<td style="text-align: right;">3.816</td>
+<td style="text-align: right;">4.110</td>
+<td style="text-align: right;">0.296</td>
+</tr>
+<tr>
+<td style="text-align: left;">更新块 C=64</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.558</td>
+<td style="text-align: right;">3.727</td>
+<td style="text-align: right;">3.521</td>
+<td style="text-align: right;">3.721</td>
+<td style="text-align: right;">3.975</td>
+<td style="text-align: right;">0.376</td>
+</tr>
+<tr>
+<td style="text-align: left;">更新块 C=256</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.558</td>
+<td style="text-align: right;">3.718</td>
+<td style="text-align: right;">3.522</td>
+<td style="text-align: right;">3.635</td>
+<td style="text-align: right;">3.988</td>
+<td style="text-align: right;">0.265</td>
+</tr>
+<tr>
+<td style="text-align: left;">只在最后 1 层放快权重</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.567</td>
+<td style="text-align: right;">3.729</td>
+<td style="text-align: right;">3.531</td>
+<td style="text-align: right;">3.675</td>
+<td style="text-align: right;">3.991</td>
+<td style="text-align: right;">0.253</td>
+</tr>
+<tr>
+<td style="text-align: left;">最后 4 层放快权重</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.547</td>
+<td style="text-align: right;">3.712</td>
+<td style="text-align: right;">3.509</td>
+<td style="text-align: right;">3.670</td>
+<td style="text-align: right;">3.970</td>
+<td style="text-align: right;">0.396</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力，k=128</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.679</td>
+<td style="text-align: right;">3.752</td>
+<td style="text-align: right;">3.677</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">4.142</td>
+<td style="text-align: right;">0.081</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E，k=128</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.553</td>
+<td style="text-align: right;">3.714</td>
+<td style="text-align: right;">3.516</td>
+<td style="text-align: right;">3.692</td>
+<td style="text-align: right;">3.978</td>
+<td style="text-align: right;">0.288</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力，k=512</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.648</td>
+<td style="text-align: right;">3.778</td>
+<td style="text-align: right;">3.636</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">4.107</td>
+<td style="text-align: right;">0.099</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E，k=512</td>
+<td style="text-align: right;">164M</td>
+<td style="text-align: right;">3.562</td>
+<td style="text-align: right;">3.737</td>
+<td style="text-align: right;">3.524</td>
+<td style="text-align: right;">3.665</td>
+<td style="text-align: right;">3.987</td>
+<td style="text-align: right;">0.316</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 10　消融结果（PG-19 validation，上下文 2,048）。“关闭更新时”是同一个检查点在评测时不做测试时更新的损失。</p>
+<p>消融在 8 层、宽度 512、上下文 2,048 的小模型上进行，每次只改变一项（表 9、图 6）。</p>
+<p><strong>内循环学习率 <span class="arithmatex">\(\eta\)</span>。</strong> 0.1、0.3、1 三档的结果接近（3.543、3.531、3.557），<span class="arithmatex">\(\eta=3\)</span> 则明显变差（3.669），甚至不如同规模的滑窗基线。这与第 4.1 节的观察吻合：内循环梯度范数稳定在裁剪阈值附近，多数更新被裁剪成固定步长，所以在较大范围内改变 <span class="arithmatex">\(\eta\)</span> 影响有限，直到步长大到破坏稳定性为止。
+<strong>更新块长度 <span class="arithmatex">\(C\)</span>。</strong> 64、128、256 三档几乎没有差别（3.558、3.557、3.558）。更小的块意味着更频繁的更新和更高的训练成本，但在这个规模上买不到更低的损失；因此主实验选了较大的 <span class="arithmatex">\(C=256\)</span>。
+<strong>带快权重的层数。</strong> 1 层、2 层、4 层分别是 3.567、3.557、3.547：更多层略好，但收益递减，而每一层都会增加内循环的反向传播成本。
+<strong>注意力窗口 <span class="arithmatex">\(k\)</span>。</strong> 128、256、512 三档下 TTT-E2E 的结果几乎不变（3.553、3.557、3.562），而滑窗基线对窗口明显更敏感（3.679 → 3.648）。快权重承担了一部分本该由注意力窗口承担的工作，因此 TTT-E2E 可以用更小的窗口——这正是它在长上下文下成本优势的来源。
+<strong>参数量严格对齐。</strong> 把所有 MLP 收窄，使总参数量与不带 MLP′ 的基线相同（51.3M vs 滑窗的 51.4M），结果是 3.576，仍明显优于滑窗的 3.650。收益不依赖于多出来的参数预算。
+<strong>一阶近似。</strong> 把内循环梯度当作常数（不对它求导），前向数值完全不变，训练更便宜。结果是 3.539，与完整二阶导的 3.557 相当甚至略好。在这个规模上，<strong>穿过内循环的二阶项不是必需的</strong>——这是一条有实用价值的负面结果，但它是否在更大规模上依然成立，本报告无法回答。
+<strong>等训练时间的对照。</strong> 以上比较都固定 token 数，而 TTT-E2E 每步更慢（表 12）。按实测单步时间，我们让滑窗基线训练同样的墙上时间：18,300 步、600M token，约为 TTT-E2E 的 3.7 倍数据量。结果是 3.342，<strong>大幅优于</strong> TTT-E2E 的 3.557。</p>
+<p>这是本报告最重要的一条反面证据。在固定 token 预算下 TTT-E2E 明显更好；但如果预算的约束是<strong>时间或算力</strong>而不是数据量，那么把同样的时间用于多训练数据，在这个规模上是更划算的选择。第 6 节展开讨论这一点。</p>
+<h3 id="49">4.9 随机种子与模型规模<a class="headerlink" href="#49" title="Permanent link">&para;</a></h3>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">量</th>
+<th style="text-align: right;">seed 0</th>
+<th style="text-align: right;">seed 1</th>
+<th style="text-align: right;">seed 2</th>
+<th style="text-align: right;">均值</th>
+<th style="text-align: right;">标准差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力 NLL</td>
+<td style="text-align: right;">3.666</td>
+<td style="text-align: right;">3.660</td>
+<td style="text-align: right;">3.656</td>
+<td style="text-align: right;">3.661</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力 NLL</td>
+<td style="text-align: right;">3.650</td>
+<td style="text-align: right;">3.658</td>
+<td style="text-align: right;">3.656</td>
+<td style="text-align: right;">3.655</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E NLL</td>
+<td style="text-align: right;">3.557</td>
+<td style="text-align: right;">3.560</td>
+<td style="text-align: right;">3.550</td>
+<td style="text-align: right;">3.556</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ TTT-E2E − 滑窗注意力</td>
+<td style="text-align: right;">−0.093</td>
+<td style="text-align: right;">−0.098</td>
+<td style="text-align: right;">−0.105</td>
+<td style="text-align: right;">−0.099</td>
+<td style="text-align: right;">0.006</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ TTT-E2E − 全注意力</td>
+<td style="text-align: right;">−0.109</td>
+<td style="text-align: right;">−0.100</td>
+<td style="text-align: right;">−0.105</td>
+<td style="text-align: right;">−0.105</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr>
+<td style="text-align: left;">Δ 滑窗注意力 − 全注意力</td>
+<td style="text-align: right;">−0.016</td>
+<td style="text-align: right;">−0.002</td>
+<td style="text-align: right;">−0.000</td>
+<td style="text-align: right;">−0.006</td>
+<td style="text-align: right;">0.008</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 11　三个随机种子（初始化和数据顺序同时改变）下的 PG-19 validation 损失。同一种子下各模型读到的数据相同，所以差值按种子配对。</p>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">层数 × 宽度</th>
+<th style="text-align: right;">全注意力</th>
+<th style="text-align: right;">滑窗注意力</th>
+<th style="text-align: right;">TTT-E2E</th>
+<th style="text-align: right;">Δ TTT − 滑窗</th>
+<th style="text-align: right;">Δ TTT − 全注意力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">6 × 384</td>
+<td style="text-align: right;">3.761</td>
+<td style="text-align: right;">3.769</td>
+<td style="text-align: right;">3.659</td>
+<td style="text-align: right;">−0.109</td>
+<td style="text-align: right;">−0.102</td>
+</tr>
+<tr>
+<td style="text-align: left;">8 × 512</td>
+<td style="text-align: right;">3.666</td>
+<td style="text-align: right;">3.650</td>
+<td style="text-align: right;">3.557</td>
+<td style="text-align: right;">−0.093</td>
+<td style="text-align: right;">−0.109</td>
+</tr>
+<tr>
+<td style="text-align: left;">12 × 768</td>
+<td style="text-align: right;">3.520</td>
+<td style="text-align: right;">3.532</td>
+<td style="text-align: right;">3.420</td>
+<td style="text-align: right;">−0.112</td>
+<td style="text-align: right;">−0.100</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 12　三种模型规模在相同的 1.64 亿训练 token 下的 PG-19 validation 损失（上下文 2,048，窗口 256）。</p>
+<figure class="report-figure">
+  <img alt="模型规模与训练量" src="../assets/report/fig_scaling.light.svg#only-light" />
+  <img alt="模型规模与训练量" src="../assets/report/fig_scaling.dark.svg#only-dark" />
+<br />
+<figcaption>图 7　左：表 10 的三种规模。右：主实验训练过程中，PG-19 validation 上模型之间的损失差随训练 token 数的变化。</figcaption>
+</figure>
+<p><strong>随机种子。</strong> 表 10 给出三个种子（初始化和数据顺序同时改变）下的结果。各模型自身的标准差在 0.0040–0.0049 之间，而 TTT-E2E 与滑窗注意力的差值是 −0.099 ± 0.0061，与全注意力的差值是 −0.105 ± 0.0042。差值的标准差与单个模型的标准差相当，而差值本身比它大一个数量级，因此结论不依赖于某一次幸运的初始化。</p>
+<p>同一张表里还有一个值得注意的现象：滑窗注意力与全注意力的差只有 −0.006 ± 0.0084，<strong>在种子噪声范围内无法区分</strong>。在 2,048 的上下文和这个数据量下，把窗口从 256 扩大到全可见几乎没有帮助；而测试时更新有帮助。
+<strong>模型规模。</strong> 表 11 在固定 1.64 亿 token 的预算下比较三种规模（6×384、8×512、12×768）。TTT-E2E 在三个规模上都优于两个基线，差距从最小规模的 0.109 nat 到最大规模的 0.112 nat，没有随规模增大而消失。</p>
+<p>但三个点不足以拟合任何趋势，而且它们都在同一个很小的规模区间内、用同一个数据量。原论文在 1.25 亿到 30 亿参数上报告收益随规模变化的情况，本报告无法验证也无法反驳那一结论。</p>
+<h3 id="410">4.10 成本<a class="headerlink" href="#410" title="Permanent link">&para;</a></h3>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: right;">总参数</th>
+<th style="text-align: right;">快权重参数</th>
+<th style="text-align: right;">训练吞吐（token/s）</th>
+<th style="text-align: right;">相对滑窗</th>
+<th style="text-align: right;">每步时间（s）</th>
+<th style="text-align: right;">峰值显存（GiB）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">123.6M</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">193,430</td>
+<td style="text-align: right;">1.00×</td>
+<td style="text-align: right;">0.339</td>
+<td style="text-align: right;">81.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">无更新对照</td>
+<td style="text-align: right;">137.7M</td>
+<td style="text-align: right;">14.2M</td>
+<td style="text-align: right;">125,550</td>
+<td style="text-align: right;">0.65×</td>
+<td style="text-align: right;">0.522</td>
+<td style="text-align: right;">13.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">123.6M</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">82,087</td>
+<td style="text-align: right;">0.42×</td>
+<td style="text-align: right;">0.798</td>
+<td style="text-align: right;">45.4</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">137.7M</td>
+<td style="text-align: right;">14.2M</td>
+<td style="text-align: right;">70,218</td>
+<td style="text-align: right;">0.36×</td>
+<td style="text-align: right;">0.933</td>
+<td style="text-align: right;">77.7</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 13　单张 H200 上的训练成本（batch 16 × 4,096 token，随机输入，取 4–5 步的中位数）。全注意力和无更新对照开启了逐层梯度检查点，否则全注意力超出单卡显存。</p>
+<figure class="report-figure">
+  <img alt="训练与前向吞吐" src="../assets/report/fig_cost.light.svg#only-light" />
+  <img alt="训练与前向吞吐" src="../assets/report/fig_cost.dark.svg#only-dark" />
+<br />
+<figcaption>图 8　左：表 11 的训练吞吐。右：不同上下文长度下的前向吞吐（整段读入并计算每个位置的损失，每批固定 32,768 个 token；TTT-E2E 包含测试时更新）。</figcaption>
+</figure>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">模型</th>
+<th style="text-align: right;">已读上下文（token）</th>
+<th style="text-align: right;">快权重（MiB）</th>
+<th style="text-align: right;">KV 缓存（MiB）</th>
+<th style="text-align: right;">会话状态合计（MiB）</th>
+<th style="text-align: right;">逐 token 解码（token/s）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">144.2</td>
+<td style="text-align: right;">145.7</td>
+<td style="text-align: right;">601</td>
+</tr>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">8,192</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">576.8</td>
+<td style="text-align: right;">578.3</td>
+<td style="text-align: right;">512</td>
+</tr>
+<tr>
+<td style="text-align: left;">全注意力</td>
+<td style="text-align: right;">32,768</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">2307.0</td>
+<td style="text-align: right;">2308.5</td>
+<td style="text-align: right;">284</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">19.5</td>
+<td style="text-align: right;">643</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">8,192</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">19.5</td>
+<td style="text-align: right;">631</td>
+</tr>
+<tr>
+<td style="text-align: left;">滑窗注意力</td>
+<td style="text-align: right;">32,768</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">19.5</td>
+<td style="text-align: right;">627</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">2,048</td>
+<td style="text-align: right;">54.0</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">72.4</td>
+<td style="text-align: right;">573</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">8,192</td>
+<td style="text-align: right;">54.0</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">72.4</td>
+<td style="text-align: right;">575</td>
+</tr>
+<tr>
+<td style="text-align: left;">TTT-E2E</td>
+<td style="text-align: right;">32,768</td>
+<td style="text-align: right;">54.0</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">72.4</td>
+<td style="text-align: right;">582</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 14　单个推理会话在读入不同长度的上下文之后保存的状态，以及随后逐 token 解码的速度（批大小 1）。状态大小由实际分配的数组统计。</p>
+<p><strong>训练。</strong> 表 12 是单张 H200 上的实测吞吐。滑窗注意力最快（193K token/s），全注意力 82K，TTT-E2E 最慢（70K，即滑窗的 0.36 倍）。慢的原因有两部分：后段多一个 MLP′ 的前向，以及每个更新块一次穿过后段的反向传播，再加上外循环要对这条更新链求导。无更新对照跑到 126K，说明其中约一半的开销来自额外的 MLP′ 本身，另一半来自内循环。</p>
+<p>第 4.8 节的等时间对照说明了这项成本的后果：同样的墙上时间，滑窗基线能多读 3.7 倍的数据，并因此取得更低的损失。
+<strong>推理。</strong> 表 13 是单个会话实测的状态大小和解码速度。TTT-E2E 的会话状态由快权重（固定 54.0 MiB，与已读长度无关）和滑窗 KV 缓存（同样固定）组成；无论读入 2K 还是 32K 上下文，状态大小和逐 token 解码速度都不变。全注意力的 KV 缓存则随上下文线性增长。</p>
+<p>这正是该方法的卖点所在：训练时多付出的代价，换来的是推理时与上下文长度无关的常数成本。在本报告的规模下这个权衡并不划算（模型小、上下文短，注意力本来就不贵），它要到更长的上下文和更大的服务量下才会显现价值——那超出了本报告能验证的范围。</p>
+<h2 id="5">5 数据审计<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<div class="report-table">
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">评测集</th>
+<th style="text-align: right;">检查的题目数</th>
+<th style="text-align: right;">题干片段在训练语料中逐字出现的题目数</th>
+<th style="text-align: right;">占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">hellaswag</td>
+<td style="text-align: right;">9,793</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.00%</td>
+</tr>
+<tr>
+<td style="text-align: left;">piqa</td>
+<td style="text-align: right;">395</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.00%</td>
+</tr>
+<tr>
+<td style="text-align: left;">arc_easy</td>
+<td style="text-align: right;">2,079</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">0.63%</td>
+</tr>
+<tr>
+<td style="text-align: left;">arc_challenge</td>
+<td style="text-align: right;">1,061</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.09%</td>
+</tr>
+<tr>
+<td style="text-align: left;">winogrande</td>
+<td style="text-align: right;">1,267</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.00%</td>
+</tr>
+<tr>
+<td style="text-align: left;">lambada_openai</td>
+<td style="text-align: right;">5,153</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.04%</td>
+</tr>
+<tr>
+<td style="text-align: left;">sciq</td>
+<td style="text-align: right;">813</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.74%</td>
+</tr>
+<tr>
+<td style="text-align: left;">openbookqa</td>
+<td style="text-align: right;">206</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.00%</td>
+</tr>
+<tr>
+<td style="text-align: left;">mmlu</td>
+<td style="text-align: right;">12,477</td>
+<td style="text-align: right;">94</td>
+<td style="text-align: right;">0.75%</td>
+</tr>
+<tr>
+<td style="text-align: left;">wikitext</td>
+<td style="text-align: right;">61</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3.28%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>表 15　评测题目与训练语料的逐字重合检查。对每道题取规范化（小写、压缩空白）后的题干前 80 个字符，在全部训练原文（21.9 GB）中做精确匹配。</p>
+<p><strong>评测题目是否出现在训练语料里。</strong> FineWeb-Edu 来自公开网页，而公开 benchmark 的题目本身也在网上流传，所以这一项必须实际检查而不能假定。表 15 的结果是：HellaSwag、PIQA、WinoGrande 和 OpenBookQA 没有发现逐字重合；ARC-Easy、ARC-Challenge、SciQ、LAMBADA 和 MMLU 各有不到 1% 的题目能在训练语料中找到题干原文，占比最高的是 MMLU（94 / 12,477，0.75%）。即使这些题目全部答对或全部答错，相应任务的准确率变化也不会超过这个比例，不影响第 4.7 节的任何结论。WikiText-103 test 的 61 篇文章里有 2 篇的片段出现在训练语料中，这在意料之内：维基百科的内容被大量网页转载。</p>
+<p>这项检查有两个已知的盲区。第一，它只能发现逐字重合，发现不了改写、翻译或只重合答案的情况。第二，题干规范化后不足 50 个字符的题目没有参与检查（表中“检查的题目数”小于题目总数的原因），PIQA 和 OpenBookQA 因此只覆盖了一部分题目。</p>
+<p><strong>训练集与 held-out 集之间的重复。</strong> PG-19 使用官方划分。按规范化全文的摘要比对，validation 和 test 的 150 本书没有一本与训练集的 28,602 本书全文相同；按 PG-19 元数据里的“书名 + 作者”比对，也没有与训练集同名的书。FineWeb-Edu 的 held-out 取自训练没有用到的分片，但网页语料里存在跨分片的重复：最初取出的 20,000 篇里有 365 篇（1.8%）与训练分片中的某篇文档全文相同。这些文档已经从 held-out 集中剔除，本报告的所有 FineWeb-Edu 数字都在剔除之后的集合上计算。近似重复（例如只差页眉页脚的网页）没有检查。</p>
+<p><strong>训练时实际读到了什么。</strong> 采样器按训练种子重放的结果见第 3.2 节：两个来源的实际比例与 50/50 的目标相差不到 0.2 个百分点；整个训练只覆盖了 FineWeb-Edu 训练分片的 19.7% 和 PG-19 训练集的 14.8%，被读到的文本里约九成只读到一次。训练因此接近单遍训练，模型几乎没有机会靠重复来记住训练文本。</p>
+<h2 id="6">6 讨论与局限<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<p><strong>本报告测到了什么。</strong> 在固定 token 预算、严格匹配数据和超参数的条件下，TTT-E2E 在两个 held-out 集上都优于全注意力和滑窗注意力，优势在三个随机种子和三种模型规模下重复出现。把收益拆开后，最大的一项来自测试时更新本身，其次是额外参数；而对未经元训练的模型直接做同样的梯度更新几乎没有效果，说明有价值的是"被训练成可更新"，而不是更新这个动作。两个探针显示它保留的是随距离稳定、但精度低于注意力的记忆。</p>
+<p><strong>本报告没有测到什么。</strong> 规模。四个主模型都是 1.3 亿参数、7.86 亿 token——约为原论文最小档配方的 31%，比它最大的实验小两个数量级。第 4.9 节的三个规模点都落在很窄的区间内，不足以说明趋势。上下文同样：训练长度 4,096，评测最远到 32,768，而原论文的主张是在 128K 上。本报告既不能确认也不能否定那个规模下的结论。</p>
+<p><strong>最重要的保留意见。</strong> 第 4.8 节的等训练时间对照是这份报告里最不利于 TTT-E2E 的结果：同样的墙上时间，滑窗基线多读 3.7 倍数据，损失明显更低。这不是实现效率的问题——穿过内循环求二阶导有固有成本，而且原论文自己也把训练延迟列为主要限制。因此本报告的结论应当这样陈述：<strong>在数据受限（token 预算固定）时，TTT-E2E 用额外计算换来了更好的模型；在计算受限时，同样的计算用于多读数据更划算。</strong> 这两种情形在实践中都存在，哪一种适用取决于具体约束，而不是方法本身的优劣。</p>
+<p><strong>一条有实用价值的负面结果。</strong> 一阶近似（不对内循环梯度求导）在这个规模上与完整二阶导相当甚至略好，而训练更便宜。如果这一点在更大规模上成立，它会显著改变上一段的成本权衡；本报告的规模不足以验证。</p>
+<p><strong>一个需要注意的性质。</strong> 用更新训练出来的慢参数会依赖这些更新：关闭更新后，模型比从未使用过更新的同构对照更差。TTT-E2E 因此不是一个可以在推理时按需关闭以节省算力的开关，而是一套必须整体采用的设计。这对部署有直接影响。</p>
+<p><strong>与原论文的关系。</strong> 方向一致的有：TTT-E2E 在匹配预算下优于基线，推理成本与上下文长度无关，长上下文下优势扩大，以及针尖检索类任务弱于全注意力。本报告在小得多的规模上独立复现了这些定性结论，并补上了原论文未报告的几项分解（无更新对照、动态评估基线、等时间对照、一阶近似）。原论文关于 128K 上下文和 30 亿参数的定量主张，本报告既未验证也未反驳。</p>
+<h2 id="7">7 适用范围与发布说明<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>模型性质。</strong> 四个主实验模型都是只做过预训练的小型英文基座语言模型，没有经过指令微调、对话微调或任何安全对齐训练。它们适合研究序列建模方法，不适合直接面向用户，也不应把它们的输出当作事实来源。</li>
+<li><strong>数据许可。</strong> 训练只使用两种公开语料：FineWeb-Edu（ODC-By 1.0）和 PG-19（公有领域书籍文本，数据集卡片为 Apache-2.0）。仓库不再分发语料本身，只提供下载脚本、固定的 revision 和文件摘要。评测集按各自的许可只下载评测划分，不进入训练。</li>
+<li><strong>内容风险。</strong> FineWeb-Edu 来自网页，PG-19 是 1919 年之前出版的书籍，其中有与当代规范不符的表述，模型会复现训练语料中的偏见和过时内容。本报告没有做毒性、偏见或越狱评测，这些是面向用户发布之前必须补上的工作，而不是这一版声称已经完成的事。</li>
+<li><strong>测试时更新特有的风险。</strong> 快权重只存在于单个会话里，会话结束即丢弃，发布的慢参数不会被用户输入改写；实现上不同会话的快权重和缓存相互隔离。但在会话内部，模型的行为会随读到的内容漂移，这既是方法的目的，也意味着长会话里的行为比固定权重的模型更难事先界定。第 4.5 节给出了快权重在 32K token 内的漂移幅度。</li>
+<li><strong>本报告不声称的事。</strong> 不声称达到同规模模型的最好水平（第 4.7 节的公开模型在多数任务上更强，它们的训练量大得多）；不声称结论在更大的模型、更长的训练或更长的窗口下必然成立；不声称与任何闭源模型可比。</li>
+</ul>
+<h2 id="8">8 复现<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<p>全部实验可以用仓库里的脚本重跑。每一步都把输入文件的 SHA256、配置和环境写进输出目录。</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 环境（Linux，CUDA 12，Python 3.12）</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>uv<span class="w"> </span>sync<span class="w"> </span>--frozen<span class="w"> </span>--no-install-project<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>--extra<span class="w"> </span>cuda<span class="w"> </span>--extra<span class="w"> </span>checkpoint
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>.venv/bin/python<span class="w"> </span>tiktoken<span class="w"> </span>matplotlib<span class="w"> </span>pyahocorasick
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 1. 语料：下载、分词、去重、评测集</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>python<span class="w"> </span>scripts/download_public_corpora.py<span class="w"> </span>--dataset<span class="w"> </span>pg19<span class="w"> </span>--output<span class="w"> </span>data/raw/pg19
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>python<span class="w"> </span>scripts/download_public_corpora.py<span class="w"> </span>--dataset<span class="w"> </span>fineweb-edu<span class="w"> </span>--output<span class="w"> </span>data/raw/fineweb-edu<span class="w"> </span>--shards<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>python<span class="w"> </span>scripts/download_public_corpora.py<span class="w"> </span>--dataset<span class="w"> </span>fineweb-edu<span class="w"> </span>--output<span class="w"> </span>data/raw/fineweb-edu-heldout<span class="w"> </span>--shards<span class="w"> </span><span class="m">13</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">for</span><span class="w"> </span>split<span class="w"> </span><span class="k">in</span><span class="w"> </span>train<span class="w"> </span>validation<span class="w"> </span>test<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span>python<span class="w"> </span>scripts/tokenize_corpus.py<span class="w"> </span>--source<span class="w"> </span>text-dir<span class="w"> </span>--input<span class="w"> </span>data/raw/pg19/<span class="nv">$split</span><span class="w"> </span>--output<span class="w"> </span>data/tokens/pg19-<span class="nv">$split</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">done</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>python<span class="w"> </span>scripts/tokenize_corpus.py<span class="w"> </span>--source<span class="w"> </span>parquet<span class="w"> </span>--input<span class="w"> </span>data/raw/fineweb-edu/00<span class="o">[</span><span class="m">012</span><span class="o">]</span>_00000.parquet<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span>--output<span class="w"> </span>data/tokens/fineweb-edu-train
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>python<span class="w"> </span>scripts/audit_report_data.py<span class="w"> </span>duplicates<span class="w"> </span>--fineweb-train<span class="w"> </span>data/raw/fineweb-edu/00<span class="o">[</span><span class="m">012</span><span class="o">]</span>_00000.parquet<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span>--fineweb-heldout<span class="w"> </span>data/raw/fineweb-edu-heldout/013_00000.parquet<span class="w"> </span>--pg19<span class="w"> </span>data/raw/pg19<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span>--output<span class="w"> </span>outputs/audits/duplicates.json
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>python<span class="w"> </span>scripts/tokenize_corpus.py<span class="w"> </span>--source<span class="w"> </span>parquet<span class="w"> </span>--input<span class="w"> </span>data/raw/fineweb-edu-heldout/013_00000.parquet<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span>--max-documents<span class="w"> </span><span class="m">20000</span><span class="w"> </span>--exclude-digests<span class="w"> </span>outputs/audits/duplicates.json<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span>--output<span class="w"> </span>data/tokens/fineweb-edu-heldout-dedup
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>python<span class="w"> </span>scripts/download_benchmarks.py<span class="w"> </span>--output<span class="w"> </span>data/benchmarks
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="c1"># 2. 训练与评测：两张卡各跑一条流水线，互不通信；中断后重新执行即可续跑</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>python<span class="w"> </span>scripts/make_report_configs.py
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>scripts/report_pipeline.sh<span class="w"> </span><span class="m">0</span><span class="w"> </span>baseline<span class="w">   </span><span class="c1"># 滑窗 → 全注意力 → 推理吞吐 → 消融队列</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>scripts/report_pipeline.sh<span class="w"> </span><span class="m">1</span><span class="w"> </span>ttt<span class="w">        </span><span class="c1"># TTT-E2E → 无更新对照 → 朴素更新基线 → 消融队列</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>scripts/run_reference_benchmarks.sh<span class="w"> </span><span class="m">0</span><span class="w">   </span><span class="c1"># 公开参考模型 + lm-evaluation-harness 交叉核对</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>scripts/run_extended_benchmarks.sh<span class="w"> </span><span class="m">7</span><span class="w"> </span>main-full<span class="w"> </span>no-adapt<span class="w"> </span><span class="m">100</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>scripts/run_extended_benchmarks.sh<span class="w"> </span><span class="m">7</span><span class="w"> </span>main-ttt<span class="w"> </span>adapt<span class="w"> </span><span class="m">100</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>scripts/run_extended_benchmarks.sh<span class="w"> </span><span class="m">7</span><span class="w"> </span>main-ttt<span class="w"> </span>no-adapt<span class="w"> </span><span class="m">100</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>这里的<span class="w"> </span><span class="sb">`</span><span class="m">0</span><span class="sb">`</span><span class="w"> </span>和<span class="w"> </span><span class="sb">`</span><span class="m">1</span><span class="sb">`</span><span class="w"> </span>只是作业分配后的<span class="w"> </span>GPU<span class="w"> </span>编号示例，不是固定的机器编号。本报告在<span class="w"> </span>H200<span class="w"> </span>机器上使用<span class="w"> </span>GPU<span class="w"> </span><span class="m">7</span><span class="w"> </span>运行<span class="w"> </span>baseline、GPU<span class="w"> </span><span class="m">5</span><span class="w"> </span>运行<span class="w"> </span>TTT，两条流水线彼此独立且不做跨卡通信。
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="c1"># 3. 审计、图表和报告</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>python<span class="w"> </span>scripts/audit_report_data.py<span class="w"> </span>sampler<span class="w"> </span>--recipe<span class="w"> </span>configs/data/fineweb_pg19_50_50.json<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span>--config<span class="w"> </span>configs/report/main_ttt.json<span class="w"> </span>--output<span class="w"> </span>outputs/audits/sampler_main.json
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>python<span class="w"> </span>scripts/audit_report_data.py<span class="w"> </span>benchmarks<span class="w"> </span>--fineweb-train<span class="w"> </span>data/raw/fineweb-edu/00<span class="o">[</span><span class="m">012</span><span class="o">]</span>_00000.parquet<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">  </span>--pg19-train<span class="w"> </span>data/raw/pg19/train<span class="w"> </span>--output<span class="w"> </span>outputs/audits/benchmark_overlap.json
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>python<span class="w"> </span>scripts/make_report_figures.py<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>scripts/make_report_diagram.py
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>python<span class="w"> </span>scripts/render_report.py
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">项目</th>
+<th style="text-align: left;">内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">代码</td>
+<td style="text-align: left;">本仓库。滑窗注意力和 TTT-E2E 两个主模型训练时的 <code>ttt/</code> 源码是提交 <code>d54407d</code>（源码摘要 <code>e3553bf5…</code>），其余训练使用提交 <code>854484e</code>（摘要 <code>5610909c…</code>）。两者之间 <code>ttt/</code> 的差别只有一个默认关闭的一阶近似开关、续训时比较配置的方式和 import 顺序，数值计算相同。每个运行的源码摘要记录在 <code>results.json</code> 的 <code>provenance</code> 字段，算法见 <code>ttt/provenance.py</code>。</td>
+</tr>
+<tr>
+<td style="text-align: left;">配置</td>
+<td style="text-align: left;"><code>configs/report/*.json</code>（由 <code>scripts/make_report_configs.py</code> 生成），数据配比 <code>configs/data/fineweb_pg19_50_50.json</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">原始结果</td>
+<td style="text-align: left;"><code>docs/assets/report/results.json</code>（本页全部数字的来源）；<code>docs/assets/report/raw/</code> 下是各项评测脚本的原始输出</td>
+</tr>
+<tr>
+<td style="text-align: left;">软件</td>
+<td style="text-align: left;">Python 3.12.16，JAX 0.4.38，Optax 0.2.4，Orbax 0.10.3，NumPy 2.5.4；参考模型用 PyTorch 2.15 和 Transformers 5.23 加载；lm-evaluation-harness 0.4.13</td>
+</tr>
+<tr>
+<td style="text-align: left;">硬件</td>
+<td style="text-align: left;">NVIDIA H200 NVL（143,771 MiB，驱动 580.196.07），AMD EPYC 9555，Ubuntu 22.04</td>
+</tr>
+<tr>
+<td style="text-align: left;">随机性</td>
+<td style="text-align: left;">初始化、数据顺序由配置中的 <code>seed</code> 决定；评测窗口的选取是确定的，不含随机数</td>
+</tr>
+</tbody>
+</table>
+<p>模型权重体积较大，没有放进 Git 仓库；检查点保存在训练服务器上，按上面的命令可以从头重新得到。</p>
+<h2 id="9">9 版本记录<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">版本</th>
+<th style="text-align: left;">日期</th>
+<th style="text-align: left;">内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">0.1–0.6</td>
+<td style="text-align: left;">2026-11-16 至 11-17</td>
+<td style="text-align: left;">流程验证阶段：1M 参数的 CPU 试跑和 15M 参数、字节级 tokenizer、WikiText-2 上的 H200 配对实验。这些实验确认了训练、恢复和评测链路可用，但模型在公开 benchmark 上处于随机水平，不能支持任何能力结论。记录保留在 <a href="../reports/cpu_pilot_1m/">CPU Pilot</a>、<a href="../reports/h200_scaling/">H200 15M Scaling</a> 和 <a href="../reports/benchmark_protocol/">Benchmark 测评协议</a>。</td>
+</tr>
+<tr>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: left;">2026-11-18</td>
+<td style="text-align: left;">本报告：GPT-2 BPE、30 亿级 token 的两种公开语料、4K 上下文下四个约 1.3 亿参数模型的匹配实验，长上下文、逐字回忆、公开 benchmark、消融、随机种子、规模和成本评测，以及数据审计。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_2">参考文献<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:ttte2e">
+<p>A. Tandon et al. End-to-End Test-Time Training for Long Context. arXiv:2512.23675, 2025.&#160;<a class="footnote-backref" href="#fnref:ttte2e" title="Jump back to footnote 1 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:ttte2e" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:tttlayers">
+<p>Y. Sun et al. Learning to (Learn at Test Time): RNNs with Expressive Hidden States. arXiv:2407.04620, 2024.&#160;<a class="footnote-backref" href="#fnref:tttlayers" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:ttt">
+<p>Y. Sun et al. Test-Time Training with Self-Supervision for Generalization under Distribution Shifts. ICML 2020. arXiv:1909.13231.&#160;<a class="footnote-backref" href="#fnref:ttt" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+<li id="fn:maml">
+<p>C. Finn, P. Abbeel, S. Levine. Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks. ICML 2017. arXiv:1703.03400.&#160;<a class="footnote-backref" href="#fnref:maml" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+</li>
+<li id="fn:reptile">
+<p>A. Nichol, J. Achiam, J. Schulman. On First-Order Meta-Learning Algorithms. arXiv:1803.02999, 2018.&#160;<a class="footnote-backref" href="#fnref:reptile" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+</li>
+<li id="fn:dyneval">
+<p>B. Krause, E. Kahembwe, I. Murray, S. Renals. Dynamic Evaluation of Neural Sequence Models. arXiv:1709.07432, 2017.&#160;<a class="footnote-backref" href="#fnref:dyneval" title="Jump back to footnote 6 in the text">&#8617;</a></p>
+</li>
+<li id="fn:dynevaltr">
+<p>B. Krause, E. Kahembwe, I. Murray, S. Renals. Dynamic Evaluation of Transformer Language Models. arXiv:1904.08378, 2019.&#160;<a class="footnote-backref" href="#fnref:dynevaltr" title="Jump back to footnote 7 in the text">&#8617;</a></p>
+</li>
+<li id="fn:fastweights">
+<p>J. Ba et al. Using Fast Weights to Attend to the Recent Past. arXiv:1610.06258, 2016.&#160;<a class="footnote-backref" href="#fnref:fastweights" title="Jump back to footnote 8 in the text">&#8617;</a></p>
+</li>
+<li id="fn:titans">
+<p>A. Behrouz, P. Zhong, V. Mirrokni. Titans: Learning to Memorize at Test Time. arXiv:2501.00663, 2024.&#160;<a class="footnote-backref" href="#fnref:titans" title="Jump back to footnote 9 in the text">&#8617;</a></p>
+</li>
+<li id="fn:mamba">
+<p>A. Gu, T. Dao. Mamba: Linear-Time Sequence Modeling with Selective State Spaces. arXiv:2312.00752, 2023.&#160;<a class="footnote-backref" href="#fnref:mamba" title="Jump back to footnote 10 in the text">&#8617;</a></p>
+</li>
+<li id="fn:gdn">
+<p>S. Yang, J. Kautz, A. Hatamizadeh. Gated Delta Networks: Improving Mamba2 with Delta Rule. ICLR 2025. arXiv:2412.06464.&#160;<a class="footnote-backref" href="#fnref:gdn" title="Jump back to footnote 11 in the text">&#8617;</a></p>
+</li>
+<li id="fn:transformerxl">
+<p>Z. Dai et al. Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context. ACL 2019. arXiv:1901.02860.&#160;<a class="footnote-backref" href="#fnref:transformerxl" title="Jump back to footnote 12 in the text">&#8617;</a></p>
+</li>
+<li id="fn:longformer">
+<p>I. Beltagy, M. E. Peters, A. Cohan. Longformer: The Long-Document Transformer. arXiv:2004.05150, 2020.&#160;<a class="footnote-backref" href="#fnref:longformer" title="Jump back to footnote 13 in the text">&#8617;</a></p>
+</li>
+<li id="fn:pg19">
+<p>J. W. Rae, A. Potapenko, S. M. Jayakumar, T. P. Lillicrap. Compressive Transformers for Long-Range Sequence Modelling. arXiv:1911.05507, 2019.&#160;<a class="footnote-backref" href="#fnref:pg19" title="Jump back to footnote 14 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:pg19" title="Jump back to footnote 14 in the text">&#8617;</a></p>
+</li>
+<li id="fn:blockrecurrent">
+<p>D. Hutchins et al. Block-Recurrent Transformers. arXiv:2203.07852, 2022.&#160;<a class="footnote-backref" href="#fnref:blockrecurrent" title="Jump back to footnote 15 in the text">&#8617;</a></p>
+</li>
+<li id="fn:fineweb">
+<p>G. Penedo et al. The FineWeb Datasets: Decanting the Web for the Finest Text Data at Scale. arXiv:2406.17557, 2024.&#160;<a class="footnote-backref" href="#fnref:fineweb" title="Jump back to footnote 16 in the text">&#8617;</a></p>
+</li>
+<li id="fn:gpt2">
+<p>A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever. Language Models are Unsupervised Multitask Learners. OpenAI, 2019.&#160;<a class="footnote-backref" href="#fnref:gpt2" title="Jump back to footnote 17 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:gpt2" title="Jump back to footnote 17 in the text">&#8617;</a></p>
+</li>
+<li id="fn:distil">
+<p>V. Sanh, L. Debut, J. Chaumond, T. Wolf. DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter. arXiv:1910.01108, 2019.&#160;<a class="footnote-backref" href="#fnref:distil" title="Jump back to footnote 18 in the text">&#8617;</a></p>
+</li>
+<li id="fn:pythia">
+<p>S. Biderman et al. Pythia: A Suite for Analyzing Large Language Models Across Training and Scaling. arXiv:2304.01373, 2023.&#160;<a class="footnote-backref" href="#fnref:pythia" title="Jump back to footnote 19 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:pythia" title="Jump back to footnote 19 in the text">&#8617;</a></p>
+</li>
+<li id="fn:gptneo">
+<p>S. Black, L. Gao, P. Wang, C. Leahy, S. Biderman. GPT-Neo: Large Scale Autoregressive Language Modeling with Mesh-Tensorflow. Zenodo, 2021. doi:10.5281/zenodo.5297715.&#160;<a class="footnote-backref" href="#fnref:gptneo" title="Jump back to footnote 20 in the text">&#8617;</a></p>
+</li>
+<li id="fn:opt">
+<p>S. Zhang et al. OPT: Open Pre-trained Transformer Language Models. arXiv:2205.01068, 2022.&#160;<a class="footnote-backref" href="#fnref:opt" title="Jump back to footnote 21 in the text">&#8617;</a></p>
+</li>
+<li id="fn:smollm2">
+<p>L. Ben Allal et al. SmolLM2: When Smol Goes Big – Data-Centric Training of a Small Language Model. arXiv:2502.02737, 2025.&#160;<a class="footnote-backref" href="#fnref:smollm2" title="Jump back to footnote 22 in the text">&#8617;</a><a class="footnote-backref" href="#fnref2:smollm2" title="Jump back to footnote 22 in the text">&#8617;</a></p>
+</li>
+<li id="fn:lmeval">
+<p>S. Biderman et al. Lessons from the Trenches on Reproducible Evaluation of Language Models. arXiv:2405.14782, 2024.&#160;<a class="footnote-backref" href="#fnref:lmeval" title="Jump back to footnote 23 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2026 Wenbin Wang
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.footnote.tooltips"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.min.js"></script>
+      
+        <script src="../javascripts/mermaid.js"></script>
+      
+        <script src="../javascripts/language.js"></script>
+      
+    
+  </body>
+</html>

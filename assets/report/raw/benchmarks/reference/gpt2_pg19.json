@@ -1,0 +1,36 @@
+{
+  "protocol_version": "zero_shot_loglikelihood_v1",
+  "model": {
+    "kind": "huggingface",
+    "model": "gpt2",
+    "revision": null,
+    "parameters": 124439808,
+    "max_length": 1024,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+  },
+  "limit": null,
+  "script_sha256": "c6639e7ceedc092e0dcfa70d2a69fe814f7273677b3f84ac488a49cf0a8f48b7",
+  "inputs": {
+    "pg19": {
+      "directory": "data/raw/pg19/test",
+      "files": 100
+    }
+  },
+  "results": {
+    "pg19": {
+      "documents": 100,
+      "tokens": 10583382,
+      "words": 6966686,
+      "bytes": 40473002,
+      "token_nll": 3.7112891368682237,
+      "token_perplexity": 40.90650663672028,
+      "word_perplexity": 280.89289558340334,
+      "bits_per_byte": 1.4000978312369052,
+      "max_length": 1024
+    }
+  },
+  "seconds": {
+    "pg19": 219.82451193314046
+  }
+}

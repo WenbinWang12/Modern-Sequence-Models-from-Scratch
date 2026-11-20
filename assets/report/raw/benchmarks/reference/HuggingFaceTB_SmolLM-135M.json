@@ -1,0 +1,363 @@
+{
+  "protocol_version": "zero_shot_loglikelihood_v1",
+  "model": {
+    "kind": "huggingface",
+    "model": "HuggingFaceTB/SmolLM-135M",
+    "revision": null,
+    "parameters": 134515008,
+    "max_length": 2048,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+  },
+  "limit": null,
+  "script_sha256": "96d0398623afd77b1896fe6771a89bf15d5cec1e19e7067f60a55507d6020f36",
+  "inputs": {
+    "hellaswag": {
+      "path": "data/benchmarks/hellaswag.jsonl",
+      "sha256": "d5c08c3e5771307e73886dc9d2744df8ca5f372a7857f32fe77df8c58942f950",
+      "rows": 10042
+    },
+    "piqa": {
+      "path": "data/benchmarks/piqa.jsonl",
+      "sha256": "61533005e22f175534909b1ec8eacb6da03c233933558d1bafb15787453b1f55",
+      "rows": 1838
+    },
+    "arc_easy": {
+      "path": "data/benchmarks/arc_easy.jsonl",
+      "sha256": "874354cf372667530bd6cbd2d78dca2d657c5e2e746f53cf01d1e9d3a90cbc3d",
+      "rows": 2376
+    },
+    "arc_challenge": {
+      "path": "data/benchmarks/arc_challenge.jsonl",
+      "sha256": "03227c30fd557ad1416c2cb955eeb6dc79eeb21e0679456a1ccd42eaccc0ff87",
+      "rows": 1172
+    },
+    "winogrande": {
+      "path": "data/benchmarks/winogrande.jsonl",
+      "sha256": "69f3d7f3a900d775339b04c7de672609c40fca573e50f594f2ae66d8782505be",
+      "rows": 1267
+    },
+    "lambada_openai": {
+      "path": "data/benchmarks/lambada_openai.jsonl",
+      "sha256": "9acdcb12e8c2ef4eb3d0958b547a8c7076488df2d6ff460377881ab3841f3d97",
+      "rows": 5153
+    },
+    "sciq": {
+      "path": "data/benchmarks/sciq.jsonl",
+      "sha256": "cd0a2c8be9b2eafc95bd1bab6d2ae553826c1f3b7ddbe5e415e130c30abddddd",
+      "rows": 1000
+    },
+    "openbookqa": {
+      "path": "data/benchmarks/openbookqa.jsonl",
+      "sha256": "bbaca15e985ba386b2f73e9659fce608cf7722a35343864dbe7115cbbda341ab",
+      "rows": 500
+    },
+    "wikitext": {
+      "path": "data/benchmarks/wikitext.jsonl",
+      "sha256": "85f09ca4c886eb81390d60d2318c4e9dab62e290c0e05425c97ce7790be559de",
+      "rows": 62
+    },
+    "blimp": {
+      "path": "data/benchmarks/blimp.jsonl",
+      "sha256": "9cc1c68e04a8c328115f2813d376e95b6f9d5adaa6762196cd72e6bc685f51e9",
+      "rows": 67000
+    },
+    "mmlu": {
+      "path": "data/benchmarks/mmlu.jsonl",
+      "sha256": "903179ca496c3a80683685a3e4bcec761d2826df64682892cde15def955f6e7d",
+      "rows": 14042
+    },
+    "pg19": {
+      "directory": "data/raw/pg19/test",
+      "files": 100
+    }
+  },
+  "results": {
+    "hellaswag": {
+      "samples": 10042,
+      "choices_per_question": 4.0,
+      "acc": 0.3514240191196973,
+      "acc_ci95": [
+        0.3421448704745837,
+        0.3608167965762222
+      ],
+      "acc_norm": 0.4250149372634933,
+      "acc_norm_ci95": [
+        0.4153767111631165,
+        0.4347105108806214
+      ]
+    },
+    "piqa": {
+      "samples": 1838,
+      "choices_per_question": 2.0,
+      "acc": 0.6844396082698585,
+      "acc_ci95": [
+        0.6628272706975888,
+        0.7052825884615779
+      ],
+      "acc_norm": 0.6855277475516867,
+      "acc_norm_ci95": [
+        0.6639328853925538,
+        0.7063487133486731
+      ]
+    },
+    "arc_easy": {
+      "samples": 2376,
+      "choices_per_question": 3.9987373737373737,
+      "acc": 0.6153198653198653,
+      "acc_ci95": [
+        0.5955860895778496,
+        0.634681350284113
+      ],
+      "acc_norm": 0.5618686868686869,
+      "acc_norm_ci95": [
+        0.5418346077813043,
+        0.5817030333125224
+      ]
+    },
+    "arc_challenge": {
+      "samples": 1172,
+      "choices_per_question": 3.999146757679181,
+      "acc": 0.25853242320819114,
+      "acc_ci95": [
+        0.23428367886572402,
+        0.2843589104441753
+      ],
+      "acc_norm": 0.28924914675767915,
+      "acc_norm_ci95": [
+        0.26401249434578833,
+        0.3158628397868798
+      ]
+    },
+    "winogrande": {
+      "samples": 1267,
+      "choices_per_question": 2.0,
+      "acc": 0.5311760063141279,
+      "acc_ci95": [
+        0.5036452434296269,
+        0.5585182935337564
+      ]
+    },
+    "lambada_openai": {
+      "samples": 5153,
+      "acc": 0.3751212885697652,
+      "acc_ci95": [
+        0.36199981540696446,
+        0.3884288122176821
+      ],
+      "perplexity": 32.39095721211231
+    },
+    "sciq": {
+      "samples": 1000,
+      "choices_per_question": 4.0,
+      "acc": 0.837,
+      "acc_ci95": [
+        0.8128247624397997,
+        0.858596002340936
+      ],
+      "acc_norm": 0.745,
+      "acc_norm_ci95": [
+        0.7170834253930005,
+        0.7710414629490774
+      ]
+    },
+    "openbookqa": {
+      "samples": 500,
+      "choices_per_question": 4.0,
+      "acc": 0.222,
+      "acc_ci95": [
+        0.18776935138162992,
+        0.26046978191499315
+      ],
+      "acc_norm": 0.34,
+      "acc_norm_ci95": [
+        0.29983885845371416,
+        0.3826009304939827
+      ]
+    },
+    "wikitext": {
+      "documents": 62,
+      "tokens": 291942,
+      "words": 241335,
+      "bytes": 1290527,
+      "token_nll": 2.711363752881443,
+      "token_perplexity": 15.049785714908234,
+      "word_perplexity": 26.573807875900513,
+      "bits_per_byte": 0.8848951373008699,
+      "max_length": 2048
+    },
+    "blimp": {
+      "samples": 67000,
+      "choices_per_question": 2.0,
+      "acc": 0.7976119402985075,
+      "acc_ci95": [
+        0.794552638579372,
+        0.8006371166902495
+      ],
+      "macro_acc": 0.7976119402985076,
+      "groups": {
+        "adjunct_island": 0.872,
+        "anaphor_gender_agreement": 0.975,
+        "anaphor_number_agreement": 0.988,
+        "animate_subject_passive": 0.764,
+        "animate_subject_trans": 0.839,
+        "causative": 0.719,
+        "complex_NP_island": 0.561,
+        "coordinate_structure_constraint_complex_left_branch": 0.684,
+        "coordinate_structure_constraint_object_extraction": 0.831,
+        "determiner_noun_agreement_1": 0.982,
+        "determiner_noun_agreement_2": 0.983,
+        "determiner_noun_agreement_irregular_1": 0.915,
+        "determiner_noun_agreement_irregular_2": 0.96,
+        "determiner_noun_agreement_with_adj_2": 0.938,
+        "determiner_noun_agreement_with_adj_irregular_1": 0.915,
+        "determiner_noun_agreement_with_adj_irregular_2": 0.936,
+        "determiner_noun_agreement_with_adjective_1": 0.954,
+        "distractor_agreement_relational_noun": 0.836,
+        "distractor_agreement_relative_clause": 0.703,
+        "drop_argument": 0.77,
+        "ellipsis_n_bar_1": 0.823,
+        "ellipsis_n_bar_2": 0.87,
+        "existential_there_object_raising": 0.948,
+        "existential_there_quantifiers_1": 0.98,
+        "existential_there_quantifiers_2": 0.254,
+        "existential_there_subject_raising": 0.897,
+        "expletive_it_object_raising": 0.78,
+        "inchoative": 0.704,
+        "intransitive": 0.798,
+        "irregular_past_participle_adjectives": 0.927,
+        "irregular_past_participle_verbs": 0.901,
+        "irregular_plural_subject_verb_agreement_1": 0.922,
+        "irregular_plural_subject_verb_agreement_2": 0.909,
+        "left_branch_island_echo_question": 0.439,
+        "left_branch_island_simple_question": 0.752,
+        "matrix_question_npi_licensor_present": 0.612,
+        "npi_present_1": 0.706,
+        "npi_present_2": 0.71,
+        "only_npi_licensor_present": 0.962,
+        "only_npi_scope": 0.79,
+        "passive_1": 0.898,
+        "passive_2": 0.87,
+        "principle_A_c_command": 0.663,
+        "principle_A_case_1": 1.0,
+        "principle_A_case_2": 0.934,
+        "principle_A_domain_1": 0.979,
+        "principle_A_domain_2": 0.631,
+        "principle_A_domain_3": 0.567,
+        "principle_A_reconstruction": 0.291,
+        "regular_plural_subject_verb_agreement_1": 0.948,
+        "regular_plural_subject_verb_agreement_2": 0.88,
+        "sentential_negation_npi_licensor_present": 0.986,
+        "sentential_negation_npi_scope": 0.684,
+        "sentential_subject_island": 0.37,
+        "superlative_quantifiers_1": 0.789,
+        "superlative_quantifiers_2": 0.787,
+        "tough_vs_raising_1": 0.643,
+        "tough_vs_raising_2": 0.881,
+        "transitive": 0.874,
+        "wh_island": 0.747,
+        "wh_questions_object_gap": 0.787,
+        "wh_questions_subject_gap": 0.897,
+        "wh_questions_subject_gap_long_distance": 0.82,
+        "wh_vs_that_no_gap": 0.944,
+        "wh_vs_that_no_gap_long_distance": 0.941,
+        "wh_vs_that_with_gap": 0.519,
+        "wh_vs_that_with_gap_long_distance": 0.301
+      }
+    },
+    "mmlu": {
+      "samples": 14042,
+      "choices_per_question": 4.0,
+      "acc": 0.2520296254094858,
+      "acc_ci95": [
+        0.24491683000396694,
+        0.2592780578269323
+      ],
+      "macro_acc": 0.24813397388582575,
+      "groups": {
+        "abstract_algebra": 0.23,
+        "anatomy": 0.21481481481481482,
+        "astronomy": 0.24342105263157895,
+        "business_ethics": 0.16,
+        "clinical_knowledge": 0.2339622641509434,
+        "college_biology": 0.2361111111111111,
+        "college_chemistry": 0.2,
+        "college_computer_science": 0.23,
+        "college_mathematics": 0.25,
+        "college_medicine": 0.20809248554913296,
+        "college_physics": 0.29411764705882354,
+        "computer_security": 0.28,
+        "conceptual_physics": 0.251063829787234,
+        "econometrics": 0.21929824561403508,
+        "electrical_engineering": 0.27586206896551724,
+        "elementary_mathematics": 0.30952380952380953,
+        "formal_logic": 0.20634920634920634,
+        "global_facts": 0.26,
+        "high_school_biology": 0.27741935483870966,
+        "high_school_chemistry": 0.22660098522167488,
+        "high_school_computer_science": 0.36,
+        "high_school_european_history": 0.26666666666666666,
+        "high_school_geography": 0.22727272727272727,
+        "high_school_government_and_politics": 0.23316062176165803,
+        "high_school_macroeconomics": 0.25384615384615383,
+        "high_school_mathematics": 0.29259259259259257,
+        "high_school_microeconomics": 0.2647058823529412,
+        "high_school_physics": 0.24503311258278146,
+        "high_school_psychology": 0.21467889908256882,
+        "high_school_statistics": 0.3472222222222222,
+        "high_school_us_history": 0.29411764705882354,
+        "high_school_world_history": 0.2489451476793249,
+        "human_aging": 0.2825112107623318,
+        "human_sexuality": 0.19083969465648856,
+        "international_law": 0.1487603305785124,
+        "jurisprudence": 0.21296296296296297,
+        "logical_fallacies": 0.3067484662576687,
+        "machine_learning": 0.21428571428571427,
+        "management": 0.2815533980582524,
+        "marketing": 0.23504273504273504,
+        "medical_genetics": 0.23,
+        "miscellaneous": 0.2515964240102171,
+        "moral_disputes": 0.2398843930635838,
+        "moral_scenarios": 0.2569832402234637,
+        "nutrition": 0.238562091503268,
+        "philosophy": 0.2604501607717042,
+        "prehistory": 0.2839506172839506,
+        "professional_accounting": 0.23049645390070922,
+        "professional_law": 0.24902216427640156,
+        "professional_medicine": 0.26838235294117646,
+        "professional_psychology": 0.25980392156862747,
+        "public_relations": 0.3181818181818182,
+        "security_studies": 0.3142857142857143,
+        "sociology": 0.24875621890547264,
+        "us_foreign_policy": 0.15,
+        "virology": 0.21686746987951808,
+        "world_religions": 0.19883040935672514
+      }
+    },
+    "pg19": {
+      "documents": 100,
+      "tokens": 10352345,
+      "words": 6966686,
+      "bytes": 40473002,
+      "token_nll": 3.1184111081156063,
+      "token_perplexity": 22.610425565484654,
+      "word_perplexity": 102.91378375315708,
+      "bits_per_byte": 1.1507506424726262,
+      "max_length": 2048
+    }
+  },
+  "seconds": {
+    "hellaswag": 32.738537131110206,
+    "piqa": 1.5660993689671159,
+    "arc_easy": 3.4223213649820536,
+    "arc_challenge": 1.9596056069713086,
+    "winogrande": 0.7172995700966567,
+    "lambada_openai": 3.7692001529503614,
+    "sciq": 4.966446643928066,
+    "openbookqa": 0.6610209329519421,
+    "wikitext": 3.518720909021795,
+    "blimp": 22.460244084941223,
+    "mmlu": 73.14269086299464,
+    "pg19": 95.95560912415385
+  }
+}

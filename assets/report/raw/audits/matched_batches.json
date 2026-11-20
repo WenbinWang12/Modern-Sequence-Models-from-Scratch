@@ -1,0 +1,79 @@
+{
+  "recipe": "/home/wang.21020/modern-sequence-run/configs/data/fineweb_pg19_50_50.json",
+  "batches_compared": 20,
+  "identical_batches": true,
+  "identical_budget": {
+    "seed": true,
+    "steps": true,
+    "batch_size": true,
+    "sequence_length": true,
+    "learning_rate": true,
+    "data_fingerprint": true
+  },
+  "runs": {
+    "main_full": {
+      "batches_sha256": "bea8b574b5ba08d1a1258d58d430be3c782ecc5c6406a836904912da0aa10902",
+      "seed": 0,
+      "steps": 12000,
+      "batch_size": 16,
+      "sequence_length": 4096,
+      "learning_rate": 0.0006,
+      "data_fingerprint": "8358924269d0a176ce19976675794f87ed3e194b4f12f65ff11004f00695b14e",
+      "layer_types": [
+        "full_attention"
+      ],
+      "use_fast_mlp": false,
+      "ttt_suffix_length": 0,
+      "ttt_chunk_size": 1024,
+      "inner_enabled": false
+    },
+    "main_swa": {
+      "batches_sha256": "bea8b574b5ba08d1a1258d58d430be3c782ecc5c6406a836904912da0aa10902",
+      "seed": 0,
+      "steps": 12000,
+      "batch_size": 16,
+      "sequence_length": 4096,
+      "learning_rate": 0.0006,
+      "data_fingerprint": "8358924269d0a176ce19976675794f87ed3e194b4f12f65ff11004f00695b14e",
+      "layer_types": [
+        "sliding_attention"
+      ],
+      "use_fast_mlp": false,
+      "ttt_suffix_length": 0,
+      "ttt_chunk_size": 1024,
+      "inner_enabled": false
+    },
+    "main_ck": {
+      "batches_sha256": "bea8b574b5ba08d1a1258d58d430be3c782ecc5c6406a836904912da0aa10902",
+      "seed": 0,
+      "steps": 12000,
+      "batch_size": 16,
+      "sequence_length": 4096,
+      "learning_rate": 0.0006,
+      "data_fingerprint": "8358924269d0a176ce19976675794f87ed3e194b4f12f65ff11004f00695b14e",
+      "layer_types": [
+        "sliding_attention"
+      ],
+      "use_fast_mlp": true,
+      "ttt_suffix_length": 3,
+      "ttt_chunk_size": 256,
+      "inner_enabled": false
+    },
+    "main_ttt": {
+      "batches_sha256": "bea8b574b5ba08d1a1258d58d430be3c782ecc5c6406a836904912da0aa10902",
+      "seed": 0,
+      "steps": 12000,
+      "batch_size": 16,
+      "sequence_length": 4096,
+      "learning_rate": 0.0006,
+      "data_fingerprint": "8358924269d0a176ce19976675794f87ed3e194b4f12f65ff11004f00695b14e",
+      "layer_types": [
+        "sliding_attention"
+      ],
+      "use_fast_mlp": true,
+      "ttt_suffix_length": 3,
+      "ttt_chunk_size": 256,
+      "inner_enabled": true
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "config": "configs/report/bench_ttt.json",
+  "overrides": [
+    "model.ttt_chunk_size=512",
+    "model.loss_token_block_size=512"
+  ],
+  "device": "cuda:0",
+  "parameters": 137731584,
+  "fast_parameters": 14155776,
+  "batch_size": 16,
+  "sequence_length": 4096,
+  "inner_enabled": true,
+  "first_loss": 10.974725723266602,
+  "last_loss": 10.723148345947266,
+  "compile_and_first_step_seconds": 31.474414664087817,
+  "median_step_seconds": 1.3002564359921962,
+  "tokens_per_second": 50402.36539955364,
+  "peak_bytes_in_use": 33173165312
+}

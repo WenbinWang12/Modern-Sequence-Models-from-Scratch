@@ -1,0 +1,618 @@
+{
+  "protocol_version": "gsm8k_generate_v1",
+  "protocol": "GSM8K test split; greedy generation; exact normalized numeric match",
+  "checkpoint": "outputs/h200-15m-baseline-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c5a6ac43b55a2b52dc2956df4b951db1171fb69360f69b344f1d53c308f7d4bb",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/gsm8k/test.jsonl",
+  "data_sha256": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14",
+  "tokenizer": "byte",
+  "adaptation": false,
+  "max_new_tokens": 128,
+  "limit": 100,
+  "correct": 0,
+  "samples": 100,
+  "skipped": 0,
+  "accuracy": 0.0,
+  "records": [
+    {
+      "index": 0,
+      "gold": "18",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 1,
+      "gold": "3",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 2,
+      "gold": "70000",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 3,
+      "gold": "540",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 4,
+      "gold": "20",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 5,
+      "gold": "64",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 6,
+      "gold": "260",
+      "prediction": null,
+      "text": " the courts are not the most important father."
+    },
+    {
+      "index": 7,
+      "gold": "160",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 8,
+      "gold": "45",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 9,
+      "gold": "460",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 10,
+      "gold": "366",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 11,
+      "gold": "694",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 12,
+      "gold": "13",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 13,
+      "gold": "18",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 14,
+      "gold": "60",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 15,
+      "gold": "125",
+      "prediction": null,
+      "text": " the man we have a single standard of the state . The story is the second season when the player can be seen in the season , and"
+    },
+    {
+      "index": 16,
+      "gold": "230",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 17,
+      "gold": "57500",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 18,
+      "gold": "7",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 19,
+      "gold": "6",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 20,
+      "gold": "15",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 21,
+      "gold": "14",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 22,
+      "gold": "7",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 23,
+      "gold": "8",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 24,
+      "gold": "26",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 25,
+      "gold": "2",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 26,
+      "gold": "243",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 27,
+      "gold": "16",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 28,
+      "gold": "25",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 29,
+      "gold": "104",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 30,
+      "gold": "109",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 31,
+      "gold": "80",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 32,
+      "gold": "35",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 33,
+      "gold": "70",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 34,
+      "gold": "23",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 35,
+      "gold": "9",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 36,
+      "gold": "75",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 37,
+      "gold": "2",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 38,
+      "gold": "10",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 39,
+      "gold": "18",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 40,
+      "gold": "8",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 41,
+      "gold": "200",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 42,
+      "gold": "26",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 43,
+      "gold": "48",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 44,
+      "gold": "20",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 45,
+      "gold": "104",
+      "prediction": null,
+      "text": " the common starling is a standard man of the shell . The protection of the shell is a similar species , and the sheep is shown "
+    },
+    {
+      "index": 46,
+      "gold": "163",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 47,
+      "gold": "800",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 48,
+      "gold": "8",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 49,
+      "gold": "30",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 50,
+      "gold": "294",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 51,
+      "gold": "5",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 52,
+      "gold": "15",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 53,
+      "gold": "40",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 54,
+      "gold": "40",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 55,
+      "gold": "14",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 56,
+      "gold": "3",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 57,
+      "gold": "83",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 58,
+      "gold": "57",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 59,
+      "gold": "187",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 60,
+      "gold": "17",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 61,
+      "gold": "1430",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 62,
+      "gold": "25000",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 63,
+      "gold": "1596",
+      "prediction": null,
+      "text": " the beard was the second time that the presence of the shell was the second season was the first time to be a second season . T"
+    },
+    {
+      "index": 64,
+      "gold": "300",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 65,
+      "gold": "36",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 66,
+      "gold": "48",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 67,
+      "gold": "595",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 68,
+      "gold": "36",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 69,
+      "gold": "60",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 70,
+      "gold": "7425",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 71,
+      "gold": "60",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 72,
+      "gold": "221",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 73,
+      "gold": "255",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 74,
+      "gold": "88",
+      "prediction": null,
+      "text": " the gods are not a man to be a more standard than the property of the state . "
+    },
+    {
+      "index": 75,
+      "gold": "60",
+      "prediction": null,
+      "text": " the beard is not the most important . The star is a standard standard that is not the same . The star is a star , and the star "
+    },
+    {
+      "index": 76,
+      "gold": "5",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 77,
+      "gold": "100",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 78,
+      "gold": "6",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 79,
+      "gold": "70",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 80,
+      "gold": "10",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 81,
+      "gold": "17",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 82,
+      "gold": "623",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 83,
+      "gold": "600",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 84,
+      "gold": "15",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 85,
+      "gold": "44",
+      "prediction": null,
+      "text": " he has a strong and shooting the show . He is also a strong and second @-@ team train , and the show is a standard shot in the "
+    },
+    {
+      "index": 86,
+      "gold": "22",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 87,
+      "gold": "9360",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 88,
+      "gold": "8000",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 89,
+      "gold": "24",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 90,
+      "gold": "225",
+      "prediction": null,
+      "text": " the gods are not a single controller . The company is a state of the state of the country , and the state is a standard of the "
+    },
+    {
+      "index": 91,
+      "gold": "28",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 92,
+      "gold": "4",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 93,
+      "gold": "36",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 94,
+      "gold": "348",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 95,
+      "gold": "40",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 96,
+      "gold": "3",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 97,
+      "gold": "12",
+      "prediction": null,
+      "text": ""
+    },
+    {
+      "index": 98,
+      "gold": "5",
+      "prediction": null,
+      "text": " they are not the same as they were all but they were all but they were all but they were all but they were all the seat of the "
+    },
+    {
+      "index": 99,
+      "gold": "58",
+      "prediction": null,
+      "text": ""
+    }
+  ]
+}

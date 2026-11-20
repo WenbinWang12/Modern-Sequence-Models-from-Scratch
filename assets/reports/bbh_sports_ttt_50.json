@@ -1,0 +1,16 @@
+{
+  "protocol_version": "bbh_greedy_v1",
+  "protocol": "BBH single-task zero-shot greedy generation; normalized exact match; byte tokenizer; no adaptation",
+  "checkpoint": "outputs/h200-15m-ttt-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c82e827c1df9f4e360b97afc80c0cf5beb58cb1d7531aba825c2d5be2ba5498b",
+  "script_sha256": "6edfacb1e678987e1213fa3905e779a6240566357731ae8f2c12be060a613f4b",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/bbh/sports_understanding.json",
+  "data_sha256": "63ca262858f6176864515cd8cf53cdaa40839ebecc155b726d77930855d167bf",
+  "limit": 50,
+  "max_length": 512,
+  "samples": 50,
+  "skipped": 0,
+  "correct": 0,
+  "accuracy": 0.0,
+  "note": "Diagnostic only: standard BBH leaderboard scoring requires the official subtask, shot prompt, and answer parser."
+}

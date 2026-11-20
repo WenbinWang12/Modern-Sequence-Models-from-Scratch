@@ -1,0 +1,620 @@
+{
+  "protocol_version": "humaneval_generate_v1",
+  "protocol": "HumanEval; greedy completion; pass@1 when --run-tests is enabled",
+  "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+  "checkpoint_metadata_sha256": "5eef3180b7cff3b39b05ba59cd1cdd1de671c6edd57a9cc62c9ecd9be3524863",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/humaneval/humaneval_test.jsonl",
+  "data_sha256": "b2adeeae8b383b6f0c615746a397f25c8abe44da4afb29cd10e6c4bbf0463fd3",
+  "tokenizer": "tiktoken:gpt2",
+  "adaptation": false,
+  "max_new_tokens": 256,
+  "run_tests": true,
+  "timeout_seconds": 5.0,
+  "limit": 100,
+  "passed": 0,
+  "samples": 100,
+  "skipped": 0,
+  "pass_at_1": 0.0,
+  "records": [
+    {
+      "index": 0,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-1wxkiic8/candidate.py\", line 33, in <module>\n    check(has_close_elements)\n  File \"/tmp/ttt-humaneval-1wxkiic8/candidate.py\", line 23, in check\n    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2], 0.3) == True\nAssertionError\n"
+    },
+    {
+      "index": 1,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-11i13z88/candidate.py\", line 35, in <module>\n    check(separate_paren_groups)\n  File \"/tmp/ttt-humaneval-11i13z88/candidate.py\", line 23, in check\n    assert candidate('(()()) ((())) () ((())()())') == [\nAssertionError\n"
+    },
+    {
+      "index": 2,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-hjmobi49/candidate.py\", line 28, in <module>\n    check(truncate_number)\n  File \"/tmp/ttt-humaneval-hjmobi49/candidate.py\", line 23, in check\n    assert candidate(3.5) == 0.5\nAssertionError\n"
+    },
+    {
+      "index": 3,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-8ifjylhi/candidate.py\", line 32, in <module>\n    check(below_zero)\n  File \"/tmp/ttt-humaneval-8ifjylhi/candidate.py\", line 24, in check\n    assert candidate([]) == False\nAssertionError\n"
+    },
+    {
+      "index": 4,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-sehowqqd/candidate.py\", line 30, in <module>\n    check(mean_absolute_deviation)\n  File \"/tmp/ttt-humaneval-sehowqqd/candidate.py\", line 24, in check\n    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6\nTypeError: unsupported operand type(s) for -: 'NoneType' and 'float'\n"
+    },
+    {
+      "index": 5,
+      "completion": "    >>> intersperse([1, 2, 3], 4)\n    [1, 4, 4, 4]\n    [[1, 4, 4, 4]\n    [[1, 4, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n    [[1, 4, 4]\n  ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-ld4jpr19/candidate.py\", line 11\n    >>> intersperse([1, 2, 3], 4)\n    ^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 6,
+      "completion": "    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1, 2]\n    [2, 3, 1",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-omd8sb8e/candidate.py\", line 31\n    [2, 3, 1\n    ^\nSyntaxError: '[' was never closed\n"
+    },
+    {
+      "index": 7,
+      "completion": "    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n    [*]\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-gvtqe39i/candidate.py\", line 11\n    >>> filter_by_substring(['abc', 'bacd', 'cde')\n                                                 ^\nSyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n"
+    },
+    {
+      "index": 8,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-ekc1nye1/candidate.py\", line 30, in <module>\n    check(sum_product)\n  File \"/tmp/ttt-humaneval-ekc1nye1/candidate.py\", line 23, in check\n    assert candidate([]) == (0, 1)\nAssertionError\n"
+    },
+    {
+      "index": 9,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-p0o3rq6s/candidate.py\", line 27, in <module>\n    check(rolling_max)\n  File \"/tmp/ttt-humaneval-p0o3rq6s/candidate.py\", line 21, in check\n    assert candidate([]) == []\nAssertionError\n"
+    },
+    {
+      "index": 10,
+      "completion": "    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cat')\n    'catac'\n    >>>",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-bjznzbyi/candidate.py\", line 20\n    >>> make_palindrome('cat')\n    ^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 11,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-gpmu_ty_/candidate.py\", line 26, in <module>\n    check(string_xor)\n  File \"/tmp/ttt-humaneval-gpmu_ty_/candidate.py\", line 21, in check\n    assert candidate('111000', '101010') == '010010'\nAssertionError\n"
+    },
+    {
+      "index": 12,
+      "completion": "    >>> longest(['a', 'b', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n    >>> longest(['a', 'c'])\n    'c'\n                      ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-idb5eko9/candidate.py\", line 14\n    >>> longest(['a', 'b', 'c'])\n    ^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 13,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-bjutcqzt/candidate.py\", line 27, in <module>\n    check(greatest_common_divisor)\n  File \"/tmp/ttt-humaneval-bjutcqzt/candidate.py\", line 21, in check\n    assert candidate(3, 7) == 1\nAssertionError\n"
+    },
+    {
+      "index": 14,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-gnrxjsfj/candidate.py\", line 25, in <module>\n    check(all_prefixes)\n  File \"/tmp/ttt-humaneval-gnrxjsfj/candidate.py\", line 20, in check\n    assert candidate('') == []\nAssertionError\n"
+    },
+    {
+      "index": 15,
+      "completion": "    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '0 1 2 3 4 5'\n    '",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-inrwo4cz/candidate.py\", line 31\n    '\n    ^\nSyntaxError: unterminated string literal (detected at line 31)\n"
+    },
+    {
+      "index": 16,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-z6urs8va/candidate.py\", line 28, in <module>\n    check(count_distinct_characters)\n  File \"/tmp/ttt-humaneval-z6urs8va/candidate.py\", line 21, in check\n    assert candidate('') == 0\nAssertionError\n"
+    },
+    {
+      "index": 17,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-7gq9jipo/candidate.py\", line 35, in <module>\n    check(parse_music)\n  File \"/tmp/ttt-humaneval-7gq9jipo/candidate.py\", line 28, in check\n    assert candidate('') == []\nAssertionError\n"
+    },
+    {
+      "index": 18,
+      "completion": "    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-l8ad0kyz/candidate.py\", line 80, in <module>\n    check(how_many_times)\n  File \"/tmp/ttt-humaneval-l8ad0kyz/candidate.py\", line 74, in check\n    assert candidate('', 'x') == 0\nAssertionError\n"
+    },
+    {
+      "index": 19,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-qsquwfyd/candidate.py\", line 29, in <module>\n    check(sort_numbers)\n  File \"/tmp/ttt-humaneval-qsquwfyd/candidate.py\", line 22, in check\n    assert candidate('') == ''\nAssertionError\n"
+    },
+    {
+      "index": 20,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-06fmo68m/candidate.py\", line 31, in <module>\n    check(find_closest_elements)\n  File \"/tmp/ttt-humaneval-06fmo68m/candidate.py\", line 23, in check\n    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)\nAssertionError\n"
+    },
+    {
+      "index": 21,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-tkv89vqe/candidate.py\", line 28, in <module>\n    check(rescale_to_unit)\n  File \"/tmp/ttt-humaneval-tkv89vqe/candidate.py\", line 21, in check\n    assert candidate([2.0, 49.9]) == [0.0, 1.0]\nAssertionError\n"
+    },
+    {
+      "index": 22,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-xh_8bhcx/candidate.py\", line 27, in <module>\n    check(filter_integers)\n  File \"/tmp/ttt-humaneval-xh_8bhcx/candidate.py\", line 22, in check\n    assert candidate([]) == []\nAssertionError\n"
+    },
+    {
+      "index": 23,
+      "completion": "    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-q4hk6444/candidate.py\", line 77, in <module>\n    check(strlen)\n  File \"/tmp/ttt-humaneval-q4hk6444/candidate.py\", line 72, in check\n    assert candidate('') == 0\nAssertionError\n"
+    },
+    {
+      "index": 24,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-y5pw5gnc/candidate.py\", line 26, in <module>\n    check(largest_divisor)\n  File \"/tmp/ttt-humaneval-y5pw5gnc/candidate.py\", line 19, in check\n    assert candidate(3) == 1\nAssertionError\n"
+    },
+    {
+      "index": 25,
+      "completion": "    [5, 7]\n    [6, 8]\n    [6, 9]\n    [10, 11]\n    [11, 12]\n    [12, 13]\n    [13, 14]\n    [14, 15]\n    [15, 16]\n    [16, 17]\n    [17, 18]\n    [18, 19]\n    [19, 20]\n    [20, 21]\n    [20, 22]\n    [20, 23]\n    [20, 24]\n    [20, 25]\n    [20, 26]\n    [20, 27]\n    [20, 28]\n    [20, 29]\n    [20, 30]\n    [20, 31]\n    [20, 32]\n    [20, 33]\n    [20, 34]\n    [20, 35]\n    [",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-v5am0109/candidate.py\", line 43\n    [\n    ^\nSyntaxError: '[' was never closed\n"
+    },
+    {
+      "index": 26,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-6o95hung/candidate.py\", line 26, in <module>\n    check(remove_duplicates)\n  File \"/tmp/ttt-humaneval-6o95hung/candidate.py\", line 21, in check\n    assert candidate([]) == []\nAssertionError\n"
+    },
+    {
+      "index": 27,
+      "completion": "    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    'HELO'\n    '",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-dvkf24m5/candidate.py\", line 36\n    '\n    ^\nSyntaxError: unterminated string literal (detected at line 36)\n"
+    },
+    {
+      "index": 28,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-o6whw3ms/candidate.py\", line 27, in <module>\n    check(concatenate)\n  File \"/tmp/ttt-humaneval-o6whw3ms/candidate.py\", line 22, in check\n    assert candidate([]) == ''\nAssertionError\n"
+    },
+    {
+      "index": 29,
+      "completion": "    >>> filter_by_password(string, 'cde', 'cde', 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_by_password(string, 'cde')\n    [*]\n    >>> filter_",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-sitsa1sv/candidate.py\", line 11\n    >>> filter_by_password(string, 'cde', 'cde', 'cde')\n    ^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 30,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-ief7754x/candidate.py\", line 25, in <module>\n    check(get_positive)\n  File \"/tmp/ttt-humaneval-ief7754x/candidate.py\", line 18, in check\n    assert candidate([-1, -2, 4, 5, 6]) == [4, 5, 6]\nAssertionError\n"
+    },
+    {
+      "index": 31,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-k00maj4m/candidate.py\", line 44, in <module>\n    check(is_prime)\n  File \"/tmp/ttt-humaneval-k00maj4m/candidate.py\", line 28, in check\n    assert candidate(6) == False\nAssertionError\n"
+    },
+    {
+      "index": 32,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-1_7oamas/candidate.py\", line 49, in <module>\n    check(find_zero)\n  File \"/tmp/ttt-humaneval-1_7oamas/candidate.py\", line 45, in check\n    assert math.fabs(poly(coeffs, solution)) < 1e-4\n  File \"/tmp/ttt-humaneval-1_7oamas/candidate.py\", line 9, in poly\n    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])\n  File \"/tmp/ttt-humaneval-1_7oamas/candidate.py\", line 9, in <listcomp>\n    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])\nTypeError: must be real number, not NoneType\n"
+    },
+    {
+      "index": 33,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-wm7ag_62/candidate.py\", line 30, in <module>\n    check(sort_third)\n  File \"/tmp/ttt-humaneval-wm7ag_62/candidate.py\", line 20, in check\n    assert tuple(candidate([1, 2, 3])) == tuple(sort_third([1, 2, 3]))\nTypeError: 'NoneType' object is not iterable\n"
+    },
+    {
+      "index": 34,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-tbf756ku/candidate.py\", line 20, in <module>\n    check(unique)\n  File \"/tmp/ttt-humaneval-tbf756ku/candidate.py\", line 16, in check\n    assert candidate([5, 3, 5, 2, 3, 3, 9, 0, 123]) == [0, 2, 3, 5, 9, 123]\nAssertionError\n"
+    },
+    {
+      "index": 35,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-c2ouu80j/candidate.py\", line 22, in <module>\n    check(max_element)\n  File \"/tmp/ttt-humaneval-c2ouu80j/candidate.py\", line 18, in check\n    assert candidate([1, 2, 3]) == 3\nAssertionError\n"
+    },
+    {
+      "index": 36,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-ho36mo6q/candidate.py\", line 31, in <module>\n    check(fizz_buzz)\n  File \"/tmp/ttt-humaneval-ho36mo6q/candidate.py\", line 20, in check\n    assert candidate(50) == 0\nAssertionError\n"
+    },
+    {
+      "index": 37,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-c0z1r_la/candidate.py\", line 26, in <module>\n    check(sort_even)\n  File \"/tmp/ttt-humaneval-c0z1r_la/candidate.py\", line 20, in check\n    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])\nTypeError: 'NoneType' object is not iterable\n"
+    },
+    {
+      "index": 38,
+      "completion": "    returns \".join(groups) == 3 else group for group in group.\n                                                                                                                                                                                                                                            ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-phfh53av/candidate.py\", line 18\n    returns \".join(groups) == 3 else group for group in group.\n            ^\nSyntaxError: unterminated string literal (detected at line 18)\n"
+    },
+    {
+      "index": 39,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-rem_fqjf/candidate.py\", line 38, in <module>\n    check(prime_fib)\n  File \"/tmp/ttt-humaneval-rem_fqjf/candidate.py\", line 25, in check\n    assert candidate(1) == 2\nAssertionError\n"
+    },
+    {
+      "index": 40,
+      "completion": "    [[[1, 2, 3, 7, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-b6aujn0t/candidate.py\", line 20\n    [[[1, 2, 3, 7, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9\n      ^\nSyntaxError: '[' was never closed\n"
+    },
+    {
+      "index": 41,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-upmto500/candidate.py\", line 31, in <module>\n    check(car_race_collision)\n  File \"/tmp/ttt-humaneval-upmto500/candidate.py\", line 23, in check\n    assert candidate(2) == 4\nAssertionError\n"
+    },
+    {
+      "index": 42,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-t4jht3fw/candidate.py\", line 24, in <module>\n    check(incr_list)\n  File \"/tmp/ttt-humaneval-t4jht3fw/candidate.py\", line 18, in check\n    assert candidate([]) == []\nAssertionError\n"
+    },
+    {
+      "index": 43,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-o0j_rovi/candidate.py\", line 40, in <module>\n    check(pairs_sum_to_zero)\n  File \"/tmp/ttt-humaneval-o0j_rovi/candidate.py\", line 27, in check\n    assert candidate([1, 3, 5, 0]) == False\nAssertionError\n"
+    },
+    {
+      "index": 44,
+      "completion": "    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '0'\n    '",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-rl2g9ls5/candidate.py\", line 50\n    '\n    ^\nSyntaxError: unterminated string literal (detected at line 50)\n"
+    },
+    {
+      "index": 45,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-u9jtjr4f/candidate.py\", line 22, in <module>\n    check(triangle_area)\n  File \"/tmp/ttt-humaneval-u9jtjr4f/candidate.py\", line 16, in check\n    assert candidate(5, 3) == 7.5\nAssertionError\n"
+    },
+    {
+      "index": 46,
+      "completion": "    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n    4\n ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-i8jhziul/candidate.py\", line 84, in <module>\n    check(fib4)\n  File \"/tmp/ttt-humaneval-i8jhziul/candidate.py\", line 77, in check\n    assert candidate(5) == 4\nAssertionError\n"
+    },
+    {
+      "index": 47,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-_65ienqy/candidate.py\", line 26, in <module>\n    check(median)\n  File \"/tmp/ttt-humaneval-_65ienqy/candidate.py\", line 18, in check\n    assert candidate([3, 1, 2, 4, 5]) == 3\nAssertionError\n"
+    },
+    {
+      "index": 48,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-ufbux795/candidate.py\", line 33, in <module>\n    check(is_palindrome)\n  File \"/tmp/ttt-humaneval-ufbux795/candidate.py\", line 23, in check\n    assert candidate('') == True\nAssertionError\n"
+    },
+    {
+      "index": 49,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-xlx30rnk/candidate.py\", line 34, in <module>\n    check(modp)\n  File \"/tmp/ttt-humaneval-xlx30rnk/candidate.py\", line 24, in check\n    assert candidate(3, 5) == 3\nAssertionError\n"
+    },
+    {
+      "index": 50,
+      "completion": "    returns a string with a value of 1.\n                                                                                                                                                                                                                                                   ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-aw_5vg39/candidate.py\", line 14\n    returns a string with a value of 1.\n            ^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 51,
+      "completion": "    >>> remove_vowels('db')\n    'B'\n    >>> remove_vowels('db')\n    'B'\n    >>> remove_vowels('db')\n    'B'\n    >>> remove_vowels('db')\n    'B'\n    >>> remove_vowels('db')\n    'B'\n    >>> remove_vowels('db')\n    'B'\n    >>> remove_vowels('db')\n    'B'\n    >>> remove_vowels ('db')\n    'B'\n    >>> remove_vowels ('db')\n    'B'\n    >>> remove_vowels ('db')\n    'B'\n    >>> remove_vowels ('db')\n    'B'\n    >>> remove_vowels ('db')\n    'B'\n    >>> remove_vowels ('db')\n   ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-s375co1t/candidate.py\", line 19\n    >>> remove_vowels('db')\n    ^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 52,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-4nug2puy/candidate.py\", line 27, in <module>\n    check(below_threshold)\n  File \"/tmp/ttt-humaneval-4nug2puy/candidate.py\", line 18, in check\n    assert candidate([1, 2, 4, 10], 100)\nAssertionError\n"
+    },
+    {
+      "index": 53,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-rrub5hj1/candidate.py\", line 32, in <module>\n    check(add)\n  File \"/tmp/ttt-humaneval-rrub5hj1/candidate.py\", line 20, in check\n    assert candidate(0, 1) == 1\nAssertionError\n"
+    },
+    {
+      "index": 54,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-p_xlb5es/candidate.py\", line 37, in <module>\n    check(same_chars)\n  File \"/tmp/ttt-humaneval-p_xlb5es/candidate.py\", line 27, in check\n    assert candidate('eabcdzzzz', 'dddzzzzzzzddeddabc') == True\nAssertionError\n"
+    },
+    {
+      "index": 55,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-nw0k8kih/candidate.py\", line 28, in <module>\n    check(fib)\n  File \"/tmp/ttt-humaneval-nw0k8kih/candidate.py\", line 20, in check\n    assert candidate(10) == 55\nAssertionError\n"
+    },
+    {
+      "index": 56,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-yr2u9snq/candidate.py\", line 39, in <module>\n    check(correct_bracketing)\n  File \"/tmp/ttt-humaneval-yr2u9snq/candidate.py\", line 24, in check\n    assert candidate(\"<>\")\nAssertionError\n"
+    },
+    {
+      "index": 57,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-lcpe9xi8/candidate.py\", line 31, in <module>\n    check(monotonic)\n  File \"/tmp/ttt-humaneval-lcpe9xi8/candidate.py\", line 20, in check\n    assert candidate([1, 2, 4, 10]) == True\nAssertionError\n"
+    },
+    {
+      "index": 58,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-yz58w_8l/candidate.py\", line 26, in <module>\n    check(common)\n  File \"/tmp/ttt-humaneval-yz58w_8l/candidate.py\", line 19, in check\n    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]\nAssertionError\n"
+    },
+    {
+      "index": 59,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-l6c1x1cn/candidate.py\", line 26, in <module>\n    check(largest_prime_factor)\n  File \"/tmp/ttt-humaneval-l6c1x1cn/candidate.py\", line 18, in check\n    assert candidate(15) == 5\nAssertionError\n"
+    },
+    {
+      "index": 60,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-6637qx74/candidate.py\", line 32, in <module>\n    check(sum_to_n)\n  File \"/tmp/ttt-humaneval-6637qx74/candidate.py\", line 24, in check\n    assert candidate(1) == 1\nAssertionError\n"
+    },
+    {
+      "index": 61,
+      "completion": "    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n    \"\n ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-ig1upqrf/candidate.py\", line 16\n    \"\n    ^\nSyntaxError: unterminated string literal (detected at line 16)\n"
+    },
+    {
+      "index": 62,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-245lafjr/candidate.py\", line 28, in <module>\n    check(derivative)\n  File \"/tmp/ttt-humaneval-245lafjr/candidate.py\", line 20, in check\n    assert candidate([3, 1, 2, 4, 5]) == [1, 4, 12, 20]\nAssertionError\n"
+    },
+    {
+      "index": 63,
+      "completion": "    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n    0\n ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-jro29x0u/candidate.py\", line 86, in <module>\n    check(fibfib)\n  File \"/tmp/ttt-humaneval-jro29x0u/candidate.py\", line 76, in check\n    assert candidate(2) == 1\nAssertionError\n"
+    },
+    {
+      "index": 64,
+      "completion": "    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n    1\n ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-sc6zr80r/candidate.py\", line 87, in <module>\n    check(vowels_count)\n  File \"/tmp/ttt-humaneval-sc6zr80r/candidate.py\", line 74, in check\n    assert candidate(\"abcde\") == 2, \"Test 1\"\nAssertionError: Test 1\n"
+    },
+    {
+      "index": 65,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-k8vm7xhz/candidate.py\", line 26, in <module>\n    check(circular_shift)\n  File \"/tmp/ttt-humaneval-k8vm7xhz/candidate.py\", line 16, in check\n    assert candidate(100, 2) == \"001\"\nAssertionError\n"
+    },
+    {
+      "index": 66,
+      "completion": "        digit Sum(\"aA\") => 5\n        digit Sum(\"aA\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n        digit Sum(\"aB\") => 5\n                ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-c8uzd59w/candidate.py\", line 15\n    digit Sum(\"aA\") => 5\nIndentationError: unexpected indent\n"
+    },
+    {
+      "index": 67,
+      "completion": "    fruit_distribution(\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution(\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution(\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution(\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution(\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution(\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution (\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution (\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution (\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution (\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n    fruit_distribution (\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n   ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-ldv_hzf9/candidate.py\", line 15\n    fruit_distribution(\"1 apples and 1 oranges\", 100) -> 100 - 1 = \n                                                      ^^\nSyntaxError: invalid syntax\n"
+    },
+    {
+      "index": 68,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-v38o9qoh/candidate.py\", line 56, in <module>\n    check(pluck)\n  File \"/tmp/ttt-humaneval-v38o9qoh/candidate.py\", line 42, in check\n    assert candidate([4,2,3]) == [2, 1], \"Error\"\nAssertionError: Error\n"
+    },
+    {
+      "index": 69,
+      "completion": "        search([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-vajuexgt/candidate.py\", line 13\n    search([5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5\nIndentationError: unexpected indent\n"
+    },
+    {
+      "index": 70,
+      "completion": "    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-8f1ftvmz/candidate.py\", line 55\n    '\n    ^\nSyntaxError: unterminated string literal (detected at line 55)\n"
+    },
+    {
+      "index": 71,
+      "completion": "    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle_area(1, 2, 10) == 6.00\n    triangle",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-twn9zkm7/candidate.py\", line 46, in <module>\n    check(triangle_area)\n  File \"/tmp/ttt-humaneval-twn9zkm7/candidate.py\", line 32, in check\n    assert candidate(3, 4, 5) == 6.00, \"This prints if this assert fails 1 (good for debugging!)\"\n  File \"/tmp/ttt-humaneval-twn9zkm7/candidate.py\", line 13, in triangle_area\n    triangle_area(1, 2, 10) == 6.00\n  File \"/tmp/ttt-humaneval-twn9zkm7/candidate.py\", line 13, in triangle_area\n    triangle_area(1, 2, 10) == 6.00\n  File \"/tmp/ttt-humaneval-twn9zkm7/candidate.py\", line 13, in triangle_area\n    triangle_area(1, 2, 10) == 6.00\n  [Previous line repeated 995 more times]\nRecursionError: maximum recursion depth exceeded\n"
+    },
+    {
+      "index": 72,
+      "completion": "    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-nl6p2vre/candidate.py\", line 62\n    '\n    ^\nSyntaxError: unterminated string literal (detected at line 62)\n"
+    },
+    {
+      "index": 73,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-u134_ums/candidate.py\", line 31, in <module>\n    check(smallest_change)\n  File \"/tmp/ttt-humaneval-u134_ums/candidate.py\", line 18, in check\n    assert candidate([1,2,3,5,4,7,9,6]) == 4\nAssertionError\n"
+    },
+    {
+      "index": 74,
+      "completion": "    total_match(['i', 'i', 'i') ➞ ['i', 'i') ➞ ('i') ➞ ('i')\n    total_match(['i', 'i') ➞ ('i') ➞ ('i') ➞ ('i') ➞ ('i')\n    total_match(['i', 'i') ➞ ('i') ➞ ('i') ➞ ('i') ➞ ('i')\n    total_match(['i', 'i') ➞ ('i') ➞ ('i') ➞ ('i') ➞ ('i')\n    total_match(['i', 'i') ➞ ('i') ➞ ('i') ➞ ('i')\n    total_match(['i', 'i') ➞ ('i') ➞ ('i') ➞ ('i')\n    total_match(['i', 'i') ➞ ('i') ➞ ('i') ➞ ('i')\n    total_match(['",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-ydf1lcw0/candidate.py\", line 16\n    total_match(['i', 'i', 'i') ➞ ['i', 'i') ➞ ('i') ➞ ('i')\n                              ^\nSyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n"
+    },
+    {
+      "index": 75,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-vg8gn1xd/candidate.py\", line 27, in <module>\n    check(is_multiply_prime)\n  File \"/tmp/ttt-humaneval-vg8gn1xd/candidate.py\", line 14, in check\n    assert candidate(5) == False\nAssertionError\n"
+    },
+    {
+      "index": 76,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-64zokko4/candidate.py\", line 34, in <module>\n    check(is_simple_power)\n  File \"/tmp/ttt-humaneval-64zokko4/candidate.py\", line 19, in check\n    assert candidate(16, 2)== True, \"This prints if this assert fails 1 (good for debugging!)\"\nAssertionError: This prints if this assert fails 1 (good for debugging!)\n"
+    },
+    {
+      "index": 77,
+      "completion": "    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-afzzssd8/candidate.py\", line 57\n    '\n    ^\nSyntaxError: unterminated string literal (detected at line 57)\n"
+    },
+    {
+      "index": 78,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-0kvzwsh7/candidate.py\", line 38, in <module>\n    check(hex_key)\n  File \"/tmp/ttt-humaneval-0kvzwsh7/candidate.py\", line 25, in check\n    assert candidate(\"AB\") == 1, \"First test error: \" + str(candidate(\"AB\"))      \nAssertionError: First test error: None\n"
+    },
+    {
+      "index": 79,
+      "completion": "    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   # returns \"db100000db\"\n    decimal_to_binary(32)   #",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-1dgh9aa7/candidate.py\", line 40, in <module>\n    check(decimal_to_binary)\n  File \"/tmp/ttt-humaneval-1dgh9aa7/candidate.py\", line 30, in check\n    assert candidate(0) == \"db0db\"\n  File \"/tmp/ttt-humaneval-1dgh9aa7/candidate.py\", line 14, in decimal_to_binary\n    decimal_to_binary(32)   # returns \"db100000db\"\n  File \"/tmp/ttt-humaneval-1dgh9aa7/candidate.py\", line 14, in decimal_to_binary\n    decimal_to_binary(32)   # returns \"db100000db\"\n  File \"/tmp/ttt-humaneval-1dgh9aa7/candidate.py\", line 14, in decimal_to_binary\n    decimal_to_binary(32)   # returns \"db100000db\"\n  [Previous line repeated 995 more times]\nRecursionError: maximum recursion depth exceeded\n"
+    },
+    {
+      "index": 80,
+      "completion": "    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is_happy(y) => False\n    is",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-jc5di80q/candidate.py\", line 14\n    is_happy(y) => False\n    ^^^^^^^^^^^\nSyntaxError: cannot assign to function call\n"
+    },
+    {
+      "index": 81,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-4voa3bhh/candidate.py\", line 44, in <module>\n    check(numerical_letter_grade)\n  File \"/tmp/ttt-humaneval-4voa3bhh/candidate.py\", line 32, in check\n    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']\nAssertionError\n"
+    },
+    {
+      "index": 82,
+      "completion": "    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens') == True\n    prime_length('kittens",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-f5aof9bt/candidate.py\", line 30\n    prime_length('kittens\n                 ^\nSyntaxError: unterminated string literal (detected at line 30)\n"
+    },
+    {
+      "index": 83,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-njq18lrr/candidate.py\", line 24, in <module>\n    check(starts_one_ends)\n  File \"/tmp/ttt-humaneval-njq18lrr/candidate.py\", line 13, in check\n    assert candidate(1) == 1\nAssertionError\n"
+    },
+    {
+      "index": 84,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-z0g6nq6d/candidate.py\", line 33, in <module>\n    check(solve)\n  File \"/tmp/ttt-humaneval-z0g6nq6d/candidate.py\", line 22, in check\n    assert candidate(1000) == \"1\", \"Error\"\nAssertionError: Error\n"
+    },
+    {
+      "index": 85,
+      "completion": "        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6, 7]) ==> 2 \n        add([4, 2, 6",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-0u6pomsp/candidate.py\", line 9\n    add([4, 2, 6, 7]) ==> 2 \nIndentationError: unexpected indent\n"
+    },
+    {
+      "index": 86,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-__frgqyu/candidate.py\", line 32, in <module>\n    check(anti_shuffle)\n  File \"/tmp/ttt-humaneval-__frgqyu/candidate.py\", line 20, in check\n    assert candidate('Hi') == 'Hi'\nAssertionError\n"
+    },
+    {
+      "index": 87,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-r8daebcd/candidate.py\", line 58, in <module>\n    check(get_row)\n  File \"/tmp/ttt-humaneval-r8daebcd/candidate.py\", line 27, in check\n    assert candidate([\nAssertionError\n"
+    },
+    {
+      "index": 88,
+      "completion": "    * sort_array([1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-76la8p22/candidate.py\", line 17\n    * sort_array([1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,\n                 ^\nSyntaxError: '[' was never closed\n"
+    },
+    {
+      "index": 89,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-l7nxof8d/candidate.py\", line 32, in <module>\n    check(encrypt)\n  File \"/tmp/ttt-humaneval-l7nxof8d/candidate.py\", line 18, in check\n    assert candidate('hi') == 'lm', \"This prints if this assert fails 1 (good for debugging!)\"\nAssertionError: This prints if this assert fails 1 (good for debugging!)\n"
+    },
+    {
+      "index": 90,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-dqi8fclr/candidate.py\", line 31, in <module>\n    check(next_smallest)\n  File \"/tmp/ttt-humaneval-dqi8fclr/candidate.py\", line 18, in check\n    assert candidate([1, 2, 3, 4, 5]) == 2\nAssertionError\n"
+    },
+    {
+      "index": 91,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-iq73hxd4/candidate.py\", line 31, in <module>\n    check(is_bored)\n  File \"/tmp/ttt-humaneval-iq73hxd4/candidate.py\", line 19, in check\n    assert candidate(\"Hello world\") == 0, \"Test 1\"\nAssertionError: Test 1\n"
+    },
+    {
+      "index": 92,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-lcp5p5ww/candidate.py\", line 40, in <module>\n    check(any_int)\n  File \"/tmp/ttt-humaneval-lcp5p5ww/candidate.py\", line 25, in check\n    assert candidate(2, 3, 1)==True, \"This prints if this assert fails 1 (good for debugging!)\"\nAssertionError: This prints if this assert fails 1 (good for debugging!)\n"
+    },
+    {
+      "index": 93,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-b9ic8bxt/candidate.py\", line 31, in <module>\n    check(encode)\n  File \"/tmp/ttt-humaneval-b9ic8bxt/candidate.py\", line 21, in check\n    assert candidate('TEST') == 'tgst', \"This prints if this assert fails 1 (good for debugging!)\"\nAssertionError: This prints if this assert fails 1 (good for debugging!)\n"
+    },
+    {
+      "index": 94,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-ifjj352s/candidate.py\", line 42, in <module>\n    check(skjkasdkd)\n  File \"/tmp/ttt-humaneval-ifjj352s/candidate.py\", line 20, in check\n    assert candidate([0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3]) == 10, \"This prints if this assert fails 1 (good for debugging!)\"\nAssertionError: This prints if this assert fails 1 (good for debugging!)\n"
+    },
+    {
+      "index": 95,
+      "completion": "    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n    check_dict_case((\"A\")\", \"A\")\n ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-rep95ycc/candidate.py\", line 14\n    check_dict_case((\"A\")\", \"A\")\n                              ^\nSyntaxError: unterminated string literal (detected at line 14)\n"
+    },
+    {
+      "index": 96,
+      "completion": "    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    count_up_to(1) => [2,3",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-i5fn9ew7/candidate.py\", line 13\n    count_up_to(1) => [2,3,5,8,9,10,13,20]\n    ^^^^^^^^^^^^^^\nSyntaxError: cannot assign to function call\n"
+    },
+    {
+      "index": 97,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-dzsa5atq/candidate.py\", line 31, in <module>\n    check(multiply)\n  File \"/tmp/ttt-humaneval-dzsa5atq/candidate.py\", line 17, in check\n    assert candidate(148, 412) == 16, \"First test error: \" + str(candidate(148, 412))                    \nAssertionError: First test error: None\n"
+    },
+    {
+      "index": 98,
+      "completion": "                                                                                                                                                                                                                                                                ",
+      "passed": false,
+      "error": "Traceback (most recent call last):\n  File \"/tmp/ttt-humaneval-0fwl4j3e/candidate.py\", line 29, in <module>\n    check(count_upper)\n  File \"/tmp/ttt-humaneval-0fwl4j3e/candidate.py\", line 16, in check\n    assert candidate('aBCdEf')  == 1\nAssertionError\n"
+    },
+    {
+      "index": 99,
+      "completion": "    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '''\n    '",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-89zw_j1n/candidate.py\", line 62\n    '\n    ^\nSyntaxError: unterminated string literal (detected at line 62)\n"
+    }
+  ]
+}

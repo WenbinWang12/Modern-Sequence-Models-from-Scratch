@@ -1,0 +1,186 @@
+% 与 SVG 共用坐标与数据；材质简化，语义和布局一致。本轮尚未编译。
+% 编译：xelatex -halt-on-error -interaction=nonstopmode bpe-learning-vs-encoding.tex
+\documentclass[tikz,border=3pt]{standalone}
+\usepackage{fontspec}
+\setmonofont{Latin Modern Mono}
+\usetikzlibrary{arrows.meta}
+\definecolor{cf8f6f0}{HTML}{f8f6f0}
+\definecolor{c147d73}{HTML}{147d73}
+\definecolor{c5a6c72}{HTML}{5a6c72}
+\definecolor{c18313d}{HTML}{18313d}
+\definecolor{cd6dfdb}{HTML}{d6dfdb}
+\definecolor{cffffff}{HTML}{ffffff}
+\definecolor{c5d61a8}{HTML}{5d61a8}
+\definecolor{cdfefe9}{HTML}{dfefe9}
+\definecolor{c9cc5b9}{HTML}{9cc5b9}
+\definecolor{ceeefea}{HTML}{eeefea}
+\definecolor{c243b43}{HTML}{243b43}
+\definecolor{cc7d8da}{HTML}{c7d8da}
+\definecolor{c3e5963}{HTML}{3e5963}
+\definecolor{c344f59}{HTML}{344f59}
+\definecolor{c49616b}{HTML}{49616b}
+\definecolor{cdeeaeb}{HTML}{deeaeb}
+\definecolor{ce9eaf8}{HTML}{e9eaf8}
+\definecolor{cf9ecd7}{HTML}{f9ecd7}
+\definecolor{ca66a24}{HTML}{a66a24}
+\begin{document}
+\begin{tikzpicture}[x=.6pt,y=-.6pt]
+\path[fill=cf8f6f0,draw=none,line width=0.90pt,opacity=1] (0,0) rectangle (1160,1260);
+\path[fill=c147d73,draw=none,line width=0.90pt,opacity=1] (0,0) rectangle (1160,9);
+\node[anchor=base west,inner sep=0pt,text=c147d73,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (52,49) {09 / TOKENIZER};
+\node[anchor=base east,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{10.80}{14.04}\selectfont] at (1108,49) {MODERN SEQUENCE MODELS};
+\node[anchor=base west,inner sep=0pt,text=c18313d,font=\sffamily\fontsize{22.20}{28.86}\selectfont\bfseries] at (52,108) {Learn the pairs. Freeze the order.};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{13.20}{17.16}\selectfont] at (52,146) {Training learns rules; encoding only reads them. Counts, ranks, and token IDs are distinct.};
+\path[fill=none,draw=cd6dfdb,line width=0.90pt,opacity=1,line cap=round,line join=round] (52,174) -- (1108,174);
+\path[fill=c147d73,draw=none,line width=0.90pt] (82,214) circle (10.80pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (82,221) {1};
+\node[anchor=base west,inner sep=0pt,text=c18313d,font=\sffamily\fontsize{15.00}{19.50}\selectfont\bfseries] at (115,222) {Learn from word counts};
+\path[fill=c5d61a8,draw=none,line width=0.90pt] (642,214) circle (10.80pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (642,221) {2};
+\node[anchor=base west,inner sep=0pt,text=c18313d,font=\sffamily\fontsize{15.00}{19.50}\selectfont\bfseries] at (675,222) {Freeze the merge rules};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (64,263) {COUNT};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (156,263) {BASE SYMBOLS + WORD END};
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (83,310) {\ensuremath{\times} 5};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (156,279) rectangle (200,323);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (178,309) {c};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (208,279) rectangle (252,323);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (230,309) {a};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (260,279) rectangle (304,323);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (282,309) {t};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (312,279) rectangle (406,323);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{13.20}{17.16}\selectfont\bfseries] at (359,309) {\textless{}/w\textgreater{}};
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (83,370) {\ensuremath{\times} 2};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (156,339) rectangle (200,383);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (178,369) {c};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (208,339) rectangle (252,383);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (230,369) {a};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (260,339) rectangle (304,383);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (282,369) {t};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (312,339) rectangle (356,383);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (334,369) {s};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (364,339) rectangle (458,383);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{13.20}{17.16}\selectfont\bfseries] at (411,369) {\textless{}/w\textgreater{}};
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (83,430) {\ensuremath{\times} 3};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (156,399) rectangle (200,443);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (178,429) {c};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (208,399) rectangle (252,443);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (230,429) {a};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (260,399) rectangle (304,443);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (282,429) {p};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (312,399) rectangle (406,443);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{13.20}{17.16}\selectfont\bfseries] at (359,429) {\textless{}/w\textgreater{}};
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (83,490) {\ensuremath{\times} 1};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (156,459) rectangle (200,503);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (178,489) {c};
+\path[fill=cdfefe9,draw=c9cc5b9,line width=0.90pt,opacity=1,rounded corners=4.20pt] (208,459) rectangle (252,503);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (230,489) {a};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (260,459) rectangle (304,503);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (282,489) {p};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (312,459) rectangle (356,503);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{15.60}{20.28}\selectfont\bfseries] at (334,489) {s};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=4.20pt] (364,459) rectangle (458,503);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{13.20}{17.16}\selectfont\bfseries] at (411,489) {\textless{}/w\textgreater{}};
+\path[fill=none,draw=cd6dfdb,line width=0.90pt,opacity=1,line cap=round,line join=round] (64,531) -- (539,531);
+\path[fill=cdfefe9,draw=none,line width=0.90pt,opacity=1,rounded corners=10.20pt] (64,550) rectangle (176,584);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (120,574) {c + a};
+\node[anchor=base west,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{15.00}{19.50}\selectfont\bfseries] at (194,576) {5 + 2 + 3 + 1 = 11};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{12.60}{16.38}\selectfont] at (64,615) {Wins round 1; recount after every merge.};
+\path[fill=none,draw=cd6dfdb,line width=0.90pt,opacity=1,dash pattern=on 3pt off 3pt,line cap=round,line join=round] (584,254) -- (584,602);
+\path[fill=c243b43,draw=none,line width=0.90pt,opacity=0.08,rounded corners=10.80pt] (628,275) rectangle (1100,601);
+\path[fill=c18313d,draw=none,line width=0.90pt,opacity=1,rounded corners=10.80pt] (624,269) rectangle (1096,595);
+\node[anchor=base west,inner sep=0pt,text=cc7d8da,font=\ttfamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (649,303) {rank};
+\node[anchor=base west,inner sep=0pt,text=cc7d8da,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (739,303) {FROZEN RULE};
+\node[anchor=base east,inner sep=0pt,text=cc7d8da,font=\ttfamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (1070,303) {n};
+\path[fill=none,draw=c3e5963,line width=0.60pt,opacity=1,line cap=round,line join=round] (648,316) -- (1072,316);
+\path[fill=c147d73,draw=none,line width=0.90pt] (667,339) circle (9.60pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (667,346) {0};
+\node[anchor=base west,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{12.60}{16.38}\selectfont] at (713,347) {c + a \ensuremath{\rightarrow} ca};
+\node[anchor=base east,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{14.40}{18.72}\selectfont\bfseries] at (1070,347) {11};
+\path[fill=none,draw=c344f59,line width=0.60pt,opacity=1,line cap=round,line join=round] (648,363) -- (1072,363);
+\path[fill=c5d61a8,draw=none,line width=0.90pt] (667,386) circle (9.60pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (667,393) {1};
+\node[anchor=base west,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{12.60}{16.38}\selectfont] at (713,394) {ca + t \ensuremath{\rightarrow} cat};
+\node[anchor=base east,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{14.40}{18.72}\selectfont\bfseries] at (1070,394) {7};
+\path[fill=none,draw=c344f59,line width=0.60pt,opacity=1,line cap=round,line join=round] (648,410) -- (1072,410);
+\path[fill=c49616b,draw=none,line width=0.90pt] (667,433) circle (9.60pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (667,440) {2};
+\node[anchor=base west,inner sep=0pt,text=cdeeaeb,font=\ttfamily\fontsize{12.60}{16.38}\selectfont] at (713,441) {cat + \textless{}/w\textgreater{} \ensuremath{\rightarrow} cat\textless{}/w\textgreater{}};
+\node[anchor=base east,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{14.40}{18.72}\selectfont\bfseries] at (1070,441) {5};
+\path[fill=none,draw=c344f59,line width=0.60pt,opacity=1,line cap=round,line join=round] (648,457) -- (1072,457);
+\path[fill=c49616b,draw=none,line width=0.90pt] (667,480) circle (9.60pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (667,487) {3};
+\node[anchor=base west,inner sep=0pt,text=cdeeaeb,font=\ttfamily\fontsize{12.60}{16.38}\selectfont] at (713,488) {ca + p \ensuremath{\rightarrow} cap};
+\node[anchor=base east,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{14.40}{18.72}\selectfont\bfseries] at (1070,488) {4};
+\path[fill=none,draw=c344f59,line width=0.60pt,opacity=1,line cap=round,line join=round] (648,504) -- (1072,504);
+\path[fill=c49616b,draw=none,line width=0.90pt] (667,527) circle (9.60pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (667,534) {4};
+\node[anchor=base west,inner sep=0pt,text=cdeeaeb,font=\ttfamily\fontsize{12.60}{16.38}\selectfont] at (713,535) {cap + \textless{}/w\textgreater{} \ensuremath{\rightarrow} cap\textless{}/w\textgreater{}};
+\node[anchor=base east,inner sep=0pt,text=cffffff,font=\ttfamily\fontsize{14.40}{18.72}\selectfont\bfseries] at (1070,535) {3};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{12.00}{15.60}\selectfont] at (624,629) {n = pair count when the merge was selected};
+\path[fill=none,draw=cd6dfdb,line width=0.90pt,opacity=1,line cap=round,line join=round] (64,661) -- (1096,661);
+\path[fill=cf8f6f0,draw=none,line width=0.90pt,opacity=1,rounded corners=10.20pt] (410,645) rectangle (750,679);
+\node[anchor=base,inner sep=0pt,text=c5d61a8,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (580,669) {TRAINING ENDS \ensuremath{\cdot} RULES FIXED};
+\path[fill=c147d73,draw=none,line width=0.90pt] (82,709) circle (10.80pt);
+\node[anchor=base,inner sep=0pt,text=cffffff,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (82,716) {3};
+\node[anchor=base west,inner sep=0pt,text=c18313d,font=\sffamily\fontsize{15.00}{19.50}\selectfont\bfseries] at (115,717) {Encode the unseen word catt};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{13.20}{17.16}\selectfont] at (64,757) {Match adjacent pairs only; preserve their spans as symbols merge.};
+\path[fill=cdfefe9,draw=c147d73,line width=0.90pt,opacity=1,rounded corners=5.40pt] (92,800) rectangle (168,852);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (130,835) {c};
+\path[fill=cdfefe9,draw=c147d73,line width=0.90pt,opacity=1,rounded corners=5.40pt] (180,800) rectangle (256,852);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (218,835) {a};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (268,800) rectangle (344,852);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (306,835) {t};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (356,800) rectangle (432,852);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (394,835) {t};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (444,800) rectangle (560,852);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (502,835) {\textless{}/w\textgreater{}};
+\path[fill=ce9eaf8,draw=c5d61a8,line width=0.90pt,opacity=1,rounded corners=5.40pt] (92,910) rectangle (256,962);
+\node[anchor=base,inner sep=0pt,text=c5d61a8,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (174,945) {ca};
+\path[fill=ce9eaf8,draw=c5d61a8,line width=0.90pt,opacity=1,rounded corners=5.40pt] (268,910) rectangle (344,962);
+\node[anchor=base,inner sep=0pt,text=c5d61a8,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (306,945) {t};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (356,910) rectangle (432,962);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (394,945) {t};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (444,910) rectangle (560,962);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (502,945) {\textless{}/w\textgreater{}};
+\path[fill=ce9eaf8,draw=c5d61a8,line width=0.90pt,opacity=1,rounded corners=5.40pt] (92,1020) rectangle (344,1072);
+\node[anchor=base,inner sep=0pt,text=c5d61a8,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (218,1055) {cat};
+\path[fill=cf9ecd7,draw=ca66a24,line width=0.90pt,opacity=1,rounded corners=5.40pt] (356,1020) rectangle (432,1072);
+\node[anchor=base,inner sep=0pt,text=ca66a24,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (394,1055) {t};
+\path[fill=ceeefea,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (444,1020) rectangle (560,1072);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (502,1055) {\textless{}/w\textgreater{}};
+\path[fill=cdfefe9,draw=none,line width=0.00pt,opacity=1,line cap=round,line join=round] (92,854) -- (168,854) .. controls (168,875) and (174,888) .. (174,908) -- (92,908) -- cycle;
+\path[fill=cdfefe9,draw=none,line width=0.00pt,opacity=1,line cap=round,line join=round] (180,854) -- (256,854) -- (256,908) -- (174,908) .. controls (174,888) and (180,875) .. (180,854) -- cycle;
+\path[fill=ce9eaf8,draw=none,line width=0.00pt,opacity=1,line cap=round,line join=round] (92,964) -- (256,964) .. controls (256,985) and (262,998) .. (262,1018) -- (92,1018) -- cycle;
+\path[fill=ce9eaf8,draw=none,line width=0.00pt,opacity=1,line cap=round,line join=round] (268,964) -- (344,964) -- (344,1018) -- (262,1018) .. controls (262,998) and (268,985) .. (268,964) -- cycle;
+\path[fill=none,draw=cd6dfdb,line width=1.20pt,opacity=1,dash pattern=on 3pt off 3pt,-{Stealth[length=4pt]},line cap=round,line join=round] (306,854) -- (306,902);
+\path[fill=none,draw=cd6dfdb,line width=1.20pt,opacity=1,dash pattern=on 3pt off 3pt,-{Stealth[length=4pt]},line cap=round,line join=round] (394,854) -- (394,902);
+\path[fill=none,draw=cd6dfdb,line width=1.20pt,opacity=1,dash pattern=on 3pt off 3pt,-{Stealth[length=4pt]},line cap=round,line join=round] (502,854) -- (502,902);
+\path[fill=none,draw=cd6dfdb,line width=1.20pt,opacity=1,dash pattern=on 3pt off 3pt,-{Stealth[length=4pt]},line cap=round,line join=round] (394,964) -- (394,1012);
+\path[fill=none,draw=cd6dfdb,line width=1.20pt,opacity=1,dash pattern=on 3pt off 3pt,-{Stealth[length=4pt]},line cap=round,line join=round] (502,964) -- (502,1012);
+\path[fill=cdfefe9,draw=none,line width=0.90pt,opacity=1,rounded corners=10.20pt] (624,813) rectangle (732,847);
+\node[anchor=base,inner sep=0pt,text=c147d73,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (678,837) {rank 0};
+\node[anchor=base west,inner sep=0pt,text=c147d73,font=\ttfamily\fontsize{16.20}{21.06}\selectfont\bfseries] at (756,840) {c + a \ensuremath{\rightarrow} ca};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{13.20}{17.16}\selectfont] at (624,880) {Merge, then recheck neighboring pairs.};
+\path[fill=ce9eaf8,draw=none,line width=0.90pt,opacity=1,rounded corners=10.20pt] (624,923) rectangle (732,957);
+\node[anchor=base,inner sep=0pt,text=c5d61a8,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (678,947) {rank 1};
+\node[anchor=base west,inner sep=0pt,text=c5d61a8,font=\ttfamily\fontsize{16.20}{21.06}\selectfont\bfseries] at (756,950) {ca + t \ensuremath{\rightarrow} cat};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{13.20}{17.16}\selectfont] at (624,990) {No recounting. No vocabulary growth.};
+\path[fill=cf9ecd7,draw=none,line width=0.90pt,opacity=1,rounded corners=10.20pt] (624,1033) rectangle (720,1067);
+\node[anchor=base,inner sep=0pt,text=ca66a24,font=\sffamily\fontsize{12.00}{15.60}\selectfont\bfseries] at (672,1057) {STOP};
+\node[anchor=base west,inner sep=0pt,text=c18313d,font=\sffamily\fontsize{13.80}{17.94}\selectfont\bfseries] at (743,1060) {No learned adjacent pair};
+\node[anchor=base west,inner sep=0pt,text=ca66a24,font=\sffamily\fontsize{13.20}{17.16}\selectfont\bfseries] at (624,1100) {The second t blocks rank 2.};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{13.20}{17.16}\selectfont] at (624,1135) {cat and \textless{}/w\textgreater{} are not adjacent.};
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\ttfamily\fontsize{13.20}{17.16}\selectfont\bfseries] at (64,1148) {ID};
+\path[fill=none,draw=c5a6c72,line width=0.90pt,opacity=1,-{Stealth[length=4pt]},line cap=round,line join=round] (218,1077) -- (218,1105);
+\path[fill=cffffff,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (194,1113) rectangle (242,1160);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (218,1147) {7};
+\path[fill=none,draw=c5a6c72,line width=0.90pt,opacity=1,-{Stealth[length=4pt]},line cap=round,line join=round] (394,1077) -- (394,1105);
+\path[fill=cffffff,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (370,1113) rectangle (418,1160);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (394,1147) {5};
+\path[fill=none,draw=c5a6c72,line width=0.90pt,opacity=1,-{Stealth[length=4pt]},line cap=round,line join=round] (502,1077) -- (502,1105);
+\path[fill=cffffff,draw=cd6dfdb,line width=0.90pt,opacity=1,rounded corners=5.40pt] (478,1113) rectangle (526,1160);
+\node[anchor=base,inner sep=0pt,text=c18313d,font=\ttfamily\fontsize{16.80}{21.84}\selectfont\bfseries] at (502,1147) {0};
+\path[fill=none,draw=cd6dfdb,line width=0.90pt,opacity=1,line cap=round,line join=round] (64,1193) -- (1096,1193);
+\node[anchor=base west,inner sep=0pt,text=c5a6c72,font=\sffamily\fontsize{12.60}{16.38}\selectfont] at (64,1230) {IDs = [7, 5, 0]. ID \ensuremath{\ne} rank; ID 0 is the word-end marker here, not EOS.};
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,320 @@
+{
+  "protocol_version": "humaneval_generate_v1",
+  "protocol": "HumanEval; greedy completion; pass@1 when --run-tests is enabled",
+  "checkpoint": "outputs/h200-15m-baseline-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c5a6ac43b55a2b52dc2956df4b951db1171fb69360f69b344f1d53c308f7d4bb",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/humaneval/HumanEval.jsonl",
+  "data_sha256": "1d49078ba3e2b196b9344535bef34a43021f038fad9561d6ee7c53450609a6a2",
+  "tokenizer": "byte",
+  "adaptation": false,
+  "max_new_tokens": 256,
+  "run_tests": true,
+  "timeout_seconds": 5.0,
+  "limit": 50,
+  "passed": 0,
+  "samples": 50,
+  "skipped": 0,
+  "pass_at_1": 0.0,
+  "records": [
+    {
+      "index": 0,
+      "completion": " <unk> \" , and \" <unk> \" ( <unk> ) , and \" <unk> \" ( <unk> ) , and \" <unk> \" ( <unk> ) , and <unk> ( <unk> ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-xhm2mxk_/candidate.py\", line 12\n    <unk> \" , and \" <unk> \" ( <unk> ) , and \" <unk> \" ( <unk> ) , and \" <unk> \" ( <unk> ) , and <unk> ( <unk> ) . \n                                                                                                                  ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 1,
+      "completion": " \" ) , and the <unk> of the <unk> of the <unk> of the <unk> . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-91sac7_f/candidate.py\", line 12\n    \" ) , and the <unk> of the <unk> of the <unk> of the <unk> . \n                                                                 ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 2,
+      "completion": " \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-tvo9j8uk/candidate.py\", line 12\n    \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 3,
+      "completion": " \" , \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-si0ox07j/candidate.py\", line 13\n    \" , \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                              ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 4,
+      "completion": " <unk> \" ( <unk> ) \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <un",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-6agys5v3/candidate.py\", line 13\n    <unk> \" ( <unk> ) \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <un\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 5,
+      "completion": " \" , and \" <unk> \" , and \" <unk> \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-wcovl2ez/candidate.py\", line 11\n    \" , and \" <unk> \" , and \" <unk> \" . \n                                        ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 6,
+      "completion": " \" ( <unk> \" ) , and <unk> ( <unk> ) , and <unk> ( <unk> ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-lbb0_0jy/candidate.py\", line 12\n    \" ( <unk> \" ) , and <unk> ( <unk> ) , and <unk> ( <unk> ) . \n                                                                ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 7,
+      "completion": " <unk> ' \" , and the song 's song 's \" <unk> \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-glw70lfh/candidate.py\", line 11\n    <unk> ' \" , and the song 's song 's \" <unk> \" . \n                                                    ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 8,
+      "completion": " \" , and \" <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-60g4gxmh/candidate.py\", line 12\n    \" , and \" <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) . \n                                                                  ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 9,
+      "completion": " \" , and \" <unk> \" , and \" <unk> \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-wrxph26g/candidate.py\", line 10\n    \" , and \" <unk> \" , and \" <unk> \" . \n                                        ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 10,
+      "completion": " \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-gtdyk03x/candidate.py\", line 20\n    \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                    ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 11,
+      "completion": "s \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-szzf2y3g/candidate.py\", line 10\n    s \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                            ^\nSyntaxError: unterminated string literal (detected at line 10)\n"
+    },
+    {
+      "index": 12,
+      "completion": " \" . The song was a song that was a song for a single song , which was a song in the song 's song \" <unk> \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-zlnirvcj/candidate.py\", line 14\n    \" . The song was a song that was a song for a single song , which was a song in the song 's song \" <unk> \" . \n                                                                                                                 ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 13,
+      "completion": " great @-@ <unk> \" ( 1999 ) , and a statement produced by the company 's state . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-78z8uelc/candidate.py\", line 10\n    great @-@ <unk> \" ( 1999 ) , and a statement produced by the company 's state . \n                                                                                    ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 14,
+      "completion": " <unk> \" , and \" <unk> \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-bu8_u0k3/candidate.py\", line 9\n    <unk> \" , and \" <unk> \" . \n                              ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 15,
+      "completion": " <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-5g90zkdg/candidate.py\", line 10\n    <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                                                    ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 16,
+      "completion": " \" , and the second series of the series ' second series of the series . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-1e8tktcm/candidate.py\", line 10\n    \" , and the second series of the series ' second series of the series . \n                                                                            ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 17,
+      "completion": " [ <unk> ] \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-2ry6dz4r/candidate.py\", line 17\n    [ <unk> ] \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                                            ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 18,
+      "completion": " \" , and the song 's song is a song that was a strong and a strong song . The song was released on May 2 , 2008 . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-cmwsibhe/candidate.py\", line 12\n    \" , and the song 's song is a song that was a strong and a strong song . The song was released on May 2 , 2008 . \n                                                                                                                     ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 19,
+      "completion": " \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-k3x1iclh/candidate.py\", line 11\n    \" . \n        ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 20,
+      "completion": " <unk> \" ( 1990 ) , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-s8nt_xx2/candidate.py\", line 12\n    <unk> \" ( 1990 ) , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 21,
+      "completion": " <unk> \" , and the story of the state 's standard story . The story of the state was a state of the state , and the state was a standard standard . The story was the first time that the story was a standard of the state was the second season . The second s",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-5z58m9xh/candidate.py\", line 10\n    <unk> \" , and the story of the state 's standard story . The story of the state was a state of the state , and the state was a standard standard . The story was the first time that the story was a standard of the state was the second season . The second s\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 22,
+      "completion": " \" , and the sex was a strong and a strong and a strong and a strong and a strong and a strong and a strong and a strong pressure . The story was the second single from the second season of the season , and the second single \" The Tide \" , which was releas",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-ut_0q57m/candidate.py\", line 11\n    \" , and the sex was a strong and a strong and a strong and a strong and a strong and a strong and a strong and a strong pressure . The story was the second single from the second season of the season , and the second single \" The Tide \" , which was releas\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 23,
+      "completion": " \" , and a \" strong story of the star \" . The song was released on the UK Singles Chart at number 18 on the Billboard Hot 100 chart . The song was released on August 20 , 2008 . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-hjzmcxsz/candidate.py\", line 10\n    \" , and a \" strong story of the star \" . The song was released on the UK Singles Chart at number 18 on the Billboard Hot 100 chart . The song was released on August 20 , 2008 . \n                                                                                                                                                                                     ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 24,
+      "completion": " \" , and the state of the state 's state is a state of a star 's standard . The star 's star is a star 's standard , and the star 's standard is a standard star . The star 's standard star is a star , and the star 's standard stone is a star . The star 's ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-qqlwpjup/candidate.py\", line 8\n    \" , and the state of the state 's state is a state of a star 's standard . The star 's star is a star 's standard , and the star 's standard is a standard star . The star 's standard star is a star , and the star 's standard stone is a star . The star 's \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 25,
+      "completion": " \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-fm5uoh9q/candidate.py\", line 15\n    \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . \n                                                      ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 26,
+      "completion": " \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-3bdksguo/candidate.py\", line 10\n    \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 27,
+      "completion": ". \" , and \" I 'm Not There \" . The song was released on May 2 , 2008 . It was released as the first single from the album . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-2xx5tg0v/candidate.py\", line 8\n    . \" , and \" I 'm Not There \" . The song was released on May 2 , 2008 . It was released as the first single from the album . \n                  ^\nSyntaxError: unterminated string literal (detected at line 8)\n"
+    },
+    {
+      "index": 28,
+      "completion": " <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-pgceu1md/candidate.py\", line 11\n    <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                                                      ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 29,
+      "completion": " <unk> <unk> \" , and the song 's song is a song 's song ' \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-0fjqkdmt/candidate.py\", line 11\n    <unk> <unk> \" , and the song 's song is a song 's song ' \" . \n                                                                 ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 30,
+      "completion": "l \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-q9czlbpe/candidate.py\", line 10\n    l \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . \n                                                  ^\nSyntaxError: unterminated string literal (detected at line 10)\n"
+    },
+    {
+      "index": 31,
+      "completion": " \" ( <unk> ) , and a composite of <unk> <unk> ( <unk> ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-ig0qqz59/candidate.py\", line 20\n    \" ( <unk> ) , and a composite of <unk> <unk> ( <unk> ) . \n                                                             ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 32,
+      "completion": " <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-vk5y3f23/candidate.py\", line 24\n    <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                                                    ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 33,
+      "completion": " \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-z6i24ml8/candidate.py\", line 12\n    \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . \n                                                      ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 34,
+      "completion": " \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . The protagonist is a son of the <unk> of the <unk> , which is a state of the <unk> of the <unk> , and the <unk> of the <unk> <unk> . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-ssro1o9h/candidate.py\", line 8\n    \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . The protagonist is a son of the <unk> of the <unk> , which is a state of the <unk> of the <unk> , and the <unk> of the <unk> <unk> . \n                                                                                                                                                                                           ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 35,
+      "completion": " <unk> <unk> \" ( 1998 ) , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-yy7mqi7e/candidate.py\", line 10\n    <unk> <unk> \" ( 1998 ) , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" \n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 36,
+      "completion": " \" , and a standard standard and a standard state of a standard standard and a standard standard . The storm caused a major control over the storm , and the storm strengthened into a tropical storm . The storm caused a strong aircraft on September 2 , whic",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-fu_1w6sm/candidate.py\", line 12\n    \" , and a standard standard and a standard state of a standard standard and a standard standard . The storm caused a major control over the storm , and the storm strengthened into a tropical storm . The storm caused a strong aircraft on September 2 , whic\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 37,
+      "completion": " \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-dtfiiuna/candidate.py\", line 12\n    \" , and \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) . \n                                                      ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 38,
+      "completion": " <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-x16nglmq/candidate.py\", line 18\n    <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                          ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 39,
+      "completion": " \" , and \" <unk> \" ( <unk> ) , and \" <unk> \" ( <unk> ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-s91r7lv6/candidate.py\", line 17\n    \" , and \" <unk> \" ( <unk> ) , and \" <unk> \" ( <unk> ) . \n                                                            ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 40,
+      "completion": " <unk> \" ( <unk> ) \" , \" <unk> \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-tzec9mph/candidate.py\", line 20\n    <unk> \" ( <unk> ) \" , \" <unk> \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                                              ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 41,
+      "completion": "t \" , and \" the story of the state \" . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-exupmvct/candidate.py\", line 15\n    t \" , and \" the story of the state \" . \n                                       ^\nSyntaxError: unterminated string literal (detected at line 15)\n"
+    },
+    {
+      "index": 42,
+      "completion": " <unk> \" , and \" <unk> \" , and \" <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-l89xazhr/candidate.py\", line 10\n    <unk> \" , and \" <unk> \" , and \" <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                        ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 43,
+      "completion": " \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-f9lxdmur/candidate.py\", line 19\n    \" , \" <unk> \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 44,
+      "completion": "t \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-8lfp8o0j/candidate.py\", line 14\n    t \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                ^\nSyntaxError: unterminated string literal (detected at line 14)\n"
+    },
+    {
+      "index": 45,
+      "completion": " \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . The song was released on the American single in the United States on April 1 , 2008 . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-y58iz0a9/candidate.py\", line 8\n    \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . The song was released on the American single in the United States on April 1 , 2008 . \n                                                                                                                                                          ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 46,
+      "completion": " <unk> \" ( <unk> ) , and a <unk> <unk> ( <unk> <unk> ) , a second season with a <unk> <unk> <unk> ( <unk> <unk> ) , a standard <unk> ( <unk> <unk> ) , and a standard <unk> ( <unk> ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-hnsqc3fj/candidate.py\", line 18\n    <unk> \" ( <unk> ) , and a <unk> <unk> ( <unk> <unk> ) , a second season with a <unk> <unk> <unk> ( <unk> <unk> ) , a standard <unk> ( <unk> <unk> ) , and a standard <unk> ( <unk> ) . \n                                                                                                                                                                                           ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 47,
+      "completion": " <unk> \" ( <unk> ) , \" <unk> \" , \" <unk> \" , \" <unk> \" ( <unk> \" ) , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk>",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-5ya1esty/candidate.py\", line 10\n    <unk> \" ( <unk> ) , \" <unk> \" , \" <unk> \" , \" <unk> \" ( <unk> \" ) , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk> \" , \" <unk>\n                                                                                                                                                                                                                                                                   ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 48,
+      "completion": " <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-e6g4oe__/candidate.py\", line 15\n    <unk> \" ( <unk> ) \" , and \" <unk> \" ( \" <unk> \" ) , and \" <unk> \" ( \" <unk> \" ) . \n                                                                                      ^\nIndentationError: unindent does not match any outer indentation level\n"
+    },
+    {
+      "index": 49,
+      "completion": " great great police officers \" , and the second season was a state of the season . ",
+      "passed": false,
+      "error": "  File \"/tmp/ttt-humaneval-stdgrcj5/candidate.py\", line 16\n    great great police officers \" , and the second season was a state of the season . \n                                                                                      ^\nIndentationError: unindent does not match any outer indentation level\n"
+    }
+  ]
+}

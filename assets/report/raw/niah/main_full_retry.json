@@ -1,0 +1,150 @@
+{
+  "protocol_version": "niah_single_v1",
+  "model": {
+    "kind": "ttt_checkpoint",
+    "checkpoint": "outputs/main-full/step_00012000.orbax",
+    "step": 12000,
+    "adapt": false,
+    "max_length": 32768,
+    "prefix_token": "always <|endoftext|>"
+  },
+  "script_sha256": "b0d800b169ac58735887776e80bb1dde5d33b3d728adf036491a6208189b6da8",
+  "seed": 42,
+  "results": {
+    "noise_1024": {
+      "haystack": "noise",
+      "length": 1024,
+      "samples": 30,
+      "accuracy": 0.0,
+      "accuracy_ci95": [
+        0.0,
+        0.11351339317396876
+      ],
+      "answer_nll_per_token": 4.077636965417436,
+      "control_answer_nll_per_token": 8.208306935368752,
+      "needle_gain_per_token": 4.130669969951316,
+      "mean_prompt_tokens": 1005.0666666666667,
+      "accuracy_by_depth": {
+        "0.00": 0.0,
+        "0.11": 0.0,
+        "0.22": 0.0,
+        "0.33": 0.0,
+        "0.44": 0.0,
+        "0.56": 0.0,
+        "0.67": 0.0,
+        "0.78": 0.0,
+        "0.89": 0.0,
+        "1.00": 0.0
+      },
+      "seconds": 6.599542622920126
+    },
+    "noise_2048": {
+      "haystack": "noise",
+      "length": 2048,
+      "samples": 30,
+      "accuracy": 0.0,
+      "accuracy_ci95": [
+        0.0,
+        0.11351339317396876
+      ],
+      "answer_nll_per_token": 4.304914902550044,
+      "control_answer_nll_per_token": 8.40640872286767,
+      "needle_gain_per_token": 4.101493820317627,
+      "mean_prompt_tokens": 2030.3333333333333,
+      "accuracy_by_depth": {
+        "0.00": 0.0,
+        "0.11": 0.0,
+        "0.22": 0.0,
+        "0.33": 0.0,
+        "0.44": 0.0,
+        "0.56": 0.0,
+        "0.67": 0.0,
+        "0.78": 0.0,
+        "0.89": 0.0,
+        "1.00": 0.0
+      },
+      "seconds": 6.001548644155264
+    },
+    "noise_4096": {
+      "haystack": "noise",
+      "length": 4096,
+      "samples": 30,
+      "accuracy": 0.0,
+      "accuracy_ci95": [
+        0.0,
+        0.11351339317396876
+      ],
+      "answer_nll_per_token": 4.8604098603604955,
+      "control_answer_nll_per_token": 8.590057099119146,
+      "needle_gain_per_token": 3.729647238758651,
+      "mean_prompt_tokens": 4080.0333333333333,
+      "accuracy_by_depth": {
+        "0.00": 0.0,
+        "0.11": 0.0,
+        "0.22": 0.0,
+        "0.33": 0.0,
+        "0.44": 0.0,
+        "0.56": 0.0,
+        "0.67": 0.0,
+        "0.78": 0.0,
+        "0.89": 0.0,
+        "1.00": 0.0
+      },
+      "seconds": 6.677904882002622
+    },
+    "noise_8192": {
+      "haystack": "noise",
+      "length": 8192,
+      "samples": 30,
+      "accuracy": 0.0,
+      "accuracy_ci95": [
+        0.0,
+        0.11351339317396876
+      ],
+      "answer_nll_per_token": 6.034539605900645,
+      "control_answer_nll_per_token": 8.292264881134033,
+      "needle_gain_per_token": 2.257725275233388,
+      "mean_prompt_tokens": 8176.7,
+      "accuracy_by_depth": {
+        "0.00": 0.0,
+        "0.11": 0.0,
+        "0.22": 0.0,
+        "0.33": 0.0,
+        "0.44": 0.0,
+        "0.56": 0.0,
+        "0.67": 0.0,
+        "0.78": 0.0,
+        "0.89": 0.0,
+        "1.00": 0.0
+      },
+      "seconds": 7.922087237937376
+    },
+    "noise_16384": {
+      "haystack": "noise",
+      "length": 16384,
+      "samples": 30,
+      "accuracy": 0.0,
+      "accuracy_ci95": [
+        0.0,
+        0.11351339317396876
+      ],
+      "answer_nll_per_token": 7.47819468455047,
+      "control_answer_nll_per_token": 10.252786743397616,
+      "needle_gain_per_token": 2.774592058847146,
+      "mean_prompt_tokens": 16354.966666666667,
+      "accuracy_by_depth": {
+        "0.00": 0.0,
+        "0.11": 0.0,
+        "0.22": 0.0,
+        "0.33": 0.0,
+        "0.44": 0.0,
+        "0.56": 0.0,
+        "0.67": 0.0,
+        "0.78": 0.0,
+        "0.89": 0.0,
+        "1.00": 0.0
+      },
+      "seconds": 13.478227786021307
+    }
+  }
+}

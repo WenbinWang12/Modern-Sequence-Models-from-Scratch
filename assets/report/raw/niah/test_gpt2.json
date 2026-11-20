@@ -1,0 +1,70 @@
+{
+  "protocol_version": "niah_single_v1",
+  "model": {
+    "kind": "huggingface",
+    "model": "gpt2",
+    "revision": null,
+    "parameters": 124439808,
+    "max_length": 1024,
+    "prefix_token": "only for empty context (lm-evaluation-harness convention)",
+    "device": "cuda"
+  },
+  "script_sha256": "b0d800b169ac58735887776e80bb1dde5d33b3d728adf036491a6208189b6da8",
+  "seed": 42,
+  "results": {
+    "noise_1024": {
+      "haystack": "noise",
+      "length": 1024,
+      "samples": 20,
+      "accuracy": 0.0,
+      "accuracy_ci95": [
+        0.0,
+        0.16112515805281938
+      ],
+      "answer_nll_per_token": 2.1905179040622897,
+      "control_answer_nll_per_token": 6.984952751547098,
+      "needle_gain_per_token": 4.794434847484808,
+      "mean_prompt_tokens": 1004.2,
+      "accuracy_by_depth": {
+        "0.00": 0.0,
+        "0.11": 0.0,
+        "0.22": 0.0,
+        "0.33": 0.0,
+        "0.44": 0.0,
+        "0.56": 0.0,
+        "0.67": 0.0,
+        "0.78": 0.0,
+        "0.89": 0.0,
+        "1.00": 0.0
+      },
+      "seconds": 0.7417253979947418
+    },
+    "books_1024": {
+      "haystack": "books",
+      "length": 1024,
+      "samples": 20,
+      "accuracy": 0.0,
+      "accuracy_ci95": [
+        0.0,
+        0.16112515805281938
+      ],
+      "answer_nll_per_token": 2.3840658015105873,
+      "control_answer_nll_per_token": 6.942951757460833,
+      "needle_gain_per_token": 4.558885955950245,
+      "mean_prompt_tokens": 991.3,
+      "accuracy_by_depth": {
+        "0.00": 0.0,
+        "0.11": 0.0,
+        "0.22": 0.0,
+        "0.33": 0.0,
+        "0.44": 0.0,
+        "0.56": 0.0,
+        "0.67": 0.0,
+        "0.78": 0.0,
+        "0.89": 0.0,
+        "1.00": 0.0
+      },
+      "seconds": 0.6469370508566499
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "protocol_version": "synthetic_kv_retrieval_v1",
+  "protocol": "random key-value retrieval; greedy generation; exact match; no training-data claims",
+  "checkpoint": "outputs/h200-15m-ttt-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c82e827c1df9f4e360b97afc80c0cf5beb58cb1d7531aba825c2d5be2ba5498b",
+  "tokenizer": "byte",
+  "adapt": true,
+  "lengths": [
+    256,
+    512,
+    1024
+  ],
+  "samples_per_length": 16,
+  "seed": 0,
+  "max_new_tokens": 8,
+  "results": [
+    {
+      "context_length_request": 256,
+      "correct": 0,
+      "samples": 16,
+      "skipped": 0,
+      "exact_match": 0.0
+    },
+    {
+      "context_length_request": 512,
+      "correct": 0,
+      "samples": 16,
+      "skipped": 0,
+      "exact_match": 0.0
+    },
+    {
+      "context_length_request": 1024,
+      "correct": 0,
+      "samples": 16,
+      "skipped": 0,
+      "exact_match": 0.0
+    }
+  ]
+}

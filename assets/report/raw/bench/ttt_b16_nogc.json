@@ -1,0 +1,18 @@
+{
+  "config": "configs/report/bench_ttt.json",
+  "overrides": [
+    "training.gradient_checkpointing=false"
+  ],
+  "device": "cuda:0",
+  "parameters": 137731584,
+  "fast_parameters": 14155776,
+  "batch_size": 16,
+  "sequence_length": 4096,
+  "inner_enabled": true,
+  "first_loss": 10.974702835083008,
+  "last_loss": 10.723390579223633,
+  "compile_and_first_step_seconds": 28.840891131199896,
+  "median_step_seconds": 0.9333157410146669,
+  "tokens_per_second": 70218.46639889696,
+  "peak_bytes_in_use": 83473372672
+}

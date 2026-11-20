@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 476" width="1010" height="476" font-family="system-ui, -apple-system, 'Segoe UI', 'Noto Sans', 'DejaVu Sans', sans-serif" role="img" aria-label="TTT-E2E forward pass: prefix blocks run once, suffix blocks run chunk by chunk and update their fast weights after each chunk; the outer loop differentiates through all updates">
+<rect width="1010" height="476" fill="#fcfcfb"/>
+<defs>
+<marker id="slow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.8 L9 5 L0 9.2 z" fill="#c3c2b7"/></marker>
+<marker id="fast" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.8 L9 5 L0 9.2 z" fill="#1baf7a"/></marker>
+<marker id="outer" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.8 L9 5 L0 9.2 z" fill="#2a78d6"/></marker>
+</defs>
+<path d="M205.0 58 V44 H805.0 V58" fill="none" stroke="#2a78d6" stroke-width="1.6"/>
+<line x1="505.0" y1="44" x2="505.0" y2="58" stroke="#2a78d6" stroke-width="1.6"/>
+<text x="505.0" y="24.0" font-size="13.5" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">Outer loop: θ ← θ − α ∇θ (ℓ₁ + ℓ₂ + ℓ₃ + …), differentiating through every fast-weight update</text>
+<rect x="28.0" y="163.0" width="54.0" height="34.0" rx="17" fill="#e3f4ed" stroke="#1baf7a" stroke-width="1.6"/>
+<text x="55.0" y="181.0" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">φ₀</text>
+<rect x="328.0" y="163.0" width="54.0" height="34.0" rx="17" fill="#e3f4ed" stroke="#1baf7a" stroke-width="1.6"/>
+<text x="355.0" y="181.0" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">φ₁</text>
+<rect x="628.0" y="163.0" width="54.0" height="34.0" rx="17" fill="#e3f4ed" stroke="#1baf7a" stroke-width="1.6"/>
+<text x="655.0" y="181.0" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">φ₂</text>
+<rect x="928.0" y="163.0" width="54.0" height="34.0" rx="17" fill="#e3f4ed" stroke="#1baf7a" stroke-width="1.6"/>
+<text x="955.0" y="181.0" font-size="15" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">φ₃</text>
+<text x="55.0" y="214.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">learned</text>
+<text x="55.0" y="228.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">init ⊂ θ</text>
+<text x="998.0" y="181.0" font-size="20" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">⋯</text>
+<rect x="110.0" y="138.0" width="190.0" height="84.0" rx="8" fill="#f3f2ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="205.0" y="160.0" font-size="13.5" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">Suffix blocks</text>
+<text x="205.0" y="181.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">attention → fast MLP′ → MLP</text>
+<text x="205.0" y="200.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">predict chunk 1 with φ₀</text>
+<line x1="84.0" y1="180.0" x2="107.0" y2="180.0" stroke="#1baf7a" stroke-width="1.6" marker-end="url(#fast)"/>
+<line x1="302.0" y1="180.0" x2="325.0" y2="180.0" stroke="#1baf7a" stroke-width="1.6" marker-end="url(#fast)"/>
+<text x="355.0" y="214.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">=</text>
+<text x="355.0" y="229.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">φ₀ − η ĝ₁</text>
+<circle cx="205.0" cy="76" r="16" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.6"/>
+<text x="205.0" y="77.0" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">ℓ₁</text>
+<line x1="205.0" y1="136.0" x2="205.0" y2="95.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<line x1="205.0" y1="266.0" x2="205.0" y2="226.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<line x1="205.0" y1="362.0" x2="205.0" y2="324.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<rect x="110.0" y="364.0" width="190.0" height="40.0" rx="8" fill="#fcfcfb" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="205.0" y="385.0" font-size="12.5" font-weight="400" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">chunk 1  ·  C tokens</text>
+<rect x="410.0" y="138.0" width="190.0" height="84.0" rx="8" fill="#f3f2ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="505.0" y="160.0" font-size="13.5" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">Suffix blocks</text>
+<text x="505.0" y="181.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">attention → fast MLP′ → MLP</text>
+<text x="505.0" y="200.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">predict chunk 2 with φ₁</text>
+<line x1="384.0" y1="180.0" x2="407.0" y2="180.0" stroke="#1baf7a" stroke-width="1.6" marker-end="url(#fast)"/>
+<line x1="602.0" y1="180.0" x2="625.0" y2="180.0" stroke="#1baf7a" stroke-width="1.6" marker-end="url(#fast)"/>
+<text x="655.0" y="214.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">=</text>
+<text x="655.0" y="229.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">φ₁ − η ĝ₂</text>
+<circle cx="505.0" cy="76" r="16" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.6"/>
+<text x="505.0" y="77.0" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">ℓ₂</text>
+<line x1="505.0" y1="136.0" x2="505.0" y2="95.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<line x1="505.0" y1="266.0" x2="505.0" y2="226.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<line x1="505.0" y1="362.0" x2="505.0" y2="324.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<rect x="410.0" y="364.0" width="190.0" height="40.0" rx="8" fill="#fcfcfb" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="505.0" y="385.0" font-size="12.5" font-weight="400" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">chunk 2  ·  C tokens</text>
+<rect x="710.0" y="138.0" width="190.0" height="84.0" rx="8" fill="#f3f2ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="805.0" y="160.0" font-size="13.5" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">Suffix blocks</text>
+<text x="805.0" y="181.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">attention → fast MLP′ → MLP</text>
+<text x="805.0" y="200.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">predict chunk 3 with φ₂</text>
+<line x1="684.0" y1="180.0" x2="707.0" y2="180.0" stroke="#1baf7a" stroke-width="1.6" marker-end="url(#fast)"/>
+<line x1="902.0" y1="180.0" x2="925.0" y2="180.0" stroke="#1baf7a" stroke-width="1.6" marker-end="url(#fast)"/>
+<text x="955.0" y="214.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">=</text>
+<text x="955.0" y="229.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">φ₂ − η ĝ₃</text>
+<circle cx="805.0" cy="76" r="16" fill="#fcfcfb" stroke="#2a78d6" stroke-width="1.6"/>
+<text x="805.0" y="77.0" font-size="14" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">ℓ₃</text>
+<line x1="805.0" y1="136.0" x2="805.0" y2="95.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<line x1="805.0" y1="266.0" x2="805.0" y2="226.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<line x1="805.0" y1="362.0" x2="805.0" y2="324.0" stroke="#c3c2b7" stroke-width="1.6" marker-end="url(#slow)"/>
+<rect x="710.0" y="364.0" width="190.0" height="40.0" rx="8" fill="#fcfcfb" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="805.0" y="385.0" font-size="12.5" font-weight="400" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">chunk 3  ·  C tokens</text>
+<rect x="110.0" y="268.0" width="790.0" height="52.0" rx="8" fill="#f3f2ee" stroke="#c3c2b7" stroke-width="1.2"/>
+<text x="505.0" y="286.0" font-size="13.5" font-weight="600" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">Prefix blocks (slow weights only)</text>
+<text x="505.0" y="305.0" font-size="11.5" font-weight="400" fill="#52514e" text-anchor="middle" dominant-baseline="middle">sliding-window attention + MLP, computed once for the whole sequence</text>
+<line x1="28" y1="440" x2="54" y2="440" stroke="#1baf7a" stroke-width="2.4"/>
+<text x="62.0" y="441.0" font-size="12" font-weight="400" fill="#52514e" text-anchor="start" dominant-baseline="middle">Inner loop (also runs at test time): after each chunk, one SGD step with ĝ = ∇φ ℓ clipped to norm τ</text>
+<line x1="28" y1="460" x2="54" y2="460" stroke="#2a78d6" stroke-width="2.4"/>
+<text x="62.0" y="461.0" font-size="12" font-weight="400" fill="#52514e" text-anchor="start" dominant-baseline="middle">Outer loop (training only): next-token loss summed over chunks, back-propagated through the inner steps</text>
+</svg>

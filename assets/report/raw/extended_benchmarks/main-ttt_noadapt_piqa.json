@@ -1,0 +1,16 @@
+{
+  "protocol_version": "arc_piqa_loglikelihood_v1",
+  "protocol": "piqa validation split; zero-shot answer-text continuation log-likelihood; byte tokenizer; no adaptation",
+  "task": "piqa",
+  "checkpoint": "outputs/main-ttt/step_00012000.orbax",
+  "checkpoint_metadata_sha256": "5eef3180b7cff3b39b05ba59cd1cdd1de671c6edd57a9cc62c9ecd9be3524863",
+  "script_sha256": "7f8897dc0035b5864fae90c86cadc7ce102ff776ec11b0d7ca97e5392478585f",
+  "data": "/home/wang.21020/modern-sequence-run/data/public/piqa/piqa_validation.jsonl",
+  "data_sha256": "61533005e22f175534909b1ec8eacb6da03c233933558d1bafb15787453b1f55",
+  "limit": 100,
+  "max_length": 512,
+  "correct": 55,
+  "samples": 100,
+  "skipped": 0,
+  "accuracy": 0.55
+}

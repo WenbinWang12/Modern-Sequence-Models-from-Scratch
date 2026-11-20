@@ -1,0 +1,60 @@
+{
+  "protocol_version": "mmlu_loglikelihood_v1",
+  "protocol": "MMLU test split; zero-shot answer-letter continuation log-likelihood; byte tokenizer; no adaptation",
+  "checkpoint": "outputs/h200-15m-baseline-mixture-85-15/step_00010000.orbax",
+  "checkpoint_metadata_sha256": "c5a6ac43b55a2b52dc2956df4b951db1171fb69360f69b344f1d53c308f7d4bb",
+  "script_sha256": "873ce3aa1cd4fe4ec1132e42250cb58cf13634a51b9828e092f35590c3e0c380",
+  "data_dir": "/home/wang.21020/mmlu-data/mmlu",
+  "data_sha256": {
+    "abstract_algebra": "4be89c0fb1d2419722e88880f6da3da95750367185ecd36f6492a6f74785cf64",
+    "high_school_mathematics": "fe8f7a154834bba30947401ba37ea6c7afdcfba82ddc341c79b5d3016991d290",
+    "college_physics": "079c3696eda22c13b0472de245c7bb4918315b59481964109a4f65d2a35b4243",
+    "computer_security": "8e40f809858db9dd8585036b53984e570b6101f72be2214b85e979c7fafa307f",
+    "professional_law": "eeb81cac576a5f537485b6befd25837b55f64b57e9b2a7e409210d7c8d608820"
+  },
+  "subjects": [
+    "abstract_algebra",
+    "high_school_mathematics",
+    "college_physics",
+    "computer_security",
+    "professional_law"
+  ],
+  "limit_per_subject": 100,
+  "max_length": 512,
+  "correct": 116,
+  "samples": 392,
+  "skipped": 108,
+  "accuracy": 0.29591836734693877,
+  "per_subject": {
+    "abstract_algebra": {
+      "correct": 37,
+      "samples": 100,
+      "skipped": 0,
+      "accuracy": 0.37
+    },
+    "high_school_mathematics": {
+      "correct": 27,
+      "samples": 99,
+      "skipped": 1,
+      "accuracy": 0.2727272727272727
+    },
+    "college_physics": {
+      "correct": 25,
+      "samples": 98,
+      "skipped": 2,
+      "accuracy": 0.25510204081632654
+    },
+    "computer_security": {
+      "correct": 26,
+      "samples": 90,
+      "skipped": 10,
+      "accuracy": 0.28888888888888886
+    },
+    "professional_law": {
+      "correct": 1,
+      "samples": 5,
+      "skipped": 95,
+      "accuracy": 0.2
+    }
+  }
+}

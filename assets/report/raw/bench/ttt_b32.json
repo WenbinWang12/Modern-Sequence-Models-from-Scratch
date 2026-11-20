@@ -1,0 +1,18 @@
+{
+  "config": "configs/report/bench_ttt.json",
+  "overrides": [
+    "training.batch_size=32"
+  ],
+  "device": "cuda:0",
+  "parameters": 137731584,
+  "fast_parameters": 14155776,
+  "batch_size": 32,
+  "sequence_length": 4096,
+  "inner_enabled": true,
+  "first_loss": 10.97372817993164,
+  "last_loss": 10.783655166625977,
+  "compile_and_first_step_seconds": 34.73349880008027,
+  "median_step_seconds": 2.7839563540183008,
+  "tokens_per_second": 47081.19788257944,
+  "peak_bytes_in_use": 53474316544
+}

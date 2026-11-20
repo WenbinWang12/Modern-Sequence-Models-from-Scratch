@@ -148,6 +148,52 @@ S1 不是一个五臂固定列表，而是四个小筛选块：
 
 S1-A 到 S1-D 先分别估计主效应。只有在某个因子通过稳定性和成本门槛后，才进入组合实验。这样“任意两个可组合”仍然成立，但组合由 S6 的交互设计负责，而不是在 S1 阶段把所有组合一次跑完。
 
+## 首轮 8 张 H100 的最小实验
+
+### Wave A：窗口 × TTT
+
+第一波严格运行一个 (4\times2) 笛卡尔积：
+
+- attention mixer 固定为 MHA
+- 训练模型固定为 125M 参数级别
+- Dolma3、4K 训练上下文、AdamW、seed 0
+- 每个 cell 训练 3B tokens，约 TPP 20–24
+- 窗口 (W\in\{64,128,256,512\})
+- TTT 状态 (U\in\{no\text{-}update, TTT\text{-}E2E\})
+
+TTT cell 第一轮使用 (C=W)，因此这是“窗口与更新块同步”的可运行最小实验。W=64 和 W=128 的结果可以直接回答很小窗口是否仍然有效。随后再做 (W\times C\) 的解耦实验，避免把窗口大小和更新频率混为一个因素。
+
+`no-update` 保留与 TTT-E2E 相同的 fast MLP 参数，只关闭测试时更新。另加一个 plain SWA anchor，用来区分额外参数和更新本身的作用。
+
+8 张 H100 同时运行这 8 个 cell。每个 cell 保存训练 loss、各来源 held-out NLL、按位置的上下文曲线、tokens/s、step time、峰值显存和实际 FLOPs。
+
+### Wave B：注意力头 / mixer × TTT
+
+第二波运行另一个 (4\times2) 笛卡尔积，固定 (W=128)：
+
+| mixer | 说明 |
+|---|---|
+| MHA | 每个 query head 使用独立的 key/value head |
+| GQA | 多个 query head 共享一个 key/value head，例如 12 个 Q head 对应 4 个 KV head |
+| MQA | 所有 query head 共享 1 个 key/value head |
+| GDN | Gated DeltaNet，使用递归状态和 delta-rule 更新，纯 GDN 没有 attention window |
+
+每个 mixer 都运行 `no-update` 和 `TTT-E2E` 两个版本。GDN 的窗口字段记为 `N/A`，不能把它和 W=64/128 的 attention 实验当成同一个因子水平。GDN 是当前仓库已经支持的线性状态 mixer，MHA/GQA/MQA 则通过 `num_key_value_heads` 区分。[Gated DeltaNet 官方实现](https://github.com/NVlabs/GatedDeltaNet)
+
+### 首轮不改变的因素
+
+第一轮固定 Loop、MoE、Muon、上下文训练长度、RoPE、norm、MTP、数据配方和 batch。它们在 Wave A/B 后作为独立因子进入后续筛选。这样首轮可以回答两个清晰问题：小 attention window 的影响，以及不同 token mixer 与 TTT 的组合是否有收益。
+
+### 首轮之后的解耦实验
+
+如果 Wave A 显示 W=64 或 W=128 有潜力，再运行：
+
+\[
+W\in\{64,128\}\times C\in\{64,128\}
+\]
+
+并固定 TTT-E2E。这个 (2\times2) 实验用于分离上下文可见范围和快权重更新频率。之后再加入 Loop、MoE、Muon 和更长上下文。
+
 ## 实验阶段
 
 下面的阶段是执行顺序，因子注册表和分层矩阵是实验定义。阶段推进时只从矩阵中取出当前需要的行，不新增未登记的变量。

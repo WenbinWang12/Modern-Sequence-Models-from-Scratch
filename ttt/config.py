@@ -1,8 +1,9 @@
 """实验配置的读写。"""
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 from .inner_loop import InnerLoopConfig
 from .models.ttt_e2e.configuration_ttt_e2e import TTTE2EConfig
@@ -15,8 +16,11 @@ class ExperimentConfig:
     inner: InnerLoopConfig
     training: TrainConfig
     tokenizer: str = "byte"
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
+        if not isinstance(self.metadata, dict):
+            raise TypeError("experiment metadata must be a dictionary")
         if self.training.sequence_length > self.model.max_position_embeddings:
             raise ValueError("训练长度不能超过模型位置上限。")
         if self.tokenizer == "byte" and self.model.vocab_size < 259:
@@ -28,11 +32,12 @@ class ExperimentConfig:
             "inner": asdict(self.inner),
             "training": asdict(self.training),
             "tokenizer": self.tokenizer,
+            "metadata": self.metadata,
         }
 
     @classmethod
     def from_dict(cls, values):
-        unknown = values.keys() - {"model", "inner", "training", "tokenizer"}
+        unknown = values.keys() - {"model", "inner", "training", "tokenizer", "metadata"}
         if unknown:
             raise ValueError(f"未知实验字段：{sorted(unknown)}。")
         return cls(
@@ -40,6 +45,7 @@ class ExperimentConfig:
             inner=InnerLoopConfig(**values.get("inner", {})),
             training=TrainConfig(**values.get("training", {})),
             tokenizer=values.get("tokenizer", "byte"),
+            metadata=values.get("metadata", {}),
         )
 
 

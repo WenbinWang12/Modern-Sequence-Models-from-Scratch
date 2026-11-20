@@ -19,7 +19,7 @@
 
 | 编号 | 因子 | 主要水平 | 参考值 | 类型 |
 |---|---|---|---|---|
-| A | 架构 | Dense、SWA、TTT、Loop-2、Loop-2+TTT | SWA 或 TTT | 主研究因子 |
+| A | 架构组合 | mixer × recurrence × adaptation × MoE 的合法组合 | sliding + no loop + no adaptation + dense | 主研究因子 |
 | P | 总参数量 | 125M、350M、760M、1.3B、3B | 125M | 主规模因子 |
 | D | TPP | 10、20、40、80 | 20 | 主数据量因子 |
 | R | Loop 深度 | 1、2、4 | 2 | Loop 机制因子 |
@@ -36,6 +36,75 @@
 
 Loop 模型还要额外记录 unique trainable parameters、有效层访问次数和 measured FLOPs/token。共享参数会使传统 TPP 高估 Loop 模型实际承受的计算量。
 
+### 扩展架构因子
+
+架构因子不把某一种组合预先命名成唯一模型。每个可兼容的因子都可以与其他因子组合，组合是否合法由参数形状、缓存语义和成本约束决定。
+
+| 类别 | 候选水平 | 当前仓库状态 |
+|---|---|---|
+| Token mixer | full attention、sliding-window、hybrid full/local、GQA/MQA | full、sliding、GQA 已有；hybrid 已有配置生成器 |
+| Linear/state-space mixer | Gated DeltaNet、Delta rule、GLA、RetNet、Mamba/Mamba2、RWKV | Gated DeltaNet 已有，其余列为后续实现轴 |
+| Loop recurrence | early FFN、middle block、middle attention、full-stack、dynamic exit | 前三种已有；full-stack 和 exit 需要实现 |
+| TTT adaptation | fast MLP、router adaptation、delta-router adaptation、无适应 | fast MLP、router、delta-router 已有 |
+| MoE | dense、top-1、top-2/top-k、shared experts、expert 数、稀疏层位置 | top-k、shared experts、MoE loop 和三条适应路线已有 |
+| Loop depth | 1、2、4、8 | 2 已作为起点，4/8 需要稳定性测试 |
+| TTT suffix | 1 层、末四分之一、末三分之一、全层 | 末段 MLP′ 已有 |
+| Norm/residual | pre-norm、post-norm、RMSNorm、QK-Norm、attention gate、hyper-connection | pre/post、RMSNorm、QK-Norm、attention gate 已有，其余需实现 |
+| Objective | next-token、multi-token prediction、per-loop loss、deep supervision、entropy-regularized exit | next-token 和 multi-token 已有，后几项需实现 |
+
+### 优化器和训练规则因子
+
+优化器要拆成外循环优化器和 TTT 内循环优化器。它们不能共用一个因子名。
+
+| 类别 | 候选水平 |
+|---|---|
+| 外循环优化器 | AdamW、Muon、Muon+AdamW hybrid、SOAP、Adafactor |
+| TTT 内循环优化器 | normalized SGD、SGD、Adam/AdamW、per-layer learning rate、learned learning rate |
+| 学习率计划 | warmup+cosine、WSD、constant+decay、分阶段 anneal |
+| 权重衰减 | 0、0.01、0.1，按参数类型分组 |
+| 梯度处理 | global clip、per-layer clip、无 clip |
+| batch 轴 | global token batch、sequence batch、gradient accumulation |
+| 精度和算子顺序 | float32/bfloat16、确定性归约、XLA kernel 顺序 |
+
+Muon 与 AdamW 必须在相同 token、相同模型、相同数据顺序和相同 wall-clock 记录下比较。Muon 通常只应用于二维隐藏层矩阵，其余参数使用 AdamW，因此实验配置要明确参数分组。已有研究同时报告了 Muon 的数据效率优势和语言训练中的成本、调参敏感性，不能只比较最终 loss。[Muon 可扩展性研究](https://arxiv.org/abs/2502.16982) · [Muon、SOAP 与 AdamW 对照](https://arxiv.org/abs/2607.20548)
+
+### TPP 和上下文因子
+
+TPP 的候选网格扩展为 `5、10、20、40、80、160、320、640、1280、2000`。其中 5–10 主要用于 smoke 和早期曲线，20–80 用于正式架构对照，160–2000 用于高数据量和 Loop 的过训练研究。
+
+174.48B token 池对每个参数规模的无额外扩充上限约为：125M 为 TPP 1,395，350M 为 498，760M 为 229，1.3B 为 134，3B 为 58。超过上限时必须标明重复采样、来源上采样或新增数据，不能把它写成独立 token 覆盖量。
+
+上下文因子拆为训练长度和评测长度：
+
+- 训练长度：2K、4K、8K、16K、32K、64K、128K、256K、512K、1M、2M。
+- 评测长度：4K、8K、16K、32K、64K、128K、256K、512K、1M、2M。
+- 注意力窗口：256、512、1K、2K、4K、full。
+- 长上下文机制：完整 KV、滑窗 KV、线性状态、快权重状态、压缩或共享 KV。
+
+2M 是候选上限和专项工程目标。全注意力在这个长度上的显存与计算代价需要单独的并行和 kernel 方案，线性或状态空间模型则需要验证状态稳定性和长文档训练数据。
+
+### 数据和采样因子
+
+数据因子不仅是 corpus 名称，还包括：
+
+- 来源配方：Dolma3、v2、web-only、math/code tilt、science-heavy。
+- 来源比例：自然比例、质量感知上采样、数学/代码增强。
+- 抽样方式：无放回、窗口有放回、来源内重复保留、阶段性 anneal。
+- 文档顺序：全局 shuffle、来源分层 shuffle、课程式顺序。
+- tokenizer 和词表：GPT-2、Llama 风格 tokenizer、词表大小和特殊 token。
+
+### 随机性因子和 seed survey
+
+需要分别记录初始化 seed、数据顺序 seed、窗口采样 seed、分布式归约顺序和算子确定性设置。不存在一个跨架构、跨数据和跨优化器都天然更好的 seed 数字。所谓好 seed 或差 seed，只能相对于一个冻结的配置和评测指标定义。
+
+先做 seed survey，再做正式确认：
+
+1. 在固定 50–125M 模型和短预算上使用 16–32 个预注册 seeds，估计最终 held-out loss、训练稳定性和各 domain loss 的分布。
+2. 用这些结果估计方差和异常运行率，不能挑选其中最好的 seed 作为正式结果。
+3. 最终配置使用预注册的 3–5 个 seeds，报告均值、中位数、标准差和配对置信区间。
+
+DataDecide 在多语料预训练中使用 3 个随机种子，并显示小规模连续 likelihood 对大规模配方排序有较强预测力。近期的预训练方差分析还把初始化、数据顺序和浮点运算顺序分开测量，因此 seed survey 应同时记录这些随机性来源，而不是只改一个整数。[DataDecide](https://proceedings.mlr.press/v267/magnusson25a.html) · [预训练方差分析](https://spencerfrei.github.io/blog/2026-08-17-pretraining_variance/)
+
 ## 因子取值策略
 
 实验不直接运行完整笛卡尔积，而采用三层设计：
@@ -51,15 +120,29 @@ Loop 模型还要额外记录 unique trainable parameters、有效层访问次�
 | 层级 | 固定因素 | 变化因素 | 目的 |
 |---|---|---|---|
 | S0 smoke | P、M、L、优化器和 tokenizer | A 的实现开关 | 检查数值、状态和恢复，不解释质量 |
-| S1 架构筛选 | P=125M、D=20、M=Dolma3、L=4K、K=0 | A | 建立 Dense、SWA、TTT、Loop-2、Loop-2+TTT 的主效应 |
+| S1 架构筛选 | P=125M、D=20、M=Dolma3、L=4K、K=0 | A | 建立 mixer、recurrence、adaptation 和 MoE 主效应 |
 | S2 TPP 曲线 | P=125M、A 取 SWA 与 S1 胜者 | D=10、20、40、80 | 测量数据量对每种架构的影响 |
 | S3 参数规模曲线 | A 取 SWA 与 S1 胜者、D=40 | P=125M、350M、760M | 测量参数规模和架构的交互 |
 | S4 机制消融 | P=125M、D=20、M=Dolma3 | R、U、S、C、W | 拆解 Loop 和 TTT 的内部机制 |
 | S5 数据配方 | P=125M、D=20、A 取 S1 胜者 | M | 估计来源池和配比的主效应 |
 | S6 关键交互 | 只取 S1–S5 的候选水平 | A×D、A×P、A×M、R×P | 检查结论是否依赖特定预算或数据 |
 | S7 最终确认 | 候选配置和最终数据 revision | K=0、1、2 与 B 两种约束 | 建立可报告结论 |
+| S8 优化器 | P=125M、D=20、M=Dolma3、A 取 S1 胜者 | AdamW、Muon、Muon+AdamW | 测量数据效率、稳定性和实际成本 |
+| S9 上下文 | A、P、D 和 M 固定 | 训练长度与评测长度逐级增加 | 测量长上下文收益和状态成本 |
+| S10 seed survey | 一个冻结的参考配置 | 16–32 个预注册 seeds | 估计方差、异常率和所需重复数 |
 
 S2 中的 D=10 只作为低 TPP 曲线端点。正式质量结论至少从 D=20 开始。S3 先做到 760M，1.3B 和 3B 进入最终确认阶段。这样可以先估计趋势，再把预算集中到有证据的方向。
+
+S1 不是一个五臂固定列表，而是四个小筛选块：
+
+| 筛选块 | 变化内容 | 代表水平 |
+|---|---|---|
+| S1-A mixer | token mixer | full attention、SWA、Gated DeltaNet、hybrid full/local |
+| S1-B memory | recurrence 和 TTT | no loop、Loop-2、TTT、Loop-2+TTT |
+| S1-C capacity | dense 与 MoE | dense、top-2 MoE、shared-expert MoE |
+| S1-D stability | norm 与 objective | pre/post norm、QK-Norm、next-token/MTP |
+
+S1-A 到 S1-D 先分别估计主效应。只有在某个因子通过稳定性和成本门槛后，才进入组合实验。这样“任意两个可组合”仍然成立，但组合由 S6 的交互设计负责，而不是在 S1 阶段把所有组合一次跑完。
 
 ## 实验阶段
 
@@ -78,7 +161,7 @@ S2 中的 D=10 只作为低 TPP 曲线端点。正式质量结论至少从 D=20 
 
 ### E1　Dolma3 上的机制主实验
 
-第一轮使用约 125–140M 参数、4,096 上下文、窗口 512、更新块 256 的模型，训练约 3B tokens。这对应总参数量约 22–24 的 TPP，适合正式比较。五个模型共享初始化种子、数据顺序、优化器、学习率计划和检查点位置。
+第一轮使用约 125–140M 参数、4,096 上下文、窗口 512、更新块 256 的模型，训练约 3B tokens。这对应总参数量约 22–24 的 TPP，适合正式比较。下面是从完整因子空间中抽取的首轮代表性切片，不是预先规定的全部架构组合。五个模型共享初始化种子、数据顺序、优化器、学习率计划和检查点位置。
 
 | 实验臂 | 作用 |
 |---|---|
